@@ -303,6 +303,8 @@ function initAutoTierDegradation(composerRef, bloomPassRef, customPassRef) {
     if (bp) {
       bp.strength = 0.4;
     }
+    // Shimmer degradation: slow down (T019)
+    document.querySelector('.frame__greek-key')?.style.setProperty('--shimmer-duration', '8s');
   }
 
   function runTier2Recheck() {
@@ -344,19 +346,42 @@ function initAutoTierDegradation(composerRef, bloomPassRef, customPassRef) {
     if (rendererEl) {
       rendererEl.style.filter = 'blur(1px) brightness(1.1)';
     }
+
+    // Shimmer degradation: disable (T019)
+    document.querySelector('.frame__greek-key')?.classList.add('shimmer-disabled');
   }
 
-  const handler = () => {
-    document.removeEventListener('reveal-complete', handler);
-    setTimeout(runBenchmark, 5000);
+  // Benchmark fires 5s after BOTH reveal-complete AND terminal-scan-complete (T015)
+  let revealDone = false;
+  let terminalDone = false;
+
+  function checkBothDone() {
+    if (revealDone && terminalDone) {
+      setTimeout(runBenchmark, 5000);
+    }
+  }
+
+  const revealHandler = () => {
+    document.removeEventListener('reveal-complete', revealHandler);
+    revealDone = true;
+    checkBothDone();
   };
 
-  document.addEventListener('reveal-complete', handler);
+  const terminalHandler = () => {
+    document.removeEventListener('terminal-scan-complete', terminalHandler);
+    terminalDone = true;
+    checkBothDone();
+  };
 
+  document.addEventListener('reveal-complete', revealHandler);
+  document.addEventListener('terminal-scan-complete', terminalHandler);
+
+  // Fallback timeout: 20s
   setTimeout(() => {
-    document.removeEventListener('reveal-complete', handler);
+    document.removeEventListener('reveal-complete', revealHandler);
+    document.removeEventListener('terminal-scan-complete', terminalHandler);
     runBenchmark();
-  }, 12000);
+  }, 20000);
 }
 
 // ---------------------------------------------------------------------------

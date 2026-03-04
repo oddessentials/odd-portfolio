@@ -8,10 +8,13 @@ import { PROJECTS, CONSTELLATION_ZONES } from './data.js';
 let scene, camera, renderer, orbGroup, starNodes, nebulaLayers;
 let starGroup, dustMotes;
 const raycaster = new THREE.Raycaster();
+raycaster.params.Sprite = { threshold: 0.15 };
 const mouse = new THREE.Vector2(-9999, -9999);
 let hoveredStar = null;
 let labelContainer = null;
 let isMobile = false;
+let xScale = 1.0;
+const designAspect = 16 / 9;
 
 // Logo follow references
 let logoEl = null;
@@ -375,6 +378,7 @@ function initScene() {
     );
     sprite.userData = {
       project: project,
+      basePosition: project.position.slice(),
       baseScale: scale,
       phaseOffset: Math.random() * Math.PI * 2,
       index: idx
@@ -496,6 +500,15 @@ function initScene() {
     const newDpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio, 1.5);
     renderer.setPixelRatio(newDpr);
     renderer.setSize(w, h);
+
+    // Responsive star scaling (T003)
+    const currentAspect = w / h;
+    xScale = Math.min(1, currentAspect / designAspect);
+    starNodes.forEach(sprite => {
+      sprite.position.x = sprite.userData.basePosition[0] * xScale;
+    });
+    // Nebula x-scaling (T004)
+    nebulaLayers.forEach(layer => { layer.scale.x = xScale; });
   }
   window.addEventListener('resize', onResize);
 
@@ -566,11 +579,12 @@ function initScene() {
         const dx = posArr[i3];
         const dy = posArr[i3 + 1];
         const dz = posArr[i3 + 2];
-        if (Math.abs(dx) > 3.5 || Math.abs(dy) > 2.5 || dz < -2.5 || dz > 1.5) {
+        const xClamp = 3.5 * xScale;
+        if (Math.abs(dx) > xClamp || Math.abs(dy) > 2.5 || dz < -2.5 || dz > 1.5) {
           velArr[i3] *= -0.5;
           velArr[i3 + 1] *= -0.5;
           velArr[i3 + 2] *= -0.5;
-          posArr[i3] = Math.max(-3.5, Math.min(3.5, dx));
+          posArr[i3] = Math.max(-xClamp, Math.min(xClamp, dx));
           posArr[i3 + 1] = Math.max(-2.5, Math.min(2.5, dy));
           posArr[i3 + 2] = Math.max(-2.5, Math.min(1.5, dz));
         }
@@ -628,6 +642,9 @@ function initScene() {
 
   // Initialize logo follow after scene is ready
   initLogoFollow();
+
+  // Compute initial xScale for non-16:9 viewports (e.g. mobile first-load)
+  onResize();
 
   return true;
 }

@@ -15,6 +15,10 @@ let hamburgerBtn = null;
 let navEl = null;
 let navOpen = false;
 
+// Touch/hover state
+let isTouchDevice = false;
+let expandedBtn = null;
+
 // Category SVG icons for terminal-style placeholders
 const CATEGORY_ICONS = {
   'ai-devops': '<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><circle cx="24" cy="18" r="8"/><path d="M12 40c0-6.627 5.373-12 12-12s12 5.373 12 12"/><circle cx="36" cy="12" r="4"/><line x1="36" y1="16" x2="36" y2="22"/></svg>',
@@ -344,10 +348,18 @@ function initInteractions() {
     updateAriaPressed(project.id);
   });
 
-  // Constellation nav button clicks
+  // Detect touch device
+  isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+
+  // Constellation nav button clicks (with touch guard — T009)
   const navButtons = document.querySelectorAll('#constellation-nav button[data-project-id]');
   navButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
+      // Touch guard: first tap expands tagline, second tap opens panel
+      if (isTouchDevice && !btn.classList.contains('tagline-expanded')) {
+        expandTagline(btn);
+        return;
+      }
       const projectId = btn.getAttribute('data-project-id');
       const project = PROJECTS.find(p => p.id === projectId);
       if (project) {
@@ -355,6 +367,23 @@ function initInteractions() {
         updateAriaPressed(projectId);
       }
     });
+  });
+
+  // Initialize hover effects for desktop (T008)
+  initNavHoverEffects(navButtons);
+
+  // Debounced resize handler (T010)
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (window.innerWidth >= 768 && navOpen) {
+        closeHamburgerNav();
+      }
+      if (expandedBtn) {
+        collapseTagline(expandedBtn);
+      }
+    }, 100);
   });
 
   // Arrow key navigation in constellation nav
@@ -391,10 +420,14 @@ function initInteractions() {
       }
     });
 
-    // Close nav on backdrop tap (clicking outside the nav when overlay is showing)
+    // Close nav on backdrop tap + collapse taglines
     document.addEventListener('click', (e) => {
       if (navOpen && navEl && !navEl.contains(e.target) && e.target !== hamburgerBtn && !hamburgerBtn.contains(e.target)) {
         closeHamburgerNav();
+      }
+      // Collapse expanded tagline when clicking outside nav
+      if (expandedBtn && navEl && !navEl.contains(e.target)) {
+        collapseTagline(expandedBtn);
       }
     });
   }
@@ -415,6 +448,105 @@ function updateAriaPressed(activeId) {
       btn.getAttribute('data-project-id') === activeId ? 'true' : 'false'
     );
   });
+}
+
+// ---------------------------------------------------------------------------
+// Nav hover effects for desktop (T008)
+// ---------------------------------------------------------------------------
+function initNavHoverEffects(navButtons) {
+  const gsap = window.gsap;
+  if (!gsap) return;
+
+  // Only attach on hover-capable devices
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  navButtons.forEach((btn) => {
+    const desc = btn.querySelector('.project-desc');
+    const glyph = btn.querySelector('.glyph');
+    if (!desc) return;
+
+    btn.addEventListener('mouseenter', () => {
+      if (prefersReducedMotion.matches) {
+        desc.style.maxHeight = '1.5em';
+        desc.style.opacity = '1';
+        return;
+      }
+      gsap.killTweensOf(desc);
+      gsap.to(desc, { maxHeight: '1.5em', opacity: 1, duration: 0.3, ease: 'power2.out' });
+      if (glyph) {
+        gsap.to(glyph, { scale: 1.2, duration: 0.3, ease: 'back.out(2)' });
+      }
+    });
+
+    btn.addEventListener('mouseleave', () => {
+      if (prefersReducedMotion.matches) {
+        desc.style.maxHeight = '0';
+        desc.style.opacity = '0';
+        return;
+      }
+      gsap.killTweensOf(desc);
+      gsap.to(desc, { maxHeight: 0, opacity: 0, duration: 0.2, ease: 'power2.in' });
+      if (glyph) {
+        gsap.to(glyph, { scale: 1, duration: 0.2, ease: 'power2.out' });
+      }
+    });
+
+    // Keyboard parity: focus-visible
+    btn.addEventListener('focus', () => {
+      if (!btn.matches(':focus-visible')) return;
+      gsap.killTweensOf(desc);
+      gsap.to(desc, { maxHeight: '1.5em', opacity: 1, duration: 0.3, ease: 'power2.out' });
+    });
+
+    btn.addEventListener('blur', () => {
+      gsap.killTweensOf(desc);
+      gsap.to(desc, { maxHeight: 0, opacity: 0, duration: 0.2, ease: 'power2.in' });
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Tagline expand/collapse for touch (T009)
+// ---------------------------------------------------------------------------
+function expandTagline(btn) {
+  const gsap = window.gsap;
+  const desc = btn.querySelector('.project-desc');
+  if (!desc) return;
+
+  // Collapse previous
+  if (expandedBtn && expandedBtn !== btn) {
+    collapseTagline(expandedBtn);
+  }
+
+  btn.classList.add('tagline-expanded');
+  desc.classList.add('tagline-expanded');
+  expandedBtn = btn;
+
+  if (gsap) {
+    gsap.to(desc, { maxHeight: '3em', opacity: 1, duration: 0.3, ease: 'power2.out' });
+  } else {
+    desc.style.maxHeight = '3em';
+    desc.style.opacity = '1';
+  }
+}
+
+function collapseTagline(btn) {
+  const gsap = window.gsap;
+  const desc = btn.querySelector('.project-desc');
+  if (!desc) return;
+
+  btn.classList.remove('tagline-expanded');
+  desc.classList.remove('tagline-expanded');
+  if (expandedBtn === btn) expandedBtn = null;
+
+  if (gsap) {
+    gsap.to(desc, { maxHeight: 0, opacity: 0, duration: 0.2, ease: 'power2.in' });
+  } else {
+    desc.style.maxHeight = '0';
+    desc.style.opacity = '0';
+  }
 }
 
 // ---------------------------------------------------------------------------
