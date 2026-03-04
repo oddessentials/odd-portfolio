@@ -206,6 +206,18 @@ function initLogoFollow() {
     }
   }
 
+  // Shared engage helper — used by mouseenter and mousemove fallback
+  function engageLogo(cx, cy) {
+    gsap.killTweensOf(logoEl);
+    logoFollowing = true;
+    logoPrevX = cx;
+    logoPrevY = cy;
+    logoEl.style.left = (cx - logoW) + 'px';
+    logoEl.style.top = cy + 'px';
+    logoEl.classList.add('logo--following');
+    hitzone.style.cursor = 'none';
+  }
+
   // --- Desktop: mouse events ---
   if (!isMobile) {
     logoQuickToX = gsap.quickTo(logoEl, 'left', { duration: 0.3, ease: 'power2.out' });
@@ -213,19 +225,17 @@ function initLogoFollow() {
     logoQuickToRot = gsap.quickTo(logoEl, 'rotation', { duration: 0.25, ease: 'power2.out' });
 
     hitzone.addEventListener('mouseenter', (e) => {
-      gsap.killTweensOf(logoEl);
-      logoFollowing = true;
-      logoPrevX = e.clientX;
-      logoPrevY = e.clientY;
-      // Set position BEFORE adding class to prevent 1-frame flash
-      logoEl.style.left = (e.clientX - logoW) + 'px';
-      logoEl.style.top = e.clientY + 'px';
-      logoEl.classList.add('logo--following');
-      hitzone.style.cursor = 'none';
+      engageLogo(e.clientX, e.clientY);
     });
 
     hitzone.addEventListener('mousemove', (e) => {
-      if (!logoFollowing || !logoQuickToX || !logoQuickToY) return;
+      // Fallback re-engagement: mouseenter may not fire reliably
+      // after mouse exits and re-enters the browser viewport.
+      if (!logoFollowing) {
+        engageLogo(e.clientX, e.clientY);
+        return;
+      }
+      if (!logoQuickToX || !logoQuickToY) return;
       logoQuickToX(e.clientX - logoW);
       logoQuickToY(e.clientY);
       updateRotation(e.clientX, e.clientY);
