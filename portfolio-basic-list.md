@@ -36,3 +36,8 @@
    video: design-assets\odd-fintech-video.mov
 
 7. https://coneyislandpottsville.com/ and https://chat.coneyislandpottsville.com/
+   Description: Coney Island is a 100+ year old family owned and operated restaurant and tavern with indoor and outdoor seating and 24/7 Drive-Thru selling Iconic Coney Dogs. We host local bands and events every week. The chat is an interactive agent who can help with menu items, events, and more.
+   Facebook: facebook.com/coneyislandpottsville
+   X: x.com/coneypottsville
+   logo: design-assets\coney-island-logo-1024x690.svg
+   photo: design-assets\coney-island-restaurant-and-tavern.jpg
