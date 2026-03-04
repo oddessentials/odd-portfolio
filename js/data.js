@@ -5,6 +5,7 @@ export const PROJECTS = [
   {
     id: 'odd-ai-reviewers',
     name: 'odd-ai-reviewers',
+    shortDesc: 'AI code review pipeline',
     tagline: 'Extensible AI code review pipeline with multi-agent analysis',
     category: 'ai-devops',
     constellation: 'The Forge Septet',
@@ -24,6 +25,7 @@ export const PROJECTS = [
   {
     id: 'ado-git-repo-insights',
     name: 'ado-git-repo-insights',
+    shortDesc: 'Azure DevOps PR metrics',
     tagline: 'Extract Azure DevOps PR metrics to SQLite with PowerBI-compatible dashboards',
     category: 'data-devops',
     constellation: "The Scribe's Lens",
@@ -48,6 +50,7 @@ export const PROJECTS = [
   {
     id: 'repo-standards',
     name: 'repo-standards',
+    shortDesc: 'Repo quality standards',
     tagline: 'Authoritative JSON specification for repository quality standards across multiple stacks',
     category: 'tooling',
     constellation: 'The Iron Codex',
@@ -66,6 +69,7 @@ export const PROJECTS = [
   {
     id: 'odd-self-hosted-ci',
     name: 'odd-self-hosted-ci',
+    shortDesc: 'Self-hosted CI runtime',
     tagline: 'Docker-first, provider-pluggable self-hosted CI runtime at zero cloud cost',
     category: 'infrastructure',
     constellation: 'The Engine Core',
@@ -85,6 +89,7 @@ export const PROJECTS = [
   {
     id: 'odd-map',
     name: 'odd-map',
+    shortDesc: 'Interactive office locator',
     tagline: 'White-label interactive office locator with multi-provider rendering and region navigation',
     category: 'frontend',
     constellation: "The Navigator's Rose",
@@ -103,6 +108,7 @@ export const PROJECTS = [
   {
     id: 'odd-fintech',
     name: 'odd-fintech',
+    shortDesc: 'Financial intelligence dashboard',
     tagline: 'Financial intelligence dashboard with real-time market data and congressional trade monitoring',
     category: 'fintech',
     constellation: "The Alchemist's Eye",
@@ -120,6 +126,7 @@ export const PROJECTS = [
   {
     id: 'coney-island',
     name: 'Coney Island Pottsville',
+    shortDesc: 'Restaurant with AI chat',
     tagline: 'A 100+ year old family-owned restaurant with an interactive AI-powered chat agent',
     category: 'web',
     constellation: 'The Hearth Star',

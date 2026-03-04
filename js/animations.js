@@ -40,7 +40,8 @@ function playRevealSequence() {
   const edges = document.querySelectorAll('.frame__edge');
   const gauges = document.querySelectorAll('.frame__gauge');
   const headerBand = document.querySelector('.frame__header-band');
-  const runeBand = document.querySelector('.frame__rune-band');
+  const runeBand = document.querySelector('.frame__greek-key');
+  const scanLines = document.querySelectorAll('.scan-line');
   const statusLines = document.querySelectorAll('.status-line');
   const cmdText = document.querySelector('.cmd-text');
   const navButtons = document.querySelectorAll('#constellation-nav button');
@@ -58,6 +59,7 @@ function playRevealSequence() {
   gsap.set(gauges, { scale: 0, opacity: 0 });
   gsap.set(runeBand, { opacity: 0 });
   gsap.set(headerBand, { opacity: 0, y: -10 });
+  gsap.set(scanLines, { opacity: 0, x: 10 });
   gsap.set(statusLines, { opacity: 0, x: 10 });
   gsap.set(navButtons, { opacity: 0, x: -10 });
   gsap.set([navLabel, statusLabel], { opacity: 0 });
@@ -96,14 +98,18 @@ function playRevealSequence() {
     gsap.set(runeBand, { opacity: 0.7 });
     gsap.set(headerBand, { opacity: 1, y: 0 });
     gsap.set([navLabel, statusLabel], { opacity: 1 });
+    gsap.set(scanLines, { opacity: 1, x: 0 });
     gsap.set(statusLines, { opacity: 1, x: 0 });
     gsap.set(navButtons, { opacity: 1, x: 0 });
 
     // Command line typewriter
     const cliSequence = [
-      { text: 'reveal universe', delay: 0 },
-      { text: 'starfield ignition active', delay: 0.8 }
+      { text: 'initializing portfolio...', delay: 0 },
+      { text: 'starfield online', delay: 0.8 }
     ];
+
+    // Wire terminal scan for mobile at t=0.5
+    tl.call(playTerminalScan, null, 0.5);
     cliSequence.forEach((cmd) => {
       tl.to(cmdText, {
         duration: cmd.text.length * 0.04,
@@ -200,9 +206,9 @@ function playRevealSequence() {
   }, 1.8);
 
   const cliSequence = [
-    { text: 'reveal universe', delay: 1.6 },
-    { text: 'calibrating starfield...', delay: 2.6 },
-    { text: 'ignition sequence active', delay: 3.2 }
+    { text: 'initializing portfolio...', delay: 1.6 },
+    { text: 'loading projects...', delay: 2.6 },
+    { text: 'starfield online', delay: 3.2 }
   ];
 
   cliSequence.forEach((cmd) => {
@@ -213,6 +219,11 @@ function playRevealSequence() {
     }, cmd.delay);
   });
 
+  tl.to(scanLines, {
+    opacity: 1, x: 0, duration: 0.3,
+    stagger: 0.15, ease: 'power2.out'
+  }, 2.0);
+
   tl.to(statusLines, {
     opacity: 1, x: 0, duration: 0.3,
     stagger: 0.15, ease: 'power2.out'
@@ -221,6 +232,9 @@ function playRevealSequence() {
   tl.to([navLabel, statusLabel], {
     opacity: 1, duration: 0.3, ease: 'power2.out'
   }, 2.0);
+
+  // Wire terminal scan at t=2.8 (after scan lines finish fade-in at t=2.75)
+  tl.call(playTerminalScan, null, 2.8);
 
   // Phase 3 (3800-6500ms): Starfield ignition (no orb glass, just nebula + stars)
   // Nebula layers bloom outward
@@ -297,25 +311,118 @@ function playDiscoverabilityAffordance() {
 
   if (cmdText) {
     gsap.to(cmdText, {
-      duration: 1.5,
+      duration: 2.15,
       delay: 0.5,
-      text: { value: '7 anomalies detected. investigate?', delimiter: '' },
+      text: { value: 'Force multipliers for small businesses...', delimiter: '' },
       ease: 'none'
     });
   }
 
-  if (phaseIndicator) {
+  if (phaseIndicator && phaseIndicator.textContent !== 'PORTFOLIO READY') {
     gsap.to(phaseIndicator, {
       duration: 0.01,
       delay: 0.8,
-      onComplete: () => { phaseIndicator.textContent = 'SCANNING'; }
-    });
-    gsap.to(phaseIndicator, {
-      duration: 0.01,
-      delay: 3.5,
-      onComplete: () => { phaseIndicator.textContent = 'READY'; }
+      onComplete: () => {
+        if (phaseIndicator.textContent !== 'PORTFOLIO READY') {
+          phaseIndicator.textContent = 'PORTFOLIO';
+        }
+      }
     });
   }
+}
+
+// ---------------------------------------------------------------------------
+// playTerminalScan — independent terminal loading animation (T013)
+// ---------------------------------------------------------------------------
+function playTerminalScan() {
+  if (!gsap) return null;
+
+  // Reduced motion: show final state immediately
+  if (prefersReducedMotion.matches) {
+    const scanLines = document.querySelectorAll('.scan-line');
+    const loadingBarFill = document.querySelector('.loading-bar__fill');
+    const loadingBar = document.querySelector('.loading-bar');
+    const phaseIndicator = document.querySelector('.phase-indicator');
+
+    if (scanLines[0]) scanLines[0].textContent = '7 systems nominal';
+    if (scanLines[1]) scanLines[1].textContent = '[##########] 100%';
+    if (scanLines[2]) scanLines[2].textContent = '';
+    if (loadingBarFill) loadingBarFill.style.transform = 'scaleX(1)';
+    if (loadingBar) loadingBar.setAttribute('aria-valuenow', '100');
+    if (phaseIndicator) phaseIndicator.textContent = 'PORTFOLIO READY';
+
+    document.dispatchEvent(new CustomEvent('terminal-scan-complete'));
+    return null;
+  }
+
+  const scanLines = document.querySelectorAll('.scan-line');
+  const loadingBarFill = document.querySelector('.loading-bar__fill');
+  const loadingBar = document.querySelector('.loading-bar');
+  const phaseIndicator = document.querySelector('.phase-indicator');
+  const prefersHighContrast = window.matchMedia('(prefers-contrast: more)').matches;
+
+  const tl = gsap.timeline({
+    onComplete: () => {
+      document.dispatchEvent(new CustomEvent('terminal-scan-complete'));
+    }
+  });
+
+  const percentages = [14, 28, 43, 57, 71, 86, 100];
+
+  PROJECTS.forEach((project, i) => {
+    const pct = percentages[i];
+    const barStr = '[' + '#'.repeat(Math.round(pct / 10)) + '.'.repeat(10 - Math.round(pct / 10)) + '] ' + pct + '%';
+
+    tl.to(scanLines[0] || {}, {
+      duration: project.id.length * 0.033,
+      text: { value: 'Scanning ' + project.id + '...', delimiter: '' },
+      ease: 'none'
+    }, i * 0.7);
+
+    tl.call(() => {
+      if (scanLines[1]) scanLines[1].textContent = barStr;
+      if (loadingBarFill) loadingBarFill.style.transform = 'scaleX(' + (pct / 100) + ')';
+      if (loadingBar) loadingBar.setAttribute('aria-valuenow', String(pct));
+    }, null, i * 0.7 + 0.3);
+  });
+
+  // Final state
+  const finalTime = PROJECTS.length * 0.7 + 0.5;
+  tl.to(scanLines[0] || {}, {
+    duration: 0.5,
+    text: { value: '7 systems nominal', delimiter: '' },
+    ease: 'none'
+  }, finalTime);
+
+  tl.call(() => {
+    if (scanLines[1]) scanLines[1].textContent = '[##########] 100%';
+  }, null, finalTime);
+
+  // Phase indicator: PORTFOLIO READY + glow flash
+  tl.call(() => {
+    if (phaseIndicator) {
+      phaseIndicator.textContent = 'PORTFOLIO READY';
+      if (!prefersHighContrast) {
+        gsap.fromTo(phaseIndicator, {
+          textShadow: '0 0 12px rgba(200, 168, 75, 0.8)'
+        }, {
+          textShadow: '0 0 0px rgba(200, 168, 75, 0)',
+          duration: 1.2,
+          ease: 'power2.out'
+        });
+      } else {
+        gsap.fromTo(phaseIndicator, {
+          color: '#ffffff'
+        }, {
+          color: 'var(--color-text-mono)',
+          duration: 0.6,
+          ease: 'power2.out'
+        });
+      }
+    }
+  }, null, finalTime + 0.3);
+
+  return tl;
 }
 
 // ---------------------------------------------------------------------------
@@ -530,7 +637,8 @@ function handleReducedMotion() {
     const edges = document.querySelectorAll('.frame__edge');
     const gauges = document.querySelectorAll('.frame__gauge');
     const headerBand = document.querySelector('.frame__header-band');
-    const runeBand = document.querySelector('.frame__rune-band');
+    const runeBand = document.querySelector('.frame__greek-key');
+    const scanLines = document.querySelectorAll('.scan-line');
     const statusLines = document.querySelectorAll('.status-line');
     const navButtons = document.querySelectorAll('#constellation-nav button');
     const navLabel = document.querySelector('#constellation-nav .hud-label');
@@ -542,15 +650,19 @@ function handleReducedMotion() {
       gsap.set(corners, { opacity: 1, x: 0, y: 0 });
       gsap.set(edges, { scaleX: 1, scaleY: 1 });
       gsap.set(gauges, { scale: 1, opacity: 1 });
-      gsap.set(runeBand, { opacity: 0.7 });
+      gsap.set(runeBand, { opacity: 0.9 });
       gsap.set(headerBand, { opacity: 1, y: 0 });
+      gsap.set(scanLines, { opacity: 1, x: 0 });
       gsap.set(statusLines, { opacity: 1, x: 0 });
       gsap.set(navButtons, { opacity: 1, x: 0 });
       gsap.set([navLabel, statusLabel], { opacity: 1 });
     }
 
-    if (cmdText) cmdText.textContent = 'select a constellation to begin';
-    if (phaseIndicator) phaseIndicator.textContent = 'READY';
+    if (cmdText) cmdText.textContent = 'Force multipliers for small businesses...';
+    if (phaseIndicator) phaseIndicator.textContent = 'PORTFOLIO READY';
+
+    // Show terminal scan final state under reduced motion
+    playTerminalScan();
 
     // No orb glass to set opacity on — just nebula and stars
     if (nebulaLayers) {
@@ -638,6 +750,7 @@ function handlePanelScrollLock() {
 // ---------------------------------------------------------------------------
 export {
   playRevealSequence,
+  playTerminalScan,
   initScrollInteractions,
   handleReducedMotion,
   initSkipIntro,

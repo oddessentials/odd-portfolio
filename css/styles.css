@@ -521,28 +521,90 @@ body.nav-overlay-active .nav-backdrop {
   transform: translateY(-50%);
 }
 
-/* --- 6.4 Rune band --- */
-.frame__rune-band {
+/* --- 6.4 Greek key meander band --- */
+.frame__greek-key {
+  --gk-line: 3px;
+  --gk-cell: 36px;
+  --gk-color-face: var(--color-brass-mid);
+  --gk-color-shadow: var(--color-brass-dark);
+  --gk-color-highlight: var(--color-brass-light);
+  --shimmer-duration: 4s;
+
   position: absolute;
   top: var(--frame-border-width);
   left: var(--frame-corner-size);
   right: var(--frame-corner-size);
-  height: 6px;
+  height: 18px;
+  overflow: hidden;
+  contain: layout style paint;
+
   background:
-    repeating-linear-gradient(
-      90deg,
-      var(--color-brass-dark) 0px,
-      var(--color-brass-mid) 3px,
-      var(--color-brass-light) 6px,
-      var(--color-brass-mid) 9px,
-      var(--color-brass-dark) 12px,
-      transparent 12px,
-      transparent 16px
-    );
-  opacity: 0.7;
+    /* L1: Top border */
+    linear-gradient(var(--gk-color-highlight), var(--gk-color-highlight))
+      0 0 / 100% var(--gk-line) no-repeat,
+    /* L2: Bottom border */
+    linear-gradient(var(--gk-color-shadow), var(--gk-color-shadow))
+      0 bottom / 100% var(--gk-line) no-repeat,
+    /* L3: Cell boundary verticals */
+    repeating-linear-gradient(90deg,
+      var(--gk-color-face) 0 var(--gk-line),
+      transparent var(--gk-line) var(--gk-cell)),
+    /* L4: Upper step horizontal (left→center) */
+    repeating-linear-gradient(90deg,
+      transparent 0 var(--gk-line),
+      var(--gk-color-highlight) var(--gk-line) calc(var(--gk-cell) / 2 + var(--gk-line)),
+      transparent calc(var(--gk-cell) / 2 + var(--gk-line)) var(--gk-cell))
+      0 calc(var(--gk-line) * 2) / 100% var(--gk-line) no-repeat,
+    /* L5: Center vertical */
+    repeating-linear-gradient(90deg,
+      transparent 0 calc(var(--gk-cell) / 2),
+      var(--gk-color-face) calc(var(--gk-cell) / 2) calc(var(--gk-cell) / 2 + var(--gk-line)),
+      transparent calc(var(--gk-cell) / 2 + var(--gk-line)) var(--gk-cell))
+      0 var(--gk-line) / 100% calc(100% - var(--gk-line) * 2) no-repeat,
+    /* L6: Lower step horizontal (center→right) */
+    repeating-linear-gradient(90deg,
+      transparent 0 calc(var(--gk-cell) / 2),
+      var(--gk-color-shadow) calc(var(--gk-cell) / 2) calc(var(--gk-cell) - var(--gk-line)),
+      transparent calc(var(--gk-cell) - var(--gk-line)) var(--gk-cell))
+      0 calc(var(--gk-line) * 4) / 100% var(--gk-line) no-repeat,
+    /* Fallback brass stripe base */
+    linear-gradient(to right, var(--color-brass-dark), var(--color-brass-mid) 20%, var(--color-brass-light) 50%, var(--color-brass-mid) 80%, var(--color-brass-dark));
+
+  opacity: 0.9;
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.5),
     0 0 6px rgba(122, 255, 178, 0.08);
+}
+
+/* Shimmer sweep on Greek key */
+.frame__greek-key::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 300%;
+  left: -100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(200, 168, 75, 0.25) 46%,
+    rgba(232, 208, 144, 0.45) 50%,
+    rgba(200, 168, 75, 0.25) 54%,
+    transparent 60%,
+    transparent 100%
+  );
+  animation: shimmer-slide var(--shimmer-duration) ease-in-out infinite;
+  will-change: transform;
+}
+
+.frame__greek-key.shimmer-disabled::before {
+  animation: none;
+}
+
+@keyframes shimmer-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 /* --- 6.5 Header band with logo --- */
@@ -684,10 +746,44 @@ body.nav-overlay-active .nav-backdrop {
   text-shadow: 0 0 6px var(--color-brass-light);
 }
 
-.constellation-name {
+/* Project label container */
+.project-label {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.project-name {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.project-desc {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height var(--dur-fast) ease, opacity var(--dur-fast) ease;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Desktop hover expand for descriptions */
+@media (hover: hover) and (pointer: fine) {
+  #constellation-nav button:hover .project-desc,
+  #constellation-nav button:focus-visible .project-desc {
+    max-height: 1.5em;
+    opacity: 1;
+  }
+}
+
+/* Tagline-expanded state (touch + GSAP) */
+.project-desc.tagline-expanded {
+  max-height: 3em;
+  opacity: 1;
 }
 
 /* ------------------------------------------------------------
@@ -775,6 +871,42 @@ body.nav-overlay-active .nav-backdrop {
   font-weight: 600;
 }
 
+/* Scan output and loading bar (terminal scan) */
+.scan-output {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.scan-line {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-mono);
+  line-height: 1.8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 4px rgba(122, 255, 178, 0.3);
+  min-height: 1.8em;
+}
+
+.loading-bar {
+  height: 8px;
+  background: var(--color-iron);
+  border: 1px solid rgba(139, 105, 20, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.loading-bar__fill {
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(to right, var(--color-brass-dark), var(--color-brass-light));
+  border-radius: 2px;
+  transition: transform 0.3s ease;
+}
+
 /* ------------------------------------------------------------
    10. MAIN VIEWPORT (center)
    ------------------------------------------------------------ */
@@ -811,9 +943,9 @@ body.nav-overlay-active .nav-backdrop {
 }
 
 #orb-hitzone {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: var(--z-hud);
+  z-index: calc(var(--z-hud) - 1);
   cursor: crosshair;
 }
 
@@ -1102,7 +1234,7 @@ body.nav-overlay-active .nav-backdrop {
    14. MEDIA QUERIES — Responsive Breakpoints
    ------------------------------------------------------------ */
 
-/* T012: Tablet (max-width: 1199px) — narrower sidebars */
+/* Tablet (max-width: 1199px) — narrower sidebars */
 @media (max-width: 1199px) {
   :root {
     --hud-panel-width: 160px;
@@ -1110,8 +1242,11 @@ body.nav-overlay-active .nav-backdrop {
     --frame-border-width: 12px;
   }
 
-  #app-shell {
-    grid-template-columns: 160px 1fr 160px;
+  /* Greek key responsive: smaller tile */
+  .frame__greek-key {
+    --gk-cell: 24px;
+    --gk-line: 2px;
+    height: 12px;
   }
 
   .frame__gauge {
@@ -1141,6 +1276,11 @@ body.nav-overlay-active .nav-backdrop {
     grid-template-rows: 1fr var(--cmd-line-height);
   }
 
+  /* Greek key hidden on mobile */
+  .frame__greek-key {
+    display: none;
+  }
+
   /* Hide sidebars on mobile */
   #constellation-nav {
     position: fixed;
@@ -1162,9 +1302,9 @@ body.nav-overlay-active .nav-backdrop {
     transform: translateX(0);
   }
 
-  /* Mobile nav touch targets (T013) */
+  /* Mobile nav touch targets */
   #constellation-nav button {
-    min-height: 44px;
+    min-height: 52px;
     padding: var(--space-sm) var(--space-md);
     font-size: var(--text-base);
   }
@@ -1225,7 +1365,19 @@ body.nav-overlay-active .nav-backdrop {
   }
 }
 
-/* T018: Smooth breakpoint transitions with clamp() */
+/* Tablet+ reset: ensure sidebars visible after mobile nav */
+@media (min-width: 768px) {
+  #constellation-nav {
+    position: static;
+    transform: none;
+    transition: none;
+  }
+  #status-panel {
+    display: flex;
+  }
+}
+
+/* Smooth breakpoint transitions with clamp() */
 @media (min-width: 768px) and (max-width: 1199px) {
   #app-shell {
     grid-template-columns: clamp(140px, 15vw, 180px) 1fr clamp(140px, 15vw, 180px);
@@ -1236,7 +1388,18 @@ body.nav-overlay-active .nav-backdrop {
    15. MEDIA QUERIES — Accessibility
    ------------------------------------------------------------ */
 
-/* Reduced motion (T023) */
+/* CSS Containment (T022) */
+.frame {
+  contain: layout style paint;
+}
+#command-line {
+  contain: layout style;
+}
+#constellation-nav li {
+  contain: layout style;
+}
+
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -1320,5 +1483,10 @@ body.nav-overlay-active .nav-backdrop {
 
   .hamburger-line {
     background: #fff;
+  }
+
+  /* Suppress phosphor glow under high contrast */
+  .scan-line {
+    text-shadow: none;
   }
 }

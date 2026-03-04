@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>OddEssentials | Arcane Console</title>
+  <title>Odd Essentials | Portfolio</title>
 
-  <!-- Open Graph (T021: updated for Alpha) -->
-  <meta property="og:title" content="OddEssentials | Arcane Console Portfolio">
-  <meta property="og:description" content="Victorian Techno-Mage portfolio — 7 open-source projects visualized as constellations in an interactive starfield.">
+  <!-- Open Graph -->
+  <meta property="og:title" content="Odd Essentials | Portfolio">
+  <meta property="og:description" content="Force multipliers for small businesses — 7 open-source projects in an interactive starfield.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="assets/logo.svg">
 
@@ -70,7 +70,7 @@
       <div class="frame__gauge frame__gauge--left"></div>
       <div class="frame__gauge frame__gauge--right"></div>
 
-      <div class="frame__rune-band"></div>
+      <div class="frame__greek-key"></div>
 
       <div class="frame__header-band">
         <img src="assets/logo.svg" alt="Odd Essentials" id="brand-logo" class="brand-logo" style="pointer-events: none;">
@@ -80,64 +80,70 @@
     <!-- Mobile nav backdrop -->
     <div id="nav-backdrop" class="nav-backdrop" aria-hidden="true"></div>
 
-    <!-- Constellation navigation (left panel) -->
-    <nav id="constellation-nav" aria-label="Project constellations">
-      <span class="hud-label">CONSTELLATION INDEX</span>
+    <!-- Project navigation (left panel) -->
+    <nav id="constellation-nav" aria-label="Project portfolio navigation">
+      <span class="hud-label">ODD PORTFOLIO</span>
       <ul>
         <li>
-          <button data-project-id="odd-ai-reviewers" aria-pressed="false" aria-describedby="project-hint">
+          <button data-project-id="odd-ai-reviewers" aria-pressed="false">
             <span class="glyph" aria-hidden="true">&#9733;</span>
-            <span class="constellation-name">The Forge Septet</span>
+            <span class="project-label"><span class="project-name">odd-ai-reviewers</span><span class="project-desc">AI code review pipeline</span></span>
           </button>
         </li>
         <li>
-          <button data-project-id="ado-git-repo-insights" aria-pressed="false" aria-describedby="project-hint">
+          <button data-project-id="ado-git-repo-insights" aria-pressed="false">
             <span class="glyph" aria-hidden="true">&#9733;</span>
-            <span class="constellation-name">The Scribe's Lens</span>
+            <span class="project-label"><span class="project-name">ado-git-repo-insights</span><span class="project-desc">Azure DevOps PR metrics</span></span>
           </button>
         </li>
         <li>
-          <button data-project-id="repo-standards" aria-pressed="false" aria-describedby="project-hint">
+          <button data-project-id="repo-standards" aria-pressed="false">
             <span class="glyph" aria-hidden="true">&#9733;</span>
-            <span class="constellation-name">The Iron Codex</span>
+            <span class="project-label"><span class="project-name">repo-standards</span><span class="project-desc">Repo quality standards</span></span>
           </button>
         </li>
         <li>
-          <button data-project-id="odd-self-hosted-ci" aria-pressed="false" aria-describedby="project-hint">
+          <button data-project-id="odd-self-hosted-ci" aria-pressed="false">
             <span class="glyph" aria-hidden="true">&#9733;</span>
-            <span class="constellation-name">The Engine Core</span>
+            <span class="project-label"><span class="project-name">odd-self-hosted-ci</span><span class="project-desc">Self-hosted CI runtime</span></span>
           </button>
         </li>
         <li>
-          <button data-project-id="odd-map" aria-pressed="false" aria-describedby="project-hint">
+          <button data-project-id="odd-map" aria-pressed="false">
             <span class="glyph" aria-hidden="true">&#9733;</span>
-            <span class="constellation-name">The Navigator's Rose</span>
+            <span class="project-label"><span class="project-name">odd-map</span><span class="project-desc">Interactive office locator</span></span>
           </button>
         </li>
         <li>
-          <button data-project-id="odd-fintech" aria-pressed="false" aria-describedby="project-hint">
+          <button data-project-id="odd-fintech" aria-pressed="false">
             <span class="glyph" aria-hidden="true">&#9733;</span>
-            <span class="constellation-name">The Alchemist's Eye</span>
+            <span class="project-label"><span class="project-name">odd-fintech</span><span class="project-desc">Financial intelligence dashboard</span></span>
           </button>
         </li>
         <li>
-          <button data-project-id="coney-island" aria-pressed="false" aria-describedby="project-hint">
+          <button data-project-id="coney-island" aria-pressed="false">
             <span class="glyph" aria-hidden="true">&#9733;</span>
-            <span class="constellation-name">The Hearth Star</span>
+            <span class="project-label"><span class="project-name">Coney Island Pottsville</span><span class="project-desc">Restaurant with AI chat</span></span>
           </button>
         </li>
       </ul>
     </nav>
 
     <!-- Status panel (right panel) -->
-    <aside id="status-panel" aria-label="System status" aria-live="polite">
-      <span class="hud-label">STATUS</span>
+    <aside id="status-panel" aria-label="System status">
+      <span class="hud-label">ODD ESSENTIALS</span>
       <div class="status-readout">
-        <p class="status-line">ARCANE CONSOLE v4.2.1</p>
-        <p class="status-line">scanning systems...</p>
+        <div class="scan-output" role="status">
+          <p class="scan-line">&nbsp;</p>
+          <p class="scan-line">&nbsp;</p>
+          <p class="scan-line">&nbsp;</p>
+          <div class="loading-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div class="loading-bar__fill"></div>
+          </div>
+        </div>
         <p class="status-line">
           MANA
-          <meter class="mana-meter" min="0" max="100" value="72" aria-label="Mana level">72%</meter>
+          <meter class="mana-meter" min="0" max="100" value="72" aria-hidden="true">72%</meter>
         </p>
         <p class="status-line">PHASE <span class="phase-indicator">IDLE</span></p>
       </div>
@@ -146,10 +152,10 @@
     <!-- Main viewport (center) -->
     <main id="main-viewport">
       <div id="star-labels"></div>
-      <div id="orb-hitzone" role="application" aria-label="Interactive constellation viewer. Use the constellation navigation to explore projects." tabindex="0">
+      <div id="orb-hitzone" role="application" aria-label="Interactive portfolio viewer. Use the project navigation to explore projects." tabindex="0">
       </div>
-      <img id="orb-fallback" src="assets/logo.svg" alt="OddEssentials project constellation" class="orb-fallback" style="max-width:300px;margin:auto;display:block;opacity:0.6;filter:sepia(0.3) brightness(0.8);padding-top:15vh;">
-      <p class="sr-only">An interactive starfield with 7 glowing star nodes, each representing a portfolio project. Use the constellation navigation to select a project, or click a star directly.</p>
+      <img id="orb-fallback" src="assets/logo.svg" alt="OddEssentials portfolio projects" class="orb-fallback" style="max-width:300px;margin:auto;display:block;opacity:0.6;filter:sepia(0.3) brightness(0.8);padding-top:15vh;">
+      <p class="sr-only">An interactive starfield with 7 glowing star nodes, each representing a portfolio project. Use the project navigation to select a project, or click a star directly.</p>
     </main>
 
     <!-- Command line (bottom) -->
