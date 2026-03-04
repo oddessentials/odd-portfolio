@@ -557,6 +557,7 @@ body.nav-overlay-active .nav-backdrop {
   padding: var(--space-sm) var(--space-lg);
   height: 56px;
   z-index: 1;
+  pointer-events: none; /* explicit — prevents any event interception */
 }
 
 /* T008: Brand logo — home state (in header) */

@@ -162,6 +162,7 @@ function initLogoFollow() {
 
   hitzone.addEventListener('mouseenter', () => {
     if (isMobile) return;
+    gsap.killTweensOf(logoEl); // kill return animation if mid-flight
     logoFollowing = true;
     logoEl.classList.add('logo--following');
     hitzone.style.cursor = 'none';
@@ -177,7 +178,8 @@ function initLogoFollow() {
   hitzone.addEventListener('mouseleave', () => {
     if (!logoFollowing) return;
     logoFollowing = false;
-    logoEl.classList.remove('logo--following');
+    // Keep logo--following class during return animation (position:fixed
+    // needed for GSAP left/top to work). Remove only in onComplete.
     hitzone.style.cursor = 'crosshair';
 
     // Animate logo back to header home position
@@ -190,11 +192,16 @@ function initLogoFollow() {
         duration: 0.4,
         ease: 'power2.inOut',
         onComplete: () => {
-          // Reset inline styles so CSS takes over
+          // Remove class AFTER animation (keeps position:fixed during flight)
+          logoEl.classList.remove('logo--following');
           logoEl.style.left = '';
           logoEl.style.top = '';
         }
       });
+    } else {
+      logoEl.classList.remove('logo--following');
+      logoEl.style.left = '';
+      logoEl.style.top = '';
     }
   });
 }
@@ -432,11 +439,19 @@ function initScene() {
     mouse.set(-9999, -9999);
   });
 
-  hitzone.addEventListener('click', () => {
-    if (hoveredStar) {
-      const project = hoveredStar.userData.project;
+  hitzone.addEventListener('click', (e) => {
+    // Synchronous raycast at exact click position — don't rely on async
+    // hoveredStar from previous ticker frame (race condition fix)
+    const clickMouse = new THREE.Vector2(
+      (e.clientX / window.innerWidth) * 2 - 1,
+      -(e.clientY / window.innerHeight) * 2 + 1
+    );
+    raycaster.setFromCamera(clickMouse, camera);
+    const hits = raycaster.intersectObjects(starNodes);
+    const target = hits.length > 0 ? hits[0].object : null;
+    if (target && target.userData.project) {
       document.dispatchEvent(new CustomEvent('star-click', {
-        detail: project,
+        detail: target.userData.project,
         bubbles: true
       }));
     }
