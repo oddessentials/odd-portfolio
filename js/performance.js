@@ -21,9 +21,9 @@ function getCurrentTier() {
 }
 
 // ---------------------------------------------------------------------------
-// Custom chromatic aberration + vignette shader
+// Custom vignette shader (T006: uniform vignette, no orb-edge aberration)
 // ---------------------------------------------------------------------------
-const ChromaVignetteShader = {
+const VignetteShader = {
   uniforms: {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1, 1) },
@@ -42,27 +42,30 @@ const ChromaVignetteShader = {
     uniform float aberrationEnabled;
     varying vec2 vUv;
     void main() {
-      float orbEdge = smoothstep(0.35, 0.5, length(vUv - 0.5));
-      float aberration = 0.003 * orbEdge * aberrationEnabled;
+      // Subtle uniform chromatic aberration (not orb-edge based)
+      float aberration = 0.0015 * aberrationEnabled;
       float r = texture2D(tDiffuse, vUv + vec2(aberration, 0.0)).r;
       float g = texture2D(tDiffuse, vUv).g;
       float b = texture2D(tDiffuse, vUv - vec2(aberration, 0.0)).b;
-      float vignette = smoothstep(0.5, 1.0, length(vUv - 0.5) * 1.8);
-      vec3 color = vec3(r, g, b) * (1.0 - vignette * 0.6);
+      // Subtle vignette from edges
+      float vignette = smoothstep(0.4, 1.2, length(vUv - 0.5) * 1.6);
+      vec3 color = vec3(r, g, b) * (1.0 - vignette * 0.45);
       gl_FragColor = vec4(color, 1.0);
     }
   `
 };
 
 // ---------------------------------------------------------------------------
-// initPostProcessing — set up 4-pass pipeline, monkey-patch renderer.render
+// initPostProcessing (T006: full window dimensions, T016: skip on mobile)
 // ---------------------------------------------------------------------------
 function initPostProcessing(sceneRef, cameraRef, rendererRef) {
-  const viewport = rendererRef.domElement.parentElement;
-  if (!viewport) return null;
+  // T016: skip post-processing entirely on mobile
+  if (window.innerWidth < 768) {
+    return null;
+  }
 
-  const w = viewport.clientWidth;
-  const h = viewport.clientHeight;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
 
   // Create composer
   composer = new EffectComposer(rendererRef);
@@ -79,8 +82,8 @@ function initPostProcessing(sceneRef, cameraRef, rendererRef) {
   bloomPass = new UnrealBloomPass(bloomRes, 0.8, 0.4, 0.85);
   composer.addPass(bloomPass);
 
-  // Pass 3: Custom chromatic aberration + vignette
-  customPass = new ShaderPass(ChromaVignetteShader);
+  // Pass 3: Uniform vignette (replaces orb-edge chromatic aberration)
+  customPass = new ShaderPass(VignetteShader);
   customPass.uniforms.resolution.value.set(w, h);
   composer.addPass(customPass);
 
@@ -89,16 +92,14 @@ function initPostProcessing(sceneRef, cameraRef, rendererRef) {
   composer.addPass(outputPass);
 
   // Store composer reference globally so scene.js ticker can use it
-  // instead of monkey-patching (which causes infinite recursion via RenderPass)
   window.__arcaneComposer = composer;
   rendererRef._composerActive = true;
   rendererRef._originalRender = rendererRef.render.bind(rendererRef);
 
-  // Handle resize — update composer and bloom resolution
+  // Handle resize — update composer and bloom resolution (full window dims)
   const onResize = () => {
-    if (!viewport) return;
-    const rw = viewport.clientWidth;
-    const rh = viewport.clientHeight;
+    const rw = window.innerWidth;
+    const rh = window.innerHeight;
     composer.setSize(rw, rh);
     bloomPass.resolution.set(
       Math.floor(rw * 0.75),
@@ -123,7 +124,6 @@ function ensureBurstPool(sceneRef) {
   burstContainer.name = 'burstPool';
   sceneRef.add(burstContainer);
 
-  // Create 60 sprites (pool)
   for (let i = 0; i < 60; i++) {
     const mat = new THREE.SpriteMaterial({
       color: 0xffffff,
@@ -172,12 +172,11 @@ function createSupernovaBurst(starWorldPosition, accentColor) {
     }
   }
 
-  // --- 20 spark sprites (radial outward) ---
+  // 20 spark sprites (radial outward)
   for (let i = 0; i < 20; i++) {
     const sprite = acquireSprite();
     if (!sprite) break;
 
-    // Random radial direction on a sphere
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos(2 * Math.random() - 1);
     const radius = 0.4;
@@ -202,27 +201,22 @@ function createSupernovaBurst(starWorldPosition, accentColor) {
     });
   }
 
-  // --- 1 expanding ring sprite ---
+  // 1 expanding ring sprite
   const ring = acquireSprite();
   if (ring) {
     ring.material.color.set(0xffffff);
     ring.scale.set(0.01, 0.01, 0.01);
     ring.material.opacity = 0.8;
     gsap.to(ring.scale, {
-      x: 0.5,
-      y: 0.5,
-      z: 0.5,
-      duration: 0.6,
-      ease: 'power2.out'
+      x: 0.5, y: 0.5, z: 0.5,
+      duration: 0.6, ease: 'power2.out'
     });
     gsap.to(ring.material, {
-      opacity: 0,
-      duration: 0.6,
-      ease: 'power2.in'
+      opacity: 0, duration: 0.6, ease: 'power2.in'
     });
   }
 
-  // --- 10 radial ray sprites (elongated, shooting outward) ---
+  // 10 radial ray sprites
   for (let i = 0; i < 10; i++) {
     const sprite = acquireSprite();
     if (!sprite) break;
@@ -232,7 +226,6 @@ function createSupernovaBurst(starWorldPosition, accentColor) {
     const dx = rayLen * Math.cos(angle);
     const dy = rayLen * Math.sin(angle);
 
-    // Elongated scale along one axis
     sprite.scale.set(0.005, 0.04, 0.005);
     sprite.material.opacity = 0.9;
 
@@ -240,25 +233,17 @@ function createSupernovaBurst(starWorldPosition, accentColor) {
       x: starWorldPosition.x + dx,
       y: starWorldPosition.y + dy,
       z: starWorldPosition.z,
-      duration: 0.45,
-      ease: 'power2.out'
+      duration: 0.45, ease: 'power2.out'
     });
     gsap.to(sprite.scale, {
-      x: 0.002,
-      y: 0.06,
-      z: 0.002,
-      duration: 0.45,
-      ease: 'power2.out'
+      x: 0.002, y: 0.06, z: 0.002,
+      duration: 0.45, ease: 'power2.out'
     });
     gsap.to(sprite.material, {
-      opacity: 0,
-      duration: 0.5,
-      delay: 0.15,
-      ease: 'power2.in'
+      opacity: 0, duration: 0.5, delay: 0.15, ease: 'power2.in'
     });
   }
 
-  // Release all sprites back to pool after total burst duration
   gsap.delayedCall(0.9, releaseAll);
 }
 
@@ -268,7 +253,7 @@ function createSupernovaBurst(starWorldPosition, accentColor) {
 let benchmarkStarted = false;
 
 function initAutoTierDegradation(composerRef, bloomPassRef, customPassRef) {
-  const rendererEl = document.querySelector('#main-viewport canvas');
+  const rendererEl = document.querySelector('#orb-canvas');
 
   function runBenchmark() {
     if (benchmarkStarted) return;
@@ -304,8 +289,6 @@ function initAutoTierDegradation(composerRef, bloomPassRef, customPassRef) {
         applyTier2(bloomPassRef, customPassRef);
         currentTier = 2;
         console.log('[Arcane Console] Performance tier: 2 (Medium)');
-
-        // Re-benchmark after Tier 2 to check if sufficient
         setTimeout(runTier2Recheck, 2000);
       }
     }
@@ -314,11 +297,9 @@ function initAutoTierDegradation(composerRef, bloomPassRef, customPassRef) {
   }
 
   function applyTier2(bp, cp) {
-    // Disable chromatic aberration
     if (cp && cp.uniforms && cp.uniforms.aberrationEnabled) {
       cp.uniforms.aberrationEnabled.value = 0.0;
     }
-    // Reduce bloom strength
     if (bp) {
       bp.strength = 0.4;
     }
@@ -355,19 +336,16 @@ function initAutoTierDegradation(composerRef, bloomPassRef, customPassRef) {
     currentTier = 3;
     console.log('[Arcane Console] Performance tier: 3 (Low)');
 
-    // Disable EffectComposer — revert to direct renderer.render
     const rendererRef = composerRef.renderer;
     if (rendererRef && rendererRef._originalRender) {
       rendererRef._composerActive = false;
     }
 
-    // Add CSS filter as cheap bloom substitute
     if (rendererEl) {
       rendererEl.style.filter = 'blur(1px) brightness(1.1)';
     }
   }
 
-  // Wait for reveal-complete event, then wait 5 more seconds, then benchmark
   const handler = () => {
     document.removeEventListener('reveal-complete', handler);
     setTimeout(runBenchmark, 5000);
@@ -375,8 +353,6 @@ function initAutoTierDegradation(composerRef, bloomPassRef, customPassRef) {
 
   document.addEventListener('reveal-complete', handler);
 
-  // Fallback: if reveal-complete never fires (e.g. reduced motion skips it),
-  // start benchmark 12 seconds after page load
   setTimeout(() => {
     document.removeEventListener('reveal-complete', handler);
     runBenchmark();

@@ -15,14 +15,14 @@ import {
   initAutoTierDegradation
 } from './performance.js';
 
-// Initialize interactions (panel, keyboard nav) — works even without WebGL
+// Initialize interactions (panel, keyboard nav, hamburger) — works even without WebGL
 initInteractions();
 
 // Initialize the 3D scene
 const sceneReady = initScene();
 
 if (sceneReady) {
-  // Initialize post-processing pipeline (bloom, chromatic aberration, vignette)
+  // Initialize post-processing pipeline (T016: returns null on mobile)
   const pp = initPostProcessing(scene, camera, renderer);
   ensureBurstPool(scene);
 
@@ -34,23 +34,18 @@ if (sceneReady) {
     const masterTl = playRevealSequence();
 
     if (masterTl) {
-      // Wire skip intro
       initSkipIntro(masterTl);
-
-      // Handle scroll during reveal (skips to end)
       handleScrollDuringReveal(masterTl);
     }
 
-    // Set up scroll interactions (after reveal completes, ScrollTrigger activates)
     initScrollInteractions();
   }
 
-  // Auto-tier performance degradation (benchmarks 5s after reveal)
+  // Auto-tier performance degradation (benchmarks 5s after reveal) — desktop only
   if (pp) {
     initAutoTierDegradation(pp.composer, pp.bloomPass, pp.customPass);
   }
 
-  // Panel scroll lock (works in both reduced and normal modes)
   handlePanelScrollLock();
 
   // Hide static fallback since WebGL is active

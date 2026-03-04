@@ -1,6 +1,6 @@
 /* ============================================================
    ARCANE CONSOLE — Stylesheet
-   Victorian Techno-Mage Portfolio POC
+   Victorian Techno-Mage Portfolio — Alpha
    ============================================================ */
 
 /* ------------------------------------------------------------
@@ -53,6 +53,9 @@
   --z-frame: 10;
   --z-hud: 20;
   --z-star-labels: 25;
+  --z-logo-follow: 30;
+  --z-hamburger: 35;
+  --z-nav-overlay: 40;
   --z-overlay-backdrop: 90;
   --z-overlay: 100;
   --z-skip-link: 9999;
@@ -111,6 +114,24 @@ img {
   max-width: 100%;
 }
 
+/* Body scroll lock when nav overlay is active */
+body.nav-overlay-active {
+  overflow: hidden;
+}
+
+/* Mobile nav backdrop */
+.nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 3, 1, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: calc(var(--z-hud) + 18); /* below nav (z:40), above starfield */
+}
+body.nav-overlay-active .nav-backdrop {
+  display: block;
+}
+
 /* ------------------------------------------------------------
    3. UTILITY CLASSES
    ------------------------------------------------------------ */
@@ -151,11 +172,11 @@ img {
 }
 
 /* ------------------------------------------------------------
-   4. APP SHELL — CSS GRID LAYOUT
+   4. APP SHELL — CSS GRID LAYOUT (T018: clamp for sidebar widths)
    ------------------------------------------------------------ */
 #app-shell {
   display: grid;
-  grid-template-columns: var(--hud-panel-width) 1fr var(--hud-panel-width);
+  grid-template-columns: clamp(160px, var(--hud-panel-width), 220px) 1fr clamp(160px, var(--hud-panel-width), 220px);
   grid-template-rows: 1fr var(--cmd-line-height);
   width: 100vw;
   height: 100vh;
@@ -165,7 +186,7 @@ img {
 }
 
 /* ------------------------------------------------------------
-   5. CANVAS
+   5. CANVAS (T004: full viewport, no orb containment)
    ------------------------------------------------------------ */
 #orb-canvas {
   position: fixed;
@@ -174,6 +195,50 @@ img {
   height: 100%;
   z-index: var(--z-canvas);
   pointer-events: none;
+}
+
+/* ------------------------------------------------------------
+   5b. HAMBURGER BUTTON (T011, T020)
+   ------------------------------------------------------------ */
+.hamburger-btn {
+  display: none; /* shown only on mobile via media query */
+  position: fixed;
+  top: var(--space-md);
+  left: var(--space-md);
+  z-index: var(--z-hamburger);
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: rgba(13, 11, 9, 0.8);
+  border: 1px solid var(--color-brass-mid);
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.hamburger-line {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--color-brass-light);
+  border-radius: 1px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Hamburger to X animation when open */
+.hamburger-btn.is-open .hamburger-line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburger-btn.is-open .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+.hamburger-btn.is-open .hamburger-line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
 }
 
 /* ------------------------------------------------------------
@@ -221,7 +286,7 @@ img {
   right: 10px;
 }
 
-/* Inner rivet ring on corners — extra detail via box-shadow */
+/* Inner rivet ring on corners */
 .frame__corner--tl,
 .frame__corner--tr,
 .frame__corner--bl,
@@ -393,7 +458,7 @@ img {
     0 0 12px rgba(200, 168, 75, 0.1);
 }
 
-/* Gauge face — conic gradient for dial markings */
+/* Gauge face */
 .frame__gauge::before {
   content: '';
   position: absolute;
@@ -425,7 +490,7 @@ img {
     radial-gradient(circle, var(--color-iron) 80%, #1a1a22);
 }
 
-/* Gauge needle — uses --needle-angle custom property for GSAP animation */
+/* Gauge needle */
 .frame__gauge {
   --needle-angle: -135deg;
 }
@@ -494,6 +559,7 @@ img {
   z-index: 1;
 }
 
+/* T008: Brand logo — home state (in header) */
 .brand-logo {
   max-height: 40px;
   width: auto;
@@ -504,6 +570,19 @@ img {
 
 .brand-logo:hover {
   opacity: 1;
+}
+
+/* T008: Brand logo — following state */
+#brand-logo.logo--following {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  max-height: 40px;
+  z-index: var(--z-logo-follow);
+  pointer-events: none;
+  filter: sepia(0.3) saturate(2) brightness(1.1) drop-shadow(0 0 8px rgba(200, 168, 75, 0.4));
+  opacity: 0.85;
+  transition: none; /* GSAP handles movement */
 }
 
 /* ------------------------------------------------------------
@@ -1002,26 +1081,7 @@ img {
 }
 
 /* ------------------------------------------------------------
-   13. NARROW VIEWPORT MESSAGE
-   ------------------------------------------------------------ */
-#narrow-viewport-msg {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  background: var(--color-frame-bg);
-  color: var(--color-text-primary);
-  font-family: var(--font-header);
-  font-size: var(--text-lg);
-  letter-spacing: 0.1em;
-  text-align: center;
-  padding: var(--space-2xl);
-  align-items: center;
-  justify-content: center;
-}
-
-/* ------------------------------------------------------------
-   14. FOCUS INDICATORS (Accessibility)
+   13. FOCUS INDICATORS (Accessibility)
    ------------------------------------------------------------ */
 :focus-visible {
   outline: 3px solid var(--color-focus-ring);
@@ -1038,16 +1098,154 @@ img {
 }
 
 /* ------------------------------------------------------------
-   15. MEDIA QUERIES — Accessibility & Responsive
+   14. MEDIA QUERIES — Responsive Breakpoints
    ------------------------------------------------------------ */
 
-/* Reduced motion */
+/* T012: Tablet (max-width: 1199px) — narrower sidebars */
+@media (max-width: 1199px) {
+  :root {
+    --hud-panel-width: 160px;
+    --frame-corner-size: 60px;
+    --frame-border-width: 12px;
+  }
+
+  #app-shell {
+    grid-template-columns: 160px 1fr 160px;
+  }
+
+  .frame__gauge {
+    width: 48px;
+    height: 48px;
+  }
+
+  .frame__gauge--left {
+    left: 16px;
+  }
+
+  .frame__gauge--right {
+    right: 16px;
+  }
+}
+
+/* T012, T013: Mobile (max-width: 767px) — full-bleed, hamburger, sidebars hidden */
+@media (max-width: 767px) {
+  :root {
+    --frame-border-width: 8px;
+    --frame-corner-size: 40px;
+    --cmd-line-height: 40px;
+  }
+
+  #app-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr var(--cmd-line-height);
+  }
+
+  /* Hide sidebars on mobile */
+  #constellation-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85vw;
+    z-index: var(--z-nav-overlay);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    background: rgba(13, 11, 9, 0.96);
+    border-right: 1px solid var(--color-brass-mid);
+    padding-top: 60px;
+  }
+
+  /* Slide in when open */
+  #constellation-nav.nav--open {
+    transform: translateX(0);
+  }
+
+  /* Mobile nav touch targets (T013) */
+  #constellation-nav button {
+    min-height: 44px;
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-base);
+  }
+
+  #status-panel {
+    display: none;
+  }
+
+  /* Show hamburger on mobile */
+  .hamburger-btn {
+    display: flex;
+  }
+
+  /* Main viewport fills entire grid */
+  #main-viewport {
+    grid-column: 1;
+  }
+
+  /* Star labels — larger on mobile */
+  .star-label {
+    font-size: var(--text-base);
+  }
+
+  /* Command line thinner */
+  #command-line {
+    grid-column: 1;
+    font-size: var(--text-xs);
+  }
+
+  /* Frame decorations — thinner on mobile */
+  .frame__gauge {
+    display: none;
+  }
+
+  /* T013: Mobile project overlay — full width */
+  .overlay__frame {
+    width: 100%;
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    border-width: 1px;
+  }
+
+  .overlay__content {
+    padding: var(--space-md) var(--space-md) var(--space-lg);
+  }
+
+  .overlay__title {
+    font-size: var(--text-lg);
+  }
+
+  /* Touch targets on overlay links */
+  .overlay__links a {
+    min-height: 44px;
+    min-width: 44px;
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--text-base);
+  }
+}
+
+/* T018: Smooth breakpoint transitions with clamp() */
+@media (min-width: 768px) and (max-width: 1199px) {
+  #app-shell {
+    grid-template-columns: clamp(140px, 15vw, 180px) 1fr clamp(140px, 15vw, 180px);
+  }
+}
+
+/* ------------------------------------------------------------
+   15. MEDIA QUERIES — Accessibility
+   ------------------------------------------------------------ */
+
+/* Reduced motion (T023) */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .hamburger-line {
+    transition: none;
   }
 }
 
@@ -1113,15 +1311,13 @@ img {
     outline: 3px solid #fff;
     box-shadow: 0 0 0 2px #000, 0 0 0 5px #fff;
   }
-}
 
-/* Narrow viewport: hide app, show message */
-@media (max-width: 1199px) {
-  #app-shell {
-    display: none;
+  .hamburger-btn {
+    background: #000;
+    border-color: #fff;
   }
 
-  #narrow-viewport-msg {
-    display: flex;
+  .hamburger-line {
+    background: #fff;
   }
 }

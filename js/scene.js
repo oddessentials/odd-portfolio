@@ -1,16 +1,24 @@
-// js/scene.js — Three.js crystal ball scene
+// js/scene.js — Three.js full-bleed starfield scene
 import * as THREE from 'three';
 import { PROJECTS, CONSTELLATION_ZONES } from './data.js';
 
 // ---------------------------------------------------------------------------
 // Module-level references (exported at bottom)
 // ---------------------------------------------------------------------------
-let scene, camera, renderer, orbGroup, starNodes, glassMaterial, nebulaLayers;
+let scene, camera, renderer, orbGroup, starNodes, nebulaLayers;
 let starGroup, dustMotes;
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2(-9999, -9999);
 let hoveredStar = null;
 let labelContainer = null;
+let isMobile = false;
+
+// Logo follow references
+let logoEl = null;
+let logoQuickToX = null;
+let logoQuickToY = null;
+let logoFollowing = false;
+let logoHomeRect = null;
 
 // Reduced-motion query (dynamic — responds to runtime changes)
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -73,17 +81,13 @@ function createDustTexture(size) {
 }
 
 // ---------------------------------------------------------------------------
-// Uniform sphere rejection sampling
+// Random point in rectangular volume (replaces spherical sampling)
 // ---------------------------------------------------------------------------
-function randomSpherePoint(radius) {
-  while (true) {
-    const x = (Math.random() * 2 - 1) * radius;
-    const y = (Math.random() * 2 - 1) * radius;
-    const z = (Math.random() * 2 - 1) * radius;
-    if (x * x + y * y + z * z <= radius * radius) {
-      return [x, y, z];
-    }
-  }
+function randomVolumePoint(xRange, yRange, zRange) {
+  const x = (Math.random() * 2 - 1) * xRange;
+  const y = (Math.random() * 2 - 1) * yRange;
+  const z = zRange[0] + Math.random() * (zRange[1] - zRange[0]);
+  return [x, y, z];
 }
 
 // ---------------------------------------------------------------------------
@@ -133,47 +137,106 @@ function hideStarLabel(starSprite) {
 }
 
 // ---------------------------------------------------------------------------
+// Logo follow-cursor setup (T009, T010)
+// ---------------------------------------------------------------------------
+function initLogoFollow() {
+  const gsap = window.gsap;
+  if (!gsap) return;
+
+  logoEl = document.getElementById('brand-logo');
+  if (!logoEl) return;
+
+  // Detect touch device — no follow on touch
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (isTouchDevice && isMobile) return;
+
+  // Store home position
+  logoHomeRect = logoEl.getBoundingClientRect();
+
+  // Create quickTo tweens for smooth cursor tracking
+  logoQuickToX = gsap.quickTo(logoEl, 'left', { duration: 0.3, ease: 'power2.out' });
+  logoQuickToY = gsap.quickTo(logoEl, 'top', { duration: 0.3, ease: 'power2.out' });
+
+  const hitzone = document.getElementById('orb-hitzone');
+  if (!hitzone) return;
+
+  hitzone.addEventListener('mouseenter', () => {
+    if (isMobile) return;
+    logoFollowing = true;
+    logoEl.classList.add('logo--following');
+    hitzone.style.cursor = 'none';
+  });
+
+  hitzone.addEventListener('mousemove', (e) => {
+    if (!logoFollowing || !logoQuickToX || !logoQuickToY) return;
+    // Offset logo slightly from cursor so it doesn't obscure labels
+    logoQuickToX(e.clientX - 20);
+    logoQuickToY(e.clientY - 20);
+  });
+
+  hitzone.addEventListener('mouseleave', () => {
+    if (!logoFollowing) return;
+    logoFollowing = false;
+    logoEl.classList.remove('logo--following');
+    hitzone.style.cursor = 'crosshair';
+
+    // Animate logo back to header home position
+    const headerBand = document.querySelector('.frame__header-band');
+    if (headerBand) {
+      const homeRect = headerBand.getBoundingClientRect();
+      gsap.to(logoEl, {
+        left: homeRect.left + homeRect.width / 2 - 20,
+        top: homeRect.top + homeRect.height / 2 - 20,
+        duration: 0.4,
+        ease: 'power2.inOut',
+        onComplete: () => {
+          // Reset inline styles so CSS takes over
+          logoEl.style.left = '';
+          logoEl.style.top = '';
+        }
+      });
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // initScene — main entry point
 // ---------------------------------------------------------------------------
 function initScene() {
-  // Viewport width guard
-  if (window.innerWidth < 1200) {
-    return false;
-  }
+  // Mobile detection (T015)
+  isMobile = window.innerWidth < 768;
 
   // WebGL support check
   if (!detectWebGL()) {
     return false;
   }
 
-  const viewport = document.getElementById('main-viewport');
-  if (!viewport) return false;
-
   labelContainer = document.getElementById('star-labels');
 
   // -----------------------------------------------------------------------
-  // Scene + Camera + Renderer
+  // Scene + Camera + Renderer (T005: use window dimensions)
   // -----------------------------------------------------------------------
   scene = new THREE.Scene();
 
   camera = new THREE.PerspectiveCamera(
     45,
-    viewport.clientWidth / viewport.clientHeight,
+    window.innerWidth / window.innerHeight,
     0.1,
     100
   );
   camera.position.set(0, 0, 4.5);
 
-  const dpr = Math.min(window.devicePixelRatio, 1.5);
+  // T015: clamp DPR to 1.0 on mobile
+  const dpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio, 1.5);
   const existingCanvas = document.getElementById('orb-canvas');
   renderer = new THREE.WebGLRenderer({
     canvas: existingCanvas,
-    antialias: true,
+    antialias: !isMobile,
     alpha: true,
     powerPreference: 'high-performance'
   });
   renderer.setPixelRatio(dpr);
-  renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+  renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.2;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -182,12 +245,11 @@ function initScene() {
   try {
     renderer.compile(scene, camera);
   } catch (_) {
-    // Shader compilation failed — caller can detect and show fallback
     return false;
   }
 
   // -----------------------------------------------------------------------
-  // OrbGroup — rotates as unit
+  // OrbGroup — container for stars/nebula (T001: no sphere meshes)
   // -----------------------------------------------------------------------
   orbGroup = new THREE.Group();
   scene.add(orbGroup);
@@ -202,56 +264,19 @@ function initScene() {
   pointLight.position.set(3, 3, 3);
   scene.add(pointLight);
 
-  // -----------------------------------------------------------------------
-  // Crystal Ball — Outer glass
-  // -----------------------------------------------------------------------
-  const glassGeo = new THREE.IcosahedronGeometry(1.0, 6);
-  glassMaterial = new THREE.MeshPhysicalMaterial({
-    transmission: 0.92,
-    roughness: 0.05,
-    ior: 1.5,
-    transparent: true,
-    opacity: 0.15,
-    side: THREE.FrontSide,
-    depthWrite: false
-  });
-  const glassMesh = new THREE.Mesh(glassGeo, glassMaterial);
-  orbGroup.add(glassMesh);
+  // T001: Orb sphere meshes REMOVED (glass, rim, inner glow all gone)
 
   // -----------------------------------------------------------------------
-  // Crystal Ball — Rim sphere (BackSide glow)
-  // -----------------------------------------------------------------------
-  const rimGeo = new THREE.IcosahedronGeometry(1.04, 6);
-  const rimMat = new THREE.MeshBasicMaterial({
-    color: 0xffcc66,
-    side: THREE.BackSide,
-    transparent: true,
-    opacity: 0.12
-  });
-  const rimMesh = new THREE.Mesh(rimGeo, rimMat);
-  orbGroup.add(rimMesh);
-
-  // -----------------------------------------------------------------------
-  // Crystal Ball — Inner glow sphere
-  // -----------------------------------------------------------------------
-  const innerGeo = new THREE.IcosahedronGeometry(0.97, 5);
-  const innerMat = new THREE.MeshBasicMaterial({
-    color: 0x1a0a3a,
-    side: THREE.BackSide,
-    transparent: true,
-    opacity: 0.85
-  });
-  const innerMesh = new THREE.Mesh(innerGeo, innerMat);
-  orbGroup.add(innerMesh);
-
-  // -----------------------------------------------------------------------
-  // Nebula System — 3 layered Points clouds
+  // Nebula System — 3 layered Points clouds (T002: viewport-distributed)
   // -----------------------------------------------------------------------
   nebulaLayers = [];
+
+  // T015: reduced counts on mobile
+  const mobileFactor = isMobile ? 0.5 : 1;
   const nebulaConfigs = [
-    { count: 800, radius: 0.75, size: 0.018, blend: THREE.AdditiveBlending, palette: ['#FF6B35', '#A855F7', '#4B2280', '#1A1060'] },
-    { count: 400, radius: 0.85, size: 0.016, blend: THREE.AdditiveBlending, palette: ['#00C9D4', '#2DD4BF', '#0A0E2A', '#1A1060'] },
-    { count: 300, radius: 0.88, size: 0.015, blend: THREE.NormalBlending, palette: ['#FFFFFF', '#C8B0FF', '#D4B896', '#0A0E2A'] }
+    { count: Math.round((isMobile ? 210 : 800) * 1), xRange: 3.5, yRange: 2.5, zRange: [-2, 1], size: 0.022, blend: THREE.AdditiveBlending, palette: ['#FF6B35', '#A855F7', '#4B2280', '#1A1060'] },
+    { count: Math.round((isMobile ? 120 : 400) * 1), xRange: 4.0, yRange: 3.0, zRange: [-2.5, 1.5], size: 0.020, blend: THREE.AdditiveBlending, palette: ['#00C9D4', '#2DD4BF', '#0A0E2A', '#1A1060'] },
+    { count: Math.round((isMobile ? 70 : 300) * 1), xRange: 4.5, yRange: 3.2, zRange: [-3, 2], size: 0.018, blend: THREE.NormalBlending, palette: ['#FFFFFF', '#C8B0FF', '#D4B896', '#0A0E2A'] }
   ];
 
   // Precompute project positions and colors for proximity coloring
@@ -266,7 +291,7 @@ function initScene() {
     const tmpColor = new THREE.Color();
 
     for (let i = 0; i < cfg.count; i++) {
-      const [x, y, z] = randomSpherePoint(cfg.radius);
+      const [x, y, z] = randomVolumePoint(cfg.xRange, cfg.yRange, cfg.zRange);
       positions[i * 3] = x;
       positions[i * 3 + 1] = y;
       positions[i * 3 + 2] = z;
@@ -284,8 +309,17 @@ function initScene() {
       }
       // Blend nearest project color with a random palette color
       const palIdx = Math.floor(Math.random() * paletteColors.length);
-      const influence = Math.max(0, 1 - minDist * 1.5);
+      const influence = Math.max(0, 1 - minDist * 0.5);
       tmpColor.copy(paletteColors[palIdx]).lerp(projectColors[nearestIdx], influence * 0.6);
+
+      // T015: boost saturation 20% on mobile
+      if (isMobile) {
+        const hsl = {};
+        tmpColor.getHSL(hsl);
+        hsl.s = Math.min(1, hsl.s * 1.2);
+        tmpColor.setHSL(hsl.h, hsl.s, hsl.l);
+      }
+
       colors[i * 3] = tmpColor.r;
       colors[i * 3 + 1] = tmpColor.g;
       colors[i * 3 + 2] = tmpColor.b;
@@ -325,7 +359,7 @@ function initScene() {
       depthWrite: false
     });
     const sprite = new THREE.Sprite(mat);
-    const scale = project.starSize * 0.12;
+    const scale = project.starSize * 0.15;
     sprite.scale.set(scale, scale, scale);
     sprite.position.set(
       project.position[0],
@@ -345,15 +379,15 @@ function initScene() {
   orbGroup.add(starGroup);
 
   // -----------------------------------------------------------------------
-  // Dust Motes — 180 particles with Brownian drift
+  // Dust Motes — particles with Brownian drift (distributed across viewport)
   // -----------------------------------------------------------------------
-  const dustCount = 180;
+  const dustCount = isMobile ? 80 : 180;
   const dustPositions = new Float32Array(dustCount * 3);
-  const dustVelocities = new Float32Array(dustCount * 3); // stored separately
+  const dustVelocities = new Float32Array(dustCount * 3);
   const dustOpacities = new Float32Array(dustCount);
 
   for (let i = 0; i < dustCount; i++) {
-    const [x, y, z] = randomSpherePoint(0.90);
+    const [x, y, z] = randomVolumePoint(3.0, 2.0, [-2, 1]);
     dustPositions[i * 3] = x;
     dustPositions[i * 3 + 1] = y;
     dustPositions[i * 3 + 2] = z;
@@ -382,17 +416,16 @@ function initScene() {
 
   // Store velocities on the dustMotes object for render loop access
   dustMotes.userData.velocities = dustVelocities;
+  dustMotes.userData.count = dustCount;
 
   // -----------------------------------------------------------------------
-  // Raycasting — mouse event listeners on #orb-hitzone (sits above canvas)
+  // Raycasting — mouse event listeners on #orb-hitzone
   // -----------------------------------------------------------------------
   const hitzone = document.getElementById('orb-hitzone');
-  const domEl = renderer.domElement;
 
   hitzone.addEventListener('mousemove', (e) => {
-    const rect = domEl.getBoundingClientRect();
-    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
   });
 
   hitzone.addEventListener('mouseleave', () => {
@@ -409,16 +442,43 @@ function initScene() {
     }
   });
 
+  // T015: Touch event listeners for mobile raycasting
+  hitzone.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 0) {
+      const touch = e.touches[0];
+      mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+    }
+  }, { passive: true });
+
+  hitzone.addEventListener('touchend', (e) => {
+    // Perform immediate raycast (don't wait for async ticker)
+    raycaster.setFromCamera(mouse, camera);
+    const hits = raycaster.intersectObjects(starNodes.map(n => n.sprite || n));
+    if (hits.length > 0) {
+      const hitStar = hits[0].object;
+      const project = hitStar.userData.project;
+      if (project) {
+        document.dispatchEvent(new CustomEvent('star-click', {
+          detail: project,
+          bubbles: true
+        }));
+      }
+    }
+    mouse.set(-9999, -9999);
+  });
+
   // -----------------------------------------------------------------------
-  // Resize handler
+  // Resize handler (T005, T019: full window dimensions, orientation change)
   // -----------------------------------------------------------------------
   function onResize() {
-    if (!viewport) return;
-    const w = viewport.clientWidth;
-    const h = viewport.clientHeight;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    // Update mobile flag BEFORE using it for DPR
+    isMobile = w < 768;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    const newDpr = Math.min(window.devicePixelRatio, 1.5);
+    const newDpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio, 1.5);
     renderer.setPixelRatio(newDpr);
     renderer.setSize(w, h);
   }
@@ -427,6 +487,7 @@ function initScene() {
   // -----------------------------------------------------------------------
   // WebGL context loss/restore
   // -----------------------------------------------------------------------
+  const domEl = renderer.domElement;
   domEl.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
     console.warn('[Arcane Console] WebGL context lost');
@@ -452,6 +513,7 @@ function initScene() {
 
   gsap.ticker.add(() => {
     const elapsed = (performance.now() - startTime) / 1000;
+    const dustCount = dustMotes.userData.count;
 
     // Nebula slow drift (skip in reduced motion)
     if (!prefersReducedMotion()) {
@@ -477,7 +539,6 @@ function initScene() {
       const velArr = dustMotes.userData.velocities;
       for (let i = 0; i < dustCount; i++) {
         const i3 = i * 3;
-        // Add small random perturbation (Brownian motion)
         velArr[i3] += (Math.random() - 0.5) * 0.00008;
         velArr[i3 + 1] += (Math.random() - 0.5) * 0.00008;
         velArr[i3 + 2] += (Math.random() - 0.5) * 0.00008;
@@ -486,20 +547,17 @@ function initScene() {
         posArr[i3 + 1] += velArr[i3 + 1];
         posArr[i3 + 2] += velArr[i3 + 2];
 
-        // Clamp to orb interior (r=0.92)
+        // Clamp to volume bounds
         const dx = posArr[i3];
         const dy = posArr[i3 + 1];
         const dz = posArr[i3 + 2];
-        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        if (dist > 0.92) {
-          const scale = 0.92 / dist;
-          posArr[i3] *= scale;
-          posArr[i3 + 1] *= scale;
-          posArr[i3 + 2] *= scale;
-          // Reverse velocity component pointing outward
+        if (Math.abs(dx) > 3.5 || Math.abs(dy) > 2.5 || dz < -2.5 || dz > 1.5) {
           velArr[i3] *= -0.5;
           velArr[i3 + 1] *= -0.5;
           velArr[i3 + 2] *= -0.5;
+          posArr[i3] = Math.max(-3.5, Math.min(3.5, dx));
+          posArr[i3 + 1] = Math.max(-2.5, Math.min(2.5, dy));
+          posArr[i3 + 2] = Math.max(-2.5, Math.min(1.5, dz));
         }
       }
       dustMotes.geometry.attributes.position.needsUpdate = true;
@@ -512,23 +570,26 @@ function initScene() {
     if (intersects.length > 0) {
       const hit = intersects[0].object;
       if (hoveredStar !== hit) {
-        // Exit previous
         if (hoveredStar) {
           handleStarExit(hoveredStar);
         }
-        // Enter new
         hoveredStar = hit;
         handleStarEnter(hit);
       }
-      // Update label position each frame
       showStarLabel(hit);
-      hitzone.style.cursor = 'pointer';
+      // T010: show pointer cursor on star hover even when logo follows
+      const hitzone = document.getElementById('orb-hitzone');
+      if (hitzone) hitzone.style.cursor = 'pointer';
     } else {
       if (hoveredStar) {
         handleStarExit(hoveredStar);
         hoveredStar = null;
       }
-      hitzone.style.cursor = 'default';
+      // T010: hide cursor when logo following, show crosshair otherwise
+      const hitzone = document.getElementById('orb-hitzone');
+      if (hitzone) {
+        hitzone.style.cursor = logoFollowing ? 'none' : 'crosshair';
+      }
     }
 
     // Use EffectComposer if available, otherwise direct render
@@ -549,6 +610,9 @@ function initScene() {
       gsap.ticker.wake();
     }
   });
+
+  // Initialize logo follow after scene is ready
+  initLogoFollow();
 
   return true;
 }
@@ -588,4 +652,4 @@ function handleStarExit(sprite) {
 // ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
-export { initScene, scene, camera, renderer, orbGroup, starNodes, glassMaterial, nebulaLayers };
+export { initScene, scene, camera, renderer, orbGroup, starNodes, nebulaLayers, isMobile };

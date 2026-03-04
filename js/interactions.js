@@ -1,4 +1,4 @@
-// js/interactions.js — Project panel management + keyboard navigation
+// js/interactions.js — Project panel management + keyboard navigation + hamburger menu
 import { PROJECTS } from './data.js';
 
 // ---------------------------------------------------------------------------
@@ -9,6 +9,11 @@ let overlayEl = null;
 let closeBtn = null;
 let backdropEl = null;
 let focusableEls = [];
+
+// Hamburger menu state
+let hamburgerBtn = null;
+let navEl = null;
+let navOpen = false;
 
 // Category SVG icons for terminal-style placeholders
 const CATEGORY_ICONS = {
@@ -26,7 +31,6 @@ const CATEGORY_ICONS = {
 // ---------------------------------------------------------------------------
 function extractYouTubeId(url) {
   if (!url) return null;
-  // youtu.be/ID or youtube.com/watch?v=ID
   const shortMatch = url.match(/youtu\.be\/([^?&]+)/);
   if (shortMatch) return shortMatch[1];
   const longMatch = url.match(/[?&]v=([^?&]+)/);
@@ -41,6 +45,9 @@ function showProjectPanel(project, trigger) {
   if (!overlayEl) return;
 
   triggerElement = trigger || null;
+
+  // Close hamburger nav if open
+  if (navOpen) closeHamburgerNav();
 
   // Populate title and tagline
   const titleEl = overlayEl.querySelector('.overlay__title');
@@ -78,13 +85,11 @@ function showProjectPanel(project, trigger) {
         thumbImg.src = 'https://img.youtube.com/vi/' + videoId + '/hqdefault.jpg';
         thumbImg.alt = project.name + ' video thumbnail';
         thumbImg.style.cssText = 'width:100%;border-radius:4px;border:1px solid rgba(139,105,20,0.2);';
-        // Fallback if hqdefault also fails
         thumbImg.onerror = function() {
           this.src = 'https://img.youtube.com/vi/' + videoId + '/default.jpg';
         };
         thumbWrap.appendChild(thumbImg);
 
-        // Play button overlay
         const playBtn = document.createElement('span');
         playBtn.setAttribute('aria-hidden', 'true');
         playBtn.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;background:rgba(0,0,0,0.7);border-radius:50%;display:flex;align-items:center;justify-content:center;';
@@ -101,14 +106,12 @@ function showProjectPanel(project, trigger) {
       video.preload = 'none';
       video.setAttribute('aria-label', project.name + ' demo video');
 
-      // mp4 source
       if (project.mediaUrl) {
         const mp4 = document.createElement('source');
         mp4.src = project.mediaUrl;
         mp4.type = 'video/mp4';
         video.appendChild(mp4);
 
-        // webm source (swap .mp4 extension)
         const webmSrc = project.mediaUrl.replace(/\.mp4$/, '.webm');
         const webm = document.createElement('source');
         webm.src = webmSrc;
@@ -144,7 +147,6 @@ function showProjectPanel(project, trigger) {
       break;
     }
     default: {
-      // Terminal-style placeholder
       const placeholder = document.createElement('div');
       placeholder.style.cssText = 'padding:32px;text-align:center;background:rgba(28,31,36,0.6);border:1px solid rgba(139,105,20,0.2);border-radius:4px;';
       const icon = CATEGORY_ICONS[project.category] || CATEGORY_ICONS['web'];
@@ -173,22 +175,16 @@ function showProjectPanel(project, trigger) {
     linksFooter.appendChild(a);
   });
 
-  // Set overlay label
   overlayEl.setAttribute('aria-label', project.name + ' project details');
-
-  // Show overlay
   overlayEl.removeAttribute('hidden');
 
-  // Lock scroll
   if (window.ScrollTrigger) {
     window.ScrollTrigger.getAll().forEach(st => st.disable());
   }
   document.body.style.overflow = 'hidden';
 
-  // Dispatch event
   document.dispatchEvent(new CustomEvent('panel-open', { detail: { project } }));
 
-  // Focus close button
   requestAnimationFrame(() => {
     closeBtn.focus();
     updateFocusableElements();
@@ -201,7 +197,6 @@ function showProjectPanel(project, trigger) {
 function closeProjectPanel() {
   if (!overlayEl || overlayEl.hasAttribute('hidden')) return;
 
-  // Stop any playing videos
   const videos = overlayEl.querySelectorAll('video');
   videos.forEach(v => {
     v.pause();
@@ -209,23 +204,18 @@ function closeProjectPanel() {
     v.load();
   });
 
-  // Clear media zone
   const mediaZone = overlayEl.querySelector('.overlay__media-zone');
   mediaZone.innerHTML = '';
 
-  // Hide overlay
   overlayEl.setAttribute('hidden', '');
 
-  // Unlock scroll
   if (window.ScrollTrigger) {
     window.ScrollTrigger.getAll().forEach(st => st.enable());
   }
   document.body.style.overflow = '';
 
-  // Dispatch event
   document.dispatchEvent(new CustomEvent('panel-close'));
 
-  // Return focus
   if (triggerElement && typeof triggerElement.focus === 'function') {
     triggerElement.focus();
   }
@@ -277,6 +267,36 @@ function escapeHtml(str) {
 }
 
 // ---------------------------------------------------------------------------
+// Hamburger menu logic (T014)
+// ---------------------------------------------------------------------------
+function openHamburgerNav() {
+  if (!hamburgerBtn || !navEl) return;
+  navOpen = true;
+  hamburgerBtn.setAttribute('aria-expanded', 'true');
+  hamburgerBtn.setAttribute('aria-label', 'Close navigation');
+  hamburgerBtn.classList.add('is-open');
+  navEl.classList.add('nav--open');
+  document.body.classList.add('nav-overlay-active');
+
+  // Focus first nav button
+  requestAnimationFrame(() => {
+    const firstBtn = navEl.querySelector('button[data-project-id]');
+    if (firstBtn) firstBtn.focus();
+  });
+}
+
+function closeHamburgerNav() {
+  if (!hamburgerBtn || !navEl) return;
+  navOpen = false;
+  hamburgerBtn.setAttribute('aria-expanded', 'false');
+  hamburgerBtn.setAttribute('aria-label', 'Open navigation');
+  hamburgerBtn.classList.remove('is-open');
+  navEl.classList.remove('nav--open');
+  document.body.classList.remove('nav-overlay-active');
+  hamburgerBtn.focus();
+}
+
+// ---------------------------------------------------------------------------
 // initInteractions — wire up all event listeners
 // ---------------------------------------------------------------------------
 function initInteractions() {
@@ -294,10 +314,18 @@ function initInteractions() {
 
   // Escape key + focus trap
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !overlayEl.hasAttribute('hidden')) {
-      e.preventDefault();
-      closeProjectPanel();
-      return;
+    // Escape closes hamburger nav first, then overlay
+    if (e.key === 'Escape') {
+      if (navOpen) {
+        e.preventDefault();
+        closeHamburgerNav();
+        return;
+      }
+      if (!overlayEl.hasAttribute('hidden')) {
+        e.preventDefault();
+        closeProjectPanel();
+        return;
+      }
     }
     // Focus trap when overlay is open
     if (!overlayEl.hasAttribute('hidden')) {
@@ -309,7 +337,6 @@ function initInteractions() {
   document.addEventListener('star-click', (e) => {
     const project = e.detail;
     if (!project) return;
-    // Find the matching nav button to use as trigger
     const navBtn = document.querySelector(
       '#constellation-nav button[data-project-id="' + project.id + '"]'
     );
@@ -351,8 +378,28 @@ function initInteractions() {
     });
   }
 
-  // Set initial focus to first constellation nav button
-  // Deferred: if reveal is active, animations.js calls setInitialFocus() after reveal
+  // T014: Hamburger menu setup
+  hamburgerBtn = document.getElementById('hamburger-btn');
+  navEl = document.getElementById('constellation-nav');
+
+  if (hamburgerBtn) {
+    hamburgerBtn.addEventListener('click', () => {
+      if (navOpen) {
+        closeHamburgerNav();
+      } else {
+        openHamburgerNav();
+      }
+    });
+
+    // Close nav on backdrop tap (clicking outside the nav when overlay is showing)
+    document.addEventListener('click', (e) => {
+      if (navOpen && navEl && !navEl.contains(e.target) && e.target !== hamburgerBtn && !hamburgerBtn.contains(e.target)) {
+        closeHamburgerNav();
+      }
+    });
+  }
+
+  // Set initial focus
   if (!window.__revealActive) {
     setInitialFocus();
   }
