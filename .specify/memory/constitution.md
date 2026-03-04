@@ -323,16 +323,24 @@ design-assets/           # Source assets (not served in production)
   "name": "string",
   "tagline": "string",
   "category": "string",
+  "constellation": "string",
+  "accentColor": "string (hex)",
+  "starSize": "number (1.0 | 1.15 | 1.4)",
+  "position": "[x, y, z]",
   "logoUrl": "string | null",
-  "mediaType": "'image' | 'video' | 'youtube' | null",
+  "mediaType": "'image' | 'video' | 'youtube' | 'screenshots' | null",
   "mediaUrl": "string | null",
+  "screenshots": "string[] | null",
   "links": [
-    { "label": "string", "url": "string" }
+    { "label": "string", "url": "string", "primary": "boolean" }
   ]
 }
 ```
 
-7 projects. No additional fields. No dynamic data fetching.
+7 projects. Extended schema approved during brainstorming (adds
+constellation, accentColor, starSize, position, screenshots fields).
+Full schema in `specs/001-arcane-console-poc/data-model.md`.
+No dynamic data fetching.
 
 ### Performance Targets
 
