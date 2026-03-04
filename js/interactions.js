@@ -75,9 +75,13 @@ function showProjectPanel(project, trigger) {
         thumbWrap.style.cssText = 'display:block;position:relative;cursor:pointer;';
 
         const thumbImg = document.createElement('img');
-        thumbImg.src = 'https://img.youtube.com/vi/' + videoId + '/maxresdefault.jpg';
+        thumbImg.src = 'https://img.youtube.com/vi/' + videoId + '/hqdefault.jpg';
         thumbImg.alt = project.name + ' video thumbnail';
         thumbImg.style.cssText = 'width:100%;border-radius:4px;border:1px solid rgba(139,105,20,0.2);';
+        // Fallback if hqdefault also fails
+        thumbImg.onerror = function() {
+          this.src = 'https://img.youtube.com/vi/' + videoId + '/default.jpg';
+        };
         thumbWrap.appendChild(thumbImg);
 
         // Play button overlay

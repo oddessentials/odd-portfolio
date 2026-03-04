@@ -531,7 +531,12 @@ function initScene() {
       hitzone.style.cursor = 'default';
     }
 
-    renderer.render(scene, camera);
+    // Use EffectComposer if available, otherwise direct render
+    if (window.__arcaneComposer && renderer._composerActive) {
+      window.__arcaneComposer.render();
+    } else {
+      renderer.render(scene, camera);
+    }
   });
 
   // -----------------------------------------------------------------------

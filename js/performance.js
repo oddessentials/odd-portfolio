@@ -88,19 +88,11 @@ function initPostProcessing(sceneRef, cameraRef, rendererRef) {
   const outputPass = new OutputPass();
   composer.addPass(outputPass);
 
-  // Monkey-patch renderer.render so the existing GSAP ticker in scene.js
-  // routes through the composer instead of direct rendering.
-  const originalRender = rendererRef.render.bind(rendererRef);
-  rendererRef._originalRender = originalRender;
+  // Store composer reference globally so scene.js ticker can use it
+  // instead of monkey-patching (which causes infinite recursion via RenderPass)
+  window.__arcaneComposer = composer;
   rendererRef._composerActive = true;
-
-  rendererRef.render = function (s, c) {
-    if (rendererRef._composerActive && composer) {
-      composer.render();
-    } else {
-      originalRender(s, c);
-    }
-  };
+  rendererRef._originalRender = rendererRef.render.bind(rendererRef);
 
   // Handle resize — update composer and bloom resolution
   const onResize = () => {

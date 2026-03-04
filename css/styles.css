@@ -425,7 +425,11 @@ img {
     radial-gradient(circle, var(--color-iron) 80%, #1a1a22);
 }
 
-/* Gauge needle */
+/* Gauge needle — uses --needle-angle custom property for GSAP animation */
+.frame__gauge {
+  --needle-angle: -135deg;
+}
+
 .frame__gauge::after {
   content: '';
   position: absolute;
@@ -435,7 +439,7 @@ img {
   height: 20px;
   background: linear-gradient(to top, var(--color-brass-light), #ff6b35);
   transform-origin: bottom center;
-  transform: translate(-50%, -100%) rotate(-30deg);
+  transform: translate(-50%, -100%) rotate(var(--needle-angle));
   border-radius: 1px 1px 0 0;
   box-shadow: 0 0 4px rgba(255, 107, 53, 0.5);
 }
@@ -446,18 +450,10 @@ img {
   transform: translateY(-50%);
 }
 
-.frame__gauge--left::after {
-  transform: translate(-50%, -100%) rotate(-30deg);
-}
-
 .frame__gauge--right {
   right: 28px;
   top: 50%;
   transform: translateY(-50%);
-}
-
-.frame__gauge--right::after {
-  transform: translate(-50%, -100%) rotate(15deg);
 }
 
 /* --- 6.4 Rune band --- */

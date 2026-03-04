@@ -134,12 +134,7 @@ function playRevealSequence() {
   // -----------------------------------------------------------------------
   // Phase 2 (1600–3800ms): Console powers up
   // -----------------------------------------------------------------------
-  // Gauge needle animation (rotate from -135deg to resting position)
-  tl.to('.frame__gauge--left::after', {
-    rotation: -30, duration: 0.8, ease: 'elastic.out(1, 0.4)'
-  }, 1.6);
-  // We animate actual gauge pseudo-elements via a proxy approach
-  // Since pseudo-elements can't be directly animated, animate the gauge itself
+  // Gauge needle animation via CSS custom property (pseudo-elements can't be GSAP targets)
   tl.fromTo('.frame__gauge--left', {
     '--needle-angle': '-135deg'
   }, {
