@@ -20,8 +20,10 @@ const designAspect = 16 / 9;
 let logoEl = null;
 let logoQuickToX = null;
 let logoQuickToY = null;
+let logoQuickToRot = null;
 let logoFollowing = false;
-let logoHomeRect = null;
+let logoPrevX = 0;
+let logoPrevY = 0;
 
 // Reduced-motion query (dynamic — responds to runtime changes)
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -142,6 +144,32 @@ function hideStarLabel(starSprite) {
 // ---------------------------------------------------------------------------
 // Logo follow-cursor setup (T009, T010)
 // ---------------------------------------------------------------------------
+function logoReturnHome(gsap) {
+  logoFollowing = false;
+  const headerBand = document.querySelector('.frame__header-band');
+  if (headerBand) {
+    const homeRect = headerBand.getBoundingClientRect();
+    gsap.to(logoEl, {
+      left: homeRect.left + homeRect.width / 2 - 20,
+      top: homeRect.top + homeRect.height / 2 - 20,
+      rotation: 0,
+      duration: 0.4,
+      ease: 'power2.inOut',
+      onComplete: () => {
+        logoEl.classList.remove('logo--following');
+        logoEl.style.left = '';
+        logoEl.style.top = '';
+        gsap.set(logoEl, { clearProps: 'transform' });
+      }
+    });
+  } else {
+    logoEl.classList.remove('logo--following');
+    logoEl.style.left = '';
+    logoEl.style.top = '';
+    gsap.set(logoEl, { clearProps: 'transform' });
+  }
+}
+
 function initLogoFollow() {
   const gsap = window.gsap;
   if (!gsap) return;
@@ -149,64 +177,92 @@ function initLogoFollow() {
   logoEl = document.getElementById('brand-logo');
   if (!logoEl) return;
 
-  // Detect touch device — no follow on touch
-  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-  if (isTouchDevice && isMobile) return;
-
-  // Store home position
-  logoHomeRect = logoEl.getBoundingClientRect();
-
-  // Create quickTo tweens for smooth cursor tracking
-  logoQuickToX = gsap.quickTo(logoEl, 'left', { duration: 0.3, ease: 'power2.out' });
-  logoQuickToY = gsap.quickTo(logoEl, 'top', { duration: 0.3, ease: 'power2.out' });
-
   const hitzone = document.getElementById('orb-hitzone');
   if (!hitzone) return;
 
-  hitzone.addEventListener('mouseenter', () => {
-    if (isMobile) return;
-    gsap.killTweensOf(logoEl); // kill return animation if mid-flight
-    logoFollowing = true;
-    logoEl.classList.add('logo--following');
-    hitzone.style.cursor = 'none';
-  });
+  // Logo's upper-right corner tracks the pointer (rocket-ship effect).
+  // 40px logo: left = pointerX - 40, top = pointerY
+  const logoW = 40;
+  // Neutral angle: logo body extends down-left from the nose (upper-right).
+  // That direction is 225° from positive-x, so the nose points at -45° (upper-right).
+  // Rotation = movementAngle - neutralAngle.
+  const neutralDeg = -45;
+  const RAD2DEG = 180 / Math.PI;
+  // Minimum movement distance to update rotation (avoids jitter from tiny deltas)
+  const minDelta = 2;
 
-  hitzone.addEventListener('mousemove', (e) => {
-    if (!logoFollowing || !logoQuickToX || !logoQuickToY) return;
-    // Offset logo slightly from cursor so it doesn't obscure labels
-    logoQuickToX(e.clientX - 20);
-    logoQuickToY(e.clientY - 20);
-  });
-
-  hitzone.addEventListener('mouseleave', () => {
-    if (!logoFollowing) return;
-    logoFollowing = false;
-    // Keep logo--following class during return animation (position:fixed
-    // needed for GSAP left/top to work). Remove only in onComplete.
-    hitzone.style.cursor = 'crosshair';
-
-    // Animate logo back to header home position
-    const headerBand = document.querySelector('.frame__header-band');
-    if (headerBand) {
-      const homeRect = headerBand.getBoundingClientRect();
-      gsap.to(logoEl, {
-        left: homeRect.left + homeRect.width / 2 - 20,
-        top: homeRect.top + homeRect.height / 2 - 20,
-        duration: 0.4,
-        ease: 'power2.inOut',
-        onComplete: () => {
-          // Remove class AFTER animation (keeps position:fixed during flight)
-          logoEl.classList.remove('logo--following');
-          logoEl.style.left = '';
-          logoEl.style.top = '';
-        }
-      });
+  // Shared rotation helper — computes angle from movement delta
+  function updateRotation(cx, cy) {
+    const dx = cx - logoPrevX;
+    const dy = cy - logoPrevY;
+    logoPrevX = cx;
+    logoPrevY = cy;
+    if (dx * dx + dy * dy < minDelta * minDelta) return;
+    const deg = Math.atan2(dy, dx) * RAD2DEG - neutralDeg;
+    if (logoQuickToRot) {
+      logoQuickToRot(deg);
     } else {
-      logoEl.classList.remove('logo--following');
-      logoEl.style.left = '';
-      logoEl.style.top = '';
+      gsap.set(logoEl, { rotation: deg });
     }
-  });
+  }
+
+  // --- Desktop: mouse events ---
+  if (!isMobile) {
+    logoQuickToX = gsap.quickTo(logoEl, 'left', { duration: 0.3, ease: 'power2.out' });
+    logoQuickToY = gsap.quickTo(logoEl, 'top', { duration: 0.3, ease: 'power2.out' });
+    logoQuickToRot = gsap.quickTo(logoEl, 'rotation', { duration: 0.25, ease: 'power2.out' });
+
+    hitzone.addEventListener('mouseenter', (e) => {
+      gsap.killTweensOf(logoEl);
+      logoFollowing = true;
+      logoPrevX = e.clientX;
+      logoPrevY = e.clientY;
+      // Set position BEFORE adding class to prevent 1-frame flash
+      logoEl.style.left = (e.clientX - logoW) + 'px';
+      logoEl.style.top = e.clientY + 'px';
+      logoEl.classList.add('logo--following');
+      hitzone.style.cursor = 'none';
+    });
+
+    hitzone.addEventListener('mousemove', (e) => {
+      if (!logoFollowing || !logoQuickToX || !logoQuickToY) return;
+      logoQuickToX(e.clientX - logoW);
+      logoQuickToY(e.clientY);
+      updateRotation(e.clientX, e.clientY);
+    });
+
+    hitzone.addEventListener('mouseleave', () => {
+      if (!logoFollowing) return;
+      hitzone.style.cursor = 'crosshair';
+      logoReturnHome(gsap);
+    });
+  }
+
+  // --- Touch: snap logo to touch point, return on release ---
+  hitzone.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 0) return;
+    const t = e.touches[0];
+    gsap.killTweensOf(logoEl);
+    logoFollowing = true;
+    logoPrevX = t.clientX;
+    logoPrevY = t.clientY;
+    logoEl.style.left = (t.clientX - logoW) + 'px';
+    logoEl.style.top = t.clientY + 'px';
+    logoEl.classList.add('logo--following');
+  }, { passive: true });
+
+  hitzone.addEventListener('touchmove', (e) => {
+    if (!logoFollowing || e.touches.length === 0) return;
+    const t = e.touches[0];
+    logoEl.style.left = (t.clientX - logoW) + 'px';
+    logoEl.style.top = t.clientY + 'px';
+    updateRotation(t.clientX, t.clientY);
+  }, { passive: true });
+
+  hitzone.addEventListener('touchend', () => {
+    if (!logoFollowing) return;
+    logoReturnHome(gsap);
+  }, { passive: true });
 }
 
 // ---------------------------------------------------------------------------

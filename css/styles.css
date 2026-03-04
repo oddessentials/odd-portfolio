@@ -611,8 +611,10 @@ body.nav-overlay-active .nav-backdrop {
 .frame__header-band {
   position: absolute;
   top: var(--frame-border-width);
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  /* No transform here — transform creates a containing block that breaks
+     position:fixed on the logo during cursor-follow mode (logo--following). */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -645,7 +647,8 @@ body.nav-overlay-active .nav-backdrop {
   pointer-events: none;
   filter: sepia(0.3) saturate(2) brightness(1.1) drop-shadow(0 0 8px rgba(200, 168, 75, 0.4));
   opacity: 0.85;
-  transition: none; /* GSAP handles movement */
+  transition: none; /* GSAP handles movement + rotation */
+  transform-origin: 100% 0%; /* pivot at upper-right corner (the "nose") */
 }
 
 /* ------------------------------------------------------------
