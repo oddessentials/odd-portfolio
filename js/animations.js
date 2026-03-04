@@ -1,5 +1,5 @@
 // js/animations.js — Reveal sequence, scroll interactions, micro-interactions
-import { scene, camera, renderer, orbGroup, starNodes, glassMaterial, nebulaLayers } from './scene.js';
+import { scene, camera, renderer, orbGroup, starNodes, nebulaLayers } from './scene.js';
 import { PROJECTS, CONSTELLATION_ZONES } from './data.js';
 import { setInitialFocus } from './interactions.js';
 
@@ -11,23 +11,24 @@ const ScrollTrigger = window.ScrollTrigger;
 const prefersReducedMotion =
   window.matchMedia('(prefers-reduced-motion: reduce)');
 
+// Mobile detection
+const isMobileView = () => window.innerWidth < 768;
+
 // ---------------------------------------------------------------------------
-// playRevealSequence — master GSAP timeline (~6500ms)
+// playRevealSequence — master GSAP timeline (T017: shorter on mobile)
 // ---------------------------------------------------------------------------
 function playRevealSequence() {
   if (!gsap) return null;
 
-  // Signal that reveal is active (interactions.js defers initial focus)
   window.__revealActive = true;
+
+  const mobile = isMobileView();
 
   const tl = gsap.timeline({
     onComplete: () => {
       window.__revealActive = false;
-      // Dispatch reveal-complete event for performance.js auto-tier benchmark
       document.dispatchEvent(new CustomEvent('reveal-complete'));
-      // After reveal: discoverability affordance with 2s delay
       gsap.delayedCall(2, playDiscoverabilityAffordance);
-      // Set initial focus to first nav button
       setInitialFocus();
     }
   });
@@ -46,39 +47,23 @@ function playRevealSequence() {
   const navLabel = document.querySelector('#constellation-nav .hud-label');
   const statusLabel = document.querySelector('#status-panel .hud-label');
 
-  // Frame corners — hidden and displaced
+  // Frame elements — hidden and displaced
   gsap.set(corners, { opacity: 0 });
   gsap.set('.frame__corner--tl', { x: -60, y: -60 });
   gsap.set('.frame__corner--tr', { x: 60, y: -60 });
   gsap.set('.frame__corner--bl', { x: -60, y: 60 });
   gsap.set('.frame__corner--br', { x: 60, y: 60 });
-
-  // Frame edges — scale from 0
   gsap.set('.frame__edge--top, .frame__edge--bottom', { scaleX: 0 });
   gsap.set('.frame__edge--left, .frame__edge--right', { scaleY: 0 });
-
-  // Frame details
   gsap.set(gauges, { scale: 0, opacity: 0 });
   gsap.set(runeBand, { opacity: 0 });
   gsap.set(headerBand, { opacity: 0, y: -10 });
-
-  // Status and nav labels
   gsap.set(statusLines, { opacity: 0, x: 10 });
   gsap.set(navButtons, { opacity: 0, x: -10 });
   gsap.set([navLabel, statusLabel], { opacity: 0 });
 
-  // Command line — clear text
   if (cmdText) cmdText.textContent = '';
 
-  // 3D scene — hide materials initially
-  if (glassMaterial) {
-    glassMaterial.opacity = 0;
-  }
-  // Rim material (orbGroup child 1)
-  const rimMesh = orbGroup ? orbGroup.children[1] : null;
-  if (rimMesh && rimMesh.material) {
-    rimMesh.material.opacity = 0;
-  }
   // Nebula layers hidden
   if (nebulaLayers) {
     nebulaLayers.forEach(layer => {
@@ -99,14 +84,83 @@ function playRevealSequence() {
   }
 
   // -----------------------------------------------------------------------
-  // Phase 1 (0–1600ms): Frame Assembly
+  // T017: Mobile reveal — simplified, shorter (~4s vs ~6.5s)
   // -----------------------------------------------------------------------
-  // Corners slide in with stagger
+  if (mobile) {
+    // Skip frame assembly on mobile (no sidebars visible)
+    // Just show frame elements at final state
+    gsap.set(corners, { opacity: 1, x: 0, y: 0 });
+    gsap.set('.frame__edge--top, .frame__edge--bottom', { scaleX: 1 });
+    gsap.set('.frame__edge--left, .frame__edge--right', { scaleY: 1 });
+    gsap.set(gauges, { scale: 1, opacity: 1 });
+    gsap.set(runeBand, { opacity: 0.7 });
+    gsap.set(headerBand, { opacity: 1, y: 0 });
+    gsap.set([navLabel, statusLabel], { opacity: 1 });
+    gsap.set(statusLines, { opacity: 1, x: 0 });
+    gsap.set(navButtons, { opacity: 1, x: 0 });
+
+    // Command line typewriter
+    const cliSequence = [
+      { text: 'reveal universe', delay: 0 },
+      { text: 'starfield ignition active', delay: 0.8 }
+    ];
+    cliSequence.forEach((cmd) => {
+      tl.to(cmdText, {
+        duration: cmd.text.length * 0.04,
+        text: { value: cmd.text, delimiter: '' },
+        ease: 'none'
+      }, cmd.delay);
+    });
+
+    // Nebula bloom
+    if (nebulaLayers) {
+      nebulaLayers.forEach((layer, i) => {
+        tl.to(layer.material, {
+          opacity: 0.7 + i * 0.03,
+          duration: 0.6,
+          ease: 'sine.inOut'
+        }, 1.0 + i * 0.1);
+        tl.to(layer.scale, {
+          x: 1, y: 1, z: 1,
+          duration: 0.8,
+          ease: 'power2.out'
+        }, 1.0 + i * 0.1);
+      });
+    }
+
+    // Stars stagger in
+    if (starNodes && starNodes.length > 0) {
+      const shuffledStars = gsap.utils.shuffle([...starNodes]);
+      shuffledStars.forEach((sprite, i) => {
+        const baseScale = sprite.userData.baseScale;
+        tl.to(sprite.scale, {
+          x: baseScale, y: baseScale, z: baseScale,
+          duration: 0.3,
+          ease: 'back.out(2.5)'
+        }, 2.0 + i * 0.1);
+        tl.to(sprite.material, {
+          opacity: 1, duration: 0.2, ease: 'power2.out'
+        }, 2.0 + i * 0.1);
+      });
+    }
+
+    // Camera zoom
+    if (camera) {
+      tl.to(camera.position, {
+        z: 4.5, duration: 1.2, ease: 'power2.inOut'
+      }, 1.5);
+    }
+
+    return tl;
+  }
+
+  // -----------------------------------------------------------------------
+  // Desktop reveal — full sequence
+  // -----------------------------------------------------------------------
+
+  // Phase 1 (0-1600ms): Frame Assembly
   tl.to(corners, {
-    opacity: 1,
-    duration: 0.5,
-    stagger: 0.1,
-    ease: 'expo.out'
+    opacity: 1, duration: 0.5, stagger: 0.1, ease: 'expo.out'
   }, 0);
 
   tl.to('.frame__corner--tl', { x: 0, y: 0, duration: 0.6, ease: 'expo.out' }, 0);
@@ -114,7 +168,6 @@ function playRevealSequence() {
   tl.to('.frame__corner--bl', { x: 0, y: 0, duration: 0.6, ease: 'expo.out' }, 0.2);
   tl.to('.frame__corner--br', { x: 0, y: 0, duration: 0.6, ease: 'expo.out' }, 0.3);
 
-  // Edges scale in
   tl.to('.frame__edge--top, .frame__edge--bottom', {
     scaleX: 1, duration: 0.5, ease: 'back.out(1.4)'
   }, 0.4);
@@ -122,7 +175,6 @@ function playRevealSequence() {
     scaleY: 1, duration: 0.5, ease: 'back.out(1.4)'
   }, 0.5);
 
-  // Frame details pop in (gauges, rune band, header)
   tl.to(gauges, {
     scale: 1, opacity: 1, duration: 0.4,
     ease: 'back.out(2)', stagger: 0.1
@@ -131,10 +183,7 @@ function playRevealSequence() {
   tl.to(runeBand, { opacity: 0.7, duration: 0.4, ease: 'power2.out' }, 1.0);
   tl.to(headerBand, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 1.0);
 
-  // -----------------------------------------------------------------------
-  // Phase 2 (1600–3800ms): Console powers up
-  // -----------------------------------------------------------------------
-  // Gauge needle animation via CSS custom property (pseudo-elements can't be GSAP targets)
+  // Phase 2 (1600-3800ms): Console powers up
   tl.fromTo('.frame__gauge--left', {
     '--needle-angle': '-135deg'
   }, {
@@ -150,11 +199,10 @@ function playRevealSequence() {
     ease: 'elastic.out(1, 0.4)'
   }, 1.8);
 
-  // Command line typewriter sequence
   const cliSequence = [
     { text: 'reveal universe', delay: 1.6 },
-    { text: 'calibrating orb...', delay: 2.6 },
-    { text: 'orb ignition sequence active', delay: 3.2 }
+    { text: 'calibrating starfield...', delay: 2.6 },
+    { text: 'ignition sequence active', delay: 3.2 }
   ];
 
   cliSequence.forEach((cmd) => {
@@ -165,7 +213,6 @@ function playRevealSequence() {
     }, cmd.delay);
   });
 
-  // Status panel text fade in with stagger
   tl.to(statusLines, {
     opacity: 1, x: 0, duration: 0.3,
     stagger: 0.15, ease: 'power2.out'
@@ -175,33 +222,7 @@ function playRevealSequence() {
     opacity: 1, duration: 0.3, ease: 'power2.out'
   }, 2.0);
 
-  // -----------------------------------------------------------------------
-  // Phase 3 (3800–6500ms): Orb ignition
-  // -----------------------------------------------------------------------
-  // Glass material fade in
-  if (glassMaterial) {
-    tl.to(glassMaterial, {
-      opacity: 0.15, duration: 0.6, ease: 'power2.out'
-    }, 3.8);
-  }
-
-  // Rim material fade in
-  if (rimMesh && rimMesh.material) {
-    tl.to(rimMesh.material, {
-      opacity: 0.12, duration: 0.6, ease: 'power2.out'
-    }, 3.8);
-  }
-
-  // White flash (80ms spike)
-  if (glassMaterial) {
-    tl.to(glassMaterial, {
-      opacity: 0.5, duration: 0.04, ease: 'power4.in'
-    }, 4.0);
-    tl.to(glassMaterial, {
-      opacity: 0.15, duration: 0.12, ease: 'power2.out'
-    }, 4.04);
-  }
-
+  // Phase 3 (3800-6500ms): Starfield ignition (no orb glass, just nebula + stars)
   // Nebula layers bloom outward
   if (nebulaLayers) {
     nebulaLayers.forEach((layer, i) => {
@@ -209,16 +230,16 @@ function playRevealSequence() {
         opacity: 0.7 + i * 0.03,
         duration: 0.8,
         ease: 'sine.inOut'
-      }, 4.1 + i * 0.15);
+      }, 3.8 + i * 0.15);
       tl.to(layer.scale, {
         x: 1, y: 1, z: 1,
         duration: 1.0,
         ease: 'power2.out'
-      }, 4.1 + i * 0.15);
+      }, 3.8 + i * 0.15);
     });
   }
 
-  // Stars stagger in (random order)
+  // Stars stagger in
   if (starNodes && starNodes.length > 0) {
     const shuffledStars = gsap.utils.shuffle([...starNodes]);
     shuffledStars.forEach((sprite, i) => {
@@ -258,10 +279,8 @@ function playDiscoverabilityAffordance() {
   if (prefersReducedMotion.matches) return;
 
   const cmdText = document.querySelector('.cmd-text');
-  const statusLines = document.querySelectorAll('.status-line');
   const phaseIndicator = document.querySelector('.phase-indicator');
 
-  // Sonar pulse each star
   starNodes.forEach((sprite, i) => {
     const baseScale = sprite.userData.baseScale;
     gsap.to(sprite.scale, {
@@ -276,7 +295,6 @@ function playDiscoverabilityAffordance() {
     });
   });
 
-  // Command line types discovery message
   if (cmdText) {
     gsap.to(cmdText, {
       duration: 1.5,
@@ -286,7 +304,6 @@ function playDiscoverabilityAffordance() {
     });
   }
 
-  // Status panel arcane readout
   if (phaseIndicator) {
     gsap.to(phaseIndicator, {
       duration: 0.01,
@@ -321,13 +338,11 @@ function initSkipIntro(masterTimeline) {
 
   document.body.appendChild(skipBtn);
 
-  // Fade in at t=500ms
   gsap.to(skipBtn, {
     opacity: 1, duration: 0.3, delay: 0.5,
     onStart: () => { skipBtn.style.pointerEvents = 'auto'; }
   });
 
-  // Auto-fade after 3 seconds
   const fadeOutTween = gsap.to(skipBtn, {
     opacity: 0, duration: 0.5, delay: 3.5,
     onComplete: removeSkip
@@ -353,7 +368,6 @@ function initSkipIntro(masterTimeline) {
 
   function onKeySkip(e) {
     if (e.key === 's' || e.key === 'S') {
-      // Don't skip if typing in an input or overlay is open
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       const overlay = document.getElementById('project-overlay');
       if (overlay && !overlay.hasAttribute('hidden')) return;
@@ -362,14 +376,11 @@ function initSkipIntro(masterTimeline) {
   }
   document.addEventListener('keydown', onKeySkip);
 
-  // Store original onComplete to chain
   const originalOnComplete = masterTimeline.eventCallback('onComplete');
 
-  // If timeline completes naturally, remove skip button
   masterTimeline.eventCallback('onComplete', () => {
     fadeOutTween.kill();
     removeSkip();
-    // Fire original onComplete
     if (typeof originalOnComplete === 'function') {
       originalOnComplete();
     }
@@ -385,11 +396,9 @@ function initScrollInteractions() {
 
   gsap.registerPlugin(ScrollTrigger);
 
-  // Allow body to scroll
   document.body.style.overflow = 'auto';
   document.documentElement.style.overflow = 'auto';
 
-  // Create scroll driver element
   let scrollDriver = document.getElementById('scroll-driver');
   if (!scrollDriver) {
     scrollDriver = document.createElement('div');
@@ -399,10 +408,8 @@ function initScrollInteractions() {
     document.body.appendChild(scrollDriver);
   }
 
-  // Proxy object for scrubbed values
   const proxy = { orbRotY: 0, cameraZ: 4.5, paletteShift: 0 };
 
-  // Main scroll timeline
   const scrollTl = gsap.timeline({
     scrollTrigger: {
       trigger: scrollDriver,
@@ -414,7 +421,6 @@ function initScrollInteractions() {
     }
   });
 
-  // Drive orb rotation and camera zoom
   scrollTl.to(proxy, {
     orbRotY: 0.44,
     cameraZ: 3.7,
@@ -426,7 +432,6 @@ function initScrollInteractions() {
     }
   });
 
-  // Constellation zone sub-triggers
   const cmdText = document.querySelector('.cmd-text');
   const phaseIndicator = document.querySelector('.phase-indicator');
 
@@ -459,13 +464,11 @@ function initScrollInteractions() {
     });
   });
 
-  // End zone (90-100%): all stars equal brightness
   ScrollTrigger.create({
     trigger: scrollDriver,
     start: '90% top',
     end: '100% top',
     onEnter: () => {
-      // All stars equal brightness
       if (starNodes) {
         starNodes.forEach(sprite => {
           const base = sprite.userData.baseScale;
@@ -476,7 +479,6 @@ function initScrollInteractions() {
       if (phaseIndicator) phaseIndicator.textContent = 'COMPLETE';
     },
     onLeaveBack: () => {
-      // Revert to Zone 3
       const lastZone = CONSTELLATION_ZONES[CONSTELLATION_ZONES.length - 1];
       brightenZoneStars(lastZone.projectIds, true);
       if (cmdText) cmdText.textContent = zoneMessages[zoneMessages.length - 1].cmd;
@@ -506,7 +508,6 @@ function brightenZoneStars(projectIds, brighten) {
         opacity: targetOpacity, duration: 0.4, ease: 'power2.out'
       });
     } else {
-      // Reset to base
       gsap.to(sprite.scale, {
         x: base, y: base, z: base,
         duration: 0.4, ease: 'power2.out'
@@ -525,7 +526,6 @@ function handleReducedMotion() {
   function applyReducedMotion(isReduced) {
     if (!isReduced) return;
 
-    // Skip reveal: set everything to final state immediately
     const corners = document.querySelectorAll('.frame__corner');
     const edges = document.querySelectorAll('.frame__edge');
     const gauges = document.querySelectorAll('.frame__gauge');
@@ -538,7 +538,6 @@ function handleReducedMotion() {
     const cmdText = document.querySelector('.cmd-text');
     const phaseIndicator = document.querySelector('.phase-indicator');
 
-    // All frame elements visible at final positions
     if (gsap) {
       gsap.set(corners, { opacity: 1, x: 0, y: 0 });
       gsap.set(edges, { scaleX: 1, scaleY: 1 });
@@ -550,15 +549,10 @@ function handleReducedMotion() {
       gsap.set([navLabel, statusLabel], { opacity: 1 });
     }
 
-    // Command line shows final text
     if (cmdText) cmdText.textContent = 'select a constellation to begin';
     if (phaseIndicator) phaseIndicator.textContent = 'READY';
 
-    // 3D scene: set final state
-    if (glassMaterial) glassMaterial.opacity = 0.15;
-    if (orbGroup && orbGroup.children[1] && orbGroup.children[1].material) {
-      orbGroup.children[1].material.opacity = 0.12;
-    }
+    // No orb glass to set opacity on — just nebula and stars
     if (nebulaLayers) {
       nebulaLayers.forEach(layer => {
         layer.material.opacity = 0.7;
@@ -574,22 +568,18 @@ function handleReducedMotion() {
     }
     if (camera) camera.position.z = 4.5;
 
-    // Disable all ScrollTrigger instances
     if (ScrollTrigger) {
       ScrollTrigger.getAll().forEach(st => st.kill());
     }
 
-    // Mark reveal as done
     window.__revealActive = false;
     setInitialFocus();
   }
 
-  // Apply immediately if already set
   if (prefersReducedMotion.matches) {
     applyReducedMotion(true);
   }
 
-  // Listen for runtime changes
   prefersReducedMotion.addEventListener('change', (e) => {
     if (e.matches) {
       applyReducedMotion(true);
@@ -616,7 +606,6 @@ function handleScrollDuringReveal(masterTimeline) {
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('wheel', onScroll, { passive: true });
 
-  // Clean up when timeline finishes naturally — chain with existing callback
   const prevOnComplete = masterTimeline.eventCallback('onComplete');
   masterTimeline.eventCallback('onComplete', () => {
     window.removeEventListener('scroll', onScroll);

@@ -1,4 +1,5 @@
 // js/data.js — Project data and constellation zone definitions
+// T003: Star positions updated to viewport-distributed coordinates
 
 export const PROJECTS = [
   {
@@ -9,7 +10,7 @@ export const PROJECTS = [
     constellation: 'The Forge Septet',
     accentColor: '#FF6B35',
     starSize: 1.4,
-    position: [0.42, 0.55, -0.20],
+    position: [1.8, 1.0, -0.5],
     logoUrl: 'assets/odd-ai-reviewers-banner.png',
     mediaType: 'youtube',
     mediaUrl: 'https://youtu.be/rkDQ7ZA47XQ',
@@ -28,7 +29,7 @@ export const PROJECTS = [
     constellation: "The Scribe's Lens",
     accentColor: '#00C9D4',
     starSize: 1.15,
-    position: [-0.50, 0.20, 0.35],
+    position: [-2.0, 0.5, 0.3],
     logoUrl: 'assets/ado-git-repo-insights-logo.png',
     mediaType: 'screenshots',
     mediaUrl: null,
@@ -52,7 +53,7 @@ export const PROJECTS = [
     constellation: 'The Iron Codex',
     accentColor: '#F5C518',
     starSize: 1.0,
-    position: [0.60, -0.15, 0.10],
+    position: [2.2, -0.4, 0.2],
     logoUrl: null,
     mediaType: null,
     mediaUrl: null,
@@ -70,7 +71,7 @@ export const PROJECTS = [
     constellation: 'The Engine Core',
     accentColor: '#4ADE80',
     starSize: 1.0,
-    position: [-0.20, -0.50, -0.40],
+    position: [-0.8, -1.2, -0.6],
     logoUrl: null,
     mediaType: null,
     mediaUrl: null,
@@ -89,7 +90,7 @@ export const PROJECTS = [
     constellation: "The Navigator's Rose",
     accentColor: '#2DD4BF',
     starSize: 1.15,
-    position: [0.10, 0.35, 0.60],
+    position: [0.3, 0.8, 0.5],
     logoUrl: null,
     mediaType: null,
     mediaUrl: null,
@@ -107,7 +108,7 @@ export const PROJECTS = [
     constellation: "The Alchemist's Eye",
     accentColor: '#A855F7',
     starSize: 1.4,
-    position: [-0.55, -0.20, -0.15],
+    position: [-2.2, -0.6, -0.3],
     logoUrl: 'assets/odd-fintech-logo.png',
     mediaType: 'video',
     mediaUrl: 'assets/odd-fintech-video.mp4',
@@ -124,7 +125,7 @@ export const PROJECTS = [
     constellation: 'The Hearth Star',
     accentColor: '#FB7185',
     starSize: 1.0,
-    position: [0.30, -0.45, 0.30],
+    position: [1.0, -1.0, 0.4],
     logoUrl: 'assets/coney-island-logo-1024x690.svg',
     mediaType: 'image',
     mediaUrl: 'assets/coney-island-restaurant-and-tavern.jpg',
