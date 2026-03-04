@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OddEssentials | Arcane Console</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="OddEssentials | Arcane Console">
+  <meta property="og:description" content="Victorian Techno-Mage portfolio — 7 open-source projects visualized as constellations inside a crystal ball.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/logo.svg">
+
+  <!-- Favicon: brass gear SVG data URI -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='none' stroke='%23C8A84B' stroke-width='4'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23C8A84B'/%3E%3Cg stroke='%23C8A84B' stroke-width='5'%3E%3Cline x1='32' y1='2' x2='32' y2='14'/%3E%3Cline x1='32' y1='50' x2='32' y2='62'/%3E%3Cline x1='2' y1='32' x2='14' y2='32'/%3E%3Cline x1='50' y1='32' x2='62' y2='32'/%3E%3Cline x1='10.6' y1='10.6' x2='19.4' y2='19.4'/%3E%3Cline x1='44.6' y1='44.6' x2='53.4' y2='53.4'/%3E%3Cline x1='10.6' y1='53.4' x2='19.4' y2='44.6'/%3E%3Cline x1='44.6' y1='19.4' x2='53.4' y2='10.6'/%3E%3C/g%3E%3C/svg%3E">
+
+  <!-- Google Fonts: Cinzel (display), JetBrains Mono (terminal), IM Fell English (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=block" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- GSAP + plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"></script>
+
+  <!-- Three.js import map -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div id="app-shell">
+
+    <!-- Skip link -->
+    <a href="#main-viewport" class="skip-link">Skip to content</a>
+
+    <!-- WebGL canvas -->
+    <canvas id="orb-canvas" aria-hidden="true"></canvas>
+
+    <!-- Steampunk frame (decorative) -->
+    <div class="frame" aria-hidden="true">
+      <div class="frame__corner frame__corner--tl"></div>
+      <div class="frame__corner frame__corner--tr"></div>
+      <div class="frame__corner frame__corner--bl"></div>
+      <div class="frame__corner frame__corner--br"></div>
+
+      <div class="frame__edge frame__edge--top"></div>
+      <div class="frame__edge frame__edge--right"></div>
+      <div class="frame__edge frame__edge--bottom"></div>
+      <div class="frame__edge frame__edge--left"></div>
+
+      <div class="frame__gauge frame__gauge--left"></div>
+      <div class="frame__gauge frame__gauge--right"></div>
+
+      <div class="frame__rune-band"></div>
+
+      <div class="frame__header-band">
+        <img src="assets/logo.svg" alt="Odd Essentials" class="brand-logo">
+      </div>
+    </div>
+
+    <!-- Constellation navigation (left panel) -->
+    <nav id="constellation-nav" aria-label="Project constellations">
+      <span class="hud-label">CONSTELLATION INDEX</span>
+      <ul>
+        <li>
+          <button data-project-id="odd-ai-reviewers" aria-pressed="false" aria-describedby="project-hint">
+            <span class="glyph" aria-hidden="true">&#9733;</span>
+            <span class="constellation-name">The Forge Septet</span>
+          </button>
+        </li>
+        <li>
+          <button data-project-id="ado-git-repo-insights" aria-pressed="false" aria-describedby="project-hint">
+            <span class="glyph" aria-hidden="true">&#9733;</span>
+            <span class="constellation-name">The Scribe's Lens</span>
+          </button>
+        </li>
+        <li>
+          <button data-project-id="repo-standards" aria-pressed="false" aria-describedby="project-hint">
+            <span class="glyph" aria-hidden="true">&#9733;</span>
+            <span class="constellation-name">The Iron Codex</span>
+          </button>
+        </li>
+        <li>
+          <button data-project-id="odd-self-hosted-ci" aria-pressed="false" aria-describedby="project-hint">
+            <span class="glyph" aria-hidden="true">&#9733;</span>
+            <span class="constellation-name">The Engine Core</span>
+          </button>
+        </li>
+        <li>
+          <button data-project-id="odd-map" aria-pressed="false" aria-describedby="project-hint">
+            <span class="glyph" aria-hidden="true">&#9733;</span>
+            <span class="constellation-name">The Navigator's Rose</span>
+          </button>
+        </li>
+        <li>
+          <button data-project-id="odd-fintech" aria-pressed="false" aria-describedby="project-hint">
+            <span class="glyph" aria-hidden="true">&#9733;</span>
+            <span class="constellation-name">The Alchemist's Eye</span>
+          </button>
+        </li>
+        <li>
+          <button data-project-id="coney-island" aria-pressed="false" aria-describedby="project-hint">
+            <span class="glyph" aria-hidden="true">&#9733;</span>
+            <span class="constellation-name">The Hearth Star</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Status panel (right panel) -->
+    <aside id="status-panel" aria-label="System status" aria-live="polite">
+      <span class="hud-label">STATUS</span>
+      <div class="status-readout">
+        <p class="status-line">ARCANE CONSOLE v4.2.1</p>
+        <p class="status-line">scanning systems...</p>
+        <p class="status-line">
+          MANA
+          <meter class="mana-meter" min="0" max="100" value="72" aria-label="Mana level">72%</meter>
+        </p>
+        <p class="status-line">PHASE <span class="phase-indicator">IDLE</span></p>
+      </div>
+    </aside>
+
+    <!-- Main viewport (center) -->
+    <main id="main-viewport">
+      <div id="star-labels"></div>
+      <div id="orb-hitzone" role="application" aria-label="Crystal ball — interactive constellation viewer. Use the constellation navigation panel to explore projects." tabindex="0">
+      </div>
+      <img id="orb-fallback" src="assets/logo.svg" alt="OddEssentials project constellation" class="orb-fallback" style="max-width:300px;margin:auto;display:block;opacity:0.6;filter:sepia(0.3) brightness(0.8);padding-top:15vh;">
+      <p class="sr-only">A crystal ball containing a nebula with 7 glowing star nodes, each representing a portfolio project. Use the constellation navigation on the left to select a project, or click a star directly.</p>
+    </main>
+
+    <!-- Command line (bottom) -->
+    <footer id="command-line" role="log" aria-live="polite">
+      <span class="cmd-prompt" aria-hidden="true">&gt;</span>
+      <span class="cmd-text"></span>
+      <span class="cmd-cursor" aria-hidden="true">&#9608;</span>
+    </footer>
+
+    <!-- Project overlay (modal) -->
+    <div id="project-overlay" role="dialog" aria-modal="true" hidden>
+      <div class="overlay__backdrop"></div>
+      <div class="overlay__frame">
+        <button class="overlay__close" aria-label="Close project details">&times;</button>
+        <div class="overlay__content">
+          <div class="overlay__logo-zone"></div>
+          <h2 class="overlay__title"></h2>
+          <p class="overlay__tagline"></p>
+          <div class="overlay__media-zone"></div>
+          <div class="overlay__description-zone"></div>
+          <footer class="overlay__links"></footer>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen-reader-only project list (always in DOM) -->
+    <div class="sr-only">
+      <h2>Portfolio Projects</h2>
+      <ul>
+        <li>
+          <strong>odd-ai-reviewers</strong> — Extensible AI code review for pull requests; multi-pass analysis with pluggable agents.
+          <a href="https://github.com/oddessentials/odd-ai-reviewers">GitHub</a>
+        </li>
+        <li>
+          <strong>ado-git-repo-insights</strong> — Extract Azure DevOps Pull Request metrics to SQLite; generate PowerBI-compatible CSVs or view in-dashboard.
+          <a href="https://marketplace.visualstudio.com/items?itemName=OddEssentials.ado-git-repo-insights">VS Marketplace</a>
+        </li>
+        <li>
+          <strong>repo-standards</strong> — A single, authoritative JSON specification for repository quality standards across multiple stacks; plus deterministic tooling.
+          <a href="https://github.com/oddessentials/repo-standards">GitHub</a>
+        </li>
+        <li>
+          <strong>odd-self-hosted-ci</strong> — Docker-first, provider-pluggable self-hosted CI runtime. Run your CI pipelines at zero cloud cost using your own hardware.
+          <a href="https://github.com/oddessentials/odd-self-hosted-ci-runtime">GitHub</a>
+        </li>
+        <li>
+          <strong>odd-map</strong> — A white-label, mobile-friendly interactive office locator with three rendering modes, region-based navigation, and multi-provider capable.
+          <a href="https://maps.oddessentials.com/">Live Demo</a>
+        </li>
+        <li>
+          <strong>odd-fintech</strong> — A financial intelligence dashboard with real-time market data, stock analysis, precious metals tracking, and congressional trade monitoring.
+          <a href="https://github.com/oddessentials/odd-fintech">GitHub</a>
+        </li>
+        <li>
+          <strong>Coney Island Pottsville</strong> — A 100+ year old family-owned restaurant and tavern with an interactive AI-powered chat agent for menu, events, and more.
+          <a href="https://coneyislandpottsville.com/">Website</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Hidden hint for screen readers -->
+    <p id="project-hint" class="sr-only">Activate a project to open its detail panel. Press Escape to close.</p>
+
+  </div><!-- /#app-shell -->
+
+  <!-- Narrow viewport message -->
+  <div id="narrow-viewport-msg">This experience is best viewed on a wider screen.</div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
