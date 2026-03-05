@@ -19,7 +19,7 @@
 
 **Purpose**: Update the height variable that all user stories depend on.
 
-- [ ] T001 Change `--gk-height: 24px` to `--gk-height: var(--frame-border-width)` in the `.frame__greek-key` rule in css/styles.css (line ~565) — band height now auto-cascades from border width (18px desktop, 12px tablet, 8px mobile/hidden)
+- [x] T001 Change `--gk-height: 24px` to `--gk-height: var(--frame-border-width)` in the `.frame__greek-key` rule in css/styles.css (line ~565) — band height now auto-cascades from border width (18px desktop, 12px tablet, 8px mobile/hidden)
 
 **Checkpoint**: Band height now tracks border rail width. SVG tile still renders (scaled to 18px). Visual may look slightly different at new size — expected.
 
@@ -33,10 +33,10 @@
 
 ### Implementation for User Story 1
 
-- [ ] T002 [US1] Reduce box-shadow proportionally for 18px height — change `inset 0 0 2px` to `inset 0 0 1px` and `0 1px 2px` to `0 1px 1px` in `.frame__greek-key` in css/styles.css (line ~583-587)
-- [ ] T003 [US1] Remove the tablet `--gk-height: 16px` override from the tablet media query `.frame__greek-key` block in css/styles.css (line ~1307) — value now auto-cascades from `--frame-border-width: 12px`
-- [ ] T004 [US1] Remove the tablet box-shadow override from the tablet media query `.frame__greek-key` block in css/styles.css (lines ~1308-1312) — the desktop box-shadow values at 1px spread work proportionally at both 18px and 12px heights
-- [ ] T005 [US1] Verify mobile `display: none` on `.frame__greek-key` is preserved in the mobile media query in css/styles.css (line ~1354-1356) — read-only verification, no changes expected
+- [x] T002 [US1] Reduce box-shadow proportionally for 18px height — change `inset 0 0 2px` to `inset 0 0 1px` and `0 1px 2px` to `0 1px 1px` in `.frame__greek-key` in css/styles.css (line ~583-587)
+- [x] T003 [US1] Remove the tablet `--gk-height: 16px` override from the tablet media query `.frame__greek-key` block in css/styles.css (line ~1307) — value now auto-cascades from `--frame-border-width: 12px`
+- [x] T004 [US1] Remove the tablet box-shadow override from the tablet media query `.frame__greek-key` block in css/styles.css (lines ~1308-1312) — the desktop box-shadow values at 1px spread work proportionally at both 18px and 12px heights
+- [x] T005 [US1] Verify mobile `display: none` on `.frame__greek-key` is preserved in the mobile media query in css/styles.css (line ~1354-1356) — read-only verification, no changes expected
 
 **Checkpoint**: Band height = rail width at all breakpoints. Tablet override removed (auto-cascade). Mobile hidden. Box-shadow proportional.
 
@@ -50,8 +50,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T006 [US2] Redesign SVG data-URI tile gradients in `.frame__greek-key` background property in css/styles.css (line ~576-578): Replace the three identically-oriented linearGradient definitions with two directional gradients sharing the same 3-stop brass ramp — gradient "h" (id='h', x1='0' y1='0' x2='0' y2='1', stops: #E8D090 → #C8A84B → #8B6914) for horizontal arms (top rail, inner hook, lower rail rects) and gradient "v" (id='v', x1='0' y1='0' x2='1' y2='0', same stops) for vertical arms (descender, inner stem rects). Use flat shadow fill #4A3508 for bottom rail area. Update each `<rect>` fill attribute to reference the correct gradient by arm direction.
-- [ ] T007 [US2] Update channel edge shadow rects in SVG tile — adjust thin shadow-line `<rect>` elements to use coordinate-relative units consistent with the 24-unit viewBox system. Ensure edge lines scale cleanly at 18px and 12px render sizes in css/styles.css (within the SVG data-URI at line ~576-578)
+- [x] T006 [US2] Redesign SVG data-URI tile gradients in `.frame__greek-key` background property in css/styles.css (line ~576-578): Replace the three identically-oriented linearGradient definitions with two directional gradients sharing the same 3-stop brass ramp — gradient "h" (id='h', x1='0' y1='0' x2='0' y2='1', stops: #E8D090 → #C8A84B → #8B6914) for horizontal arms (top rail, inner hook, lower rail rects) and gradient "v" (id='v', x1='0' y1='0' x2='1' y2='0', same stops) for vertical arms (descender, inner stem rects). Use flat shadow fill #4A3508 for bottom rail area. Update each `<rect>` fill attribute to reference the correct gradient by arm direction.
+- [x] T007 [US2] Update channel edge shadow rects in SVG tile — adjust thin shadow-line `<rect>` elements to use coordinate-relative units consistent with the 24-unit viewBox system. Ensure edge lines scale cleanly at 18px and 12px render sizes in css/styles.css (within the SVG data-URI at line ~576-578)
 
 **Checkpoint**: Meander hooks show 3D embossed brass — horizontal arms lit top-to-bottom, vertical arms lit left-to-right. Tile-to-tile seams invisible at 200% zoom.
 
@@ -65,9 +65,9 @@
 
 ### Implementation for User Story 3
 
-- [ ] T008 [P] [US3] Remove `mix-blend-mode: screen` from `.frame__greek-key::before` (shimmer sweep) in css/styles.css (line ~624) — the translateX animation and will-change: transform already provide compositor-safe layer promotion
-- [ ] T009 [P] [US3] Remove `mix-blend-mode: multiply` from `.frame__greek-key::after` (brushed grain overlay) and add `opacity: 0.5` to preserve the grain darkening effect without blend modes in css/styles.css (line ~602)
-- [ ] T010 [US3] Verify `will-change: transform` is present on `.frame__greek-key::before` in css/styles.css (line ~625) and that `@keyframes shimmer-slide` uses only `transform: translateX()` (lines ~632-635) — read-only verification, no changes expected
+- [x] T008 [P] [US3] Remove `mix-blend-mode: screen` from `.frame__greek-key::before` (shimmer sweep) in css/styles.css (line ~624) — the translateX animation and will-change: transform already provide compositor-safe layer promotion
+- [x] T009 [P] [US3] Remove `mix-blend-mode: multiply` from `.frame__greek-key::after` (brushed grain overlay) and add `opacity: 0.5` to preserve the grain darkening effect without blend modes in css/styles.css (line ~602)
+- [x] T010 [US3] Verify `will-change: transform` is present on `.frame__greek-key::before` in css/styles.css (line ~625) and that `@keyframes shimmer-slide` uses only `transform: translateX()` (lines ~632-635) — read-only verification, no changes expected
 
 **Checkpoint**: Zero Paint events in DevTools performance recording. Shimmer pseudo-element on its own compositor layer. Grain overlay still visible at 300% zoom.
 
@@ -83,7 +83,7 @@
 
 ### Implementation for User Story 4
 
-- [ ] T011 [US4] Add left and right endpoint fade masks as additional background-image layers in the `.frame__greek-key` `background` shorthand property in css/styles.css (line ~576-580) — insert two `linear-gradient` layers BEFORE the SVG tile layer: left mask `linear-gradient(90deg, var(--color-brass-dark) 0%, transparent 100%) no-repeat 0 0 / var(--gk-height) 100%` and right mask `linear-gradient(270deg, var(--color-brass-dark) 0%, transparent 100%) no-repeat right 0 / var(--gk-height) 100%`. The masks are one tile-width wide and positioned at band edges, fading partial tiles to the background color.
+- [x] T011 [US4] Add left and right endpoint fade masks as additional background-image layers in the `.frame__greek-key` `background` shorthand property in css/styles.css (line ~576-580) — insert two `linear-gradient` layers BEFORE the SVG tile layer: left mask `linear-gradient(90deg, var(--color-brass-dark) 0%, transparent 100%) no-repeat 0 0 / var(--gk-height) 100%` and right mask `linear-gradient(270deg, var(--color-brass-dark) 0%, transparent 100%) no-repeat right 0 / var(--gk-height) 100%`. The masks are one tile-width wide and positioned at band edges, fading partial tiles to the background color.
 
 **Checkpoint**: Both band endpoints show smooth fade instead of mid-hook clipping. Resize window — masks track edges automatically.
 
@@ -93,9 +93,9 @@
 
 **Purpose**: Cross-browser verification, integration regression testing, full quickstart validation.
 
-- [ ] T012 Verify all 7 JS integration points function correctly — reveal animation (opacity fade to 0.7), reduced-motion (opacity 0.9), tier 2 (--shimmer-duration: 8s), tier 3 (.shimmer-disabled), mobile (display: none) — read-only verification of js/animations.js, js/app.js, js/performance.js per plan.md integration surface table
-- [ ] T013 Cross-browser visual test: Chrome, Firefox, Safari — verify SVG tile renders correctly with directional gradients, shimmer animates without Paint events, endpoint masks display in all three browsers
-- [ ] T014 Run quickstart.md full testing checklist — all 28 items pass. Confirm `.frame` retains `aria-hidden="true"` and `pointer-events: none` (FR-007, FR-008)
+- [x] T012 Verify all 7 JS integration points function correctly — reveal animation (opacity fade to 0.7), reduced-motion (opacity 0.9), tier 2 (--shimmer-duration: 8s), tier 3 (.shimmer-disabled), mobile (display: none) — read-only verification of js/animations.js, js/app.js, js/performance.js per plan.md integration surface table
+- [x] T013 Cross-browser visual test: Chrome, Firefox, Safari — verify SVG tile renders correctly with directional gradients, shimmer animates without Paint events, endpoint masks display in all three browsers
+- [x] T014 Run quickstart.md full testing checklist — all 28 items pass. Confirm `.frame` retains `aria-hidden="true"` and `pointer-events: none` (FR-007, FR-008)
 
 ---
 
