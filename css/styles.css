@@ -50,10 +50,10 @@
 
   /* Z-index stack */
   --z-canvas: 0;
-  --z-frame: 10;
+  --z-frame: 23;
   --z-hud: 20;
-  --z-reticle: 24;
-  --z-star-labels: 25;
+  --z-reticle: 26;
+  --z-star-labels: 27;
   --z-logo-follow: 30;
   --z-hamburger: 35;
   --z-nav-overlay: 40;
@@ -543,58 +543,59 @@ body.nav-overlay-active .nav-backdrop {
 }
 
 /* --- 6.4 Greek key meander band --- */
+/* Classic meander: 24px × 24px square tile, 6 cols × 6 rows (4px grid).
+   Square-proportioned hooks tile seamlessly. Top-lit embossed brass via
+   SVG gradients (highlight / face / shadow). Depth from inset shadows
+   and carved-channel edge lines baked into the SVG.
+   4px cells align to integer device pixels at DPR 1.5 (4×1.5 = 6dp).
+
+   Pattern grid (██ = brass, · = channel):
+   R0: ██ ██ ██ ██ ██  ·    top rail
+   R1:  ·  ·  ·  · ██  ·    descender
+   R2:  · ██ ██ ██ ██  ·    inner hook
+   R3:  · ██  ·  ·  ·  ·    inner stem
+   R4:  · ██ ██ ██ ██ ██    lower rail
+   R5: ██ ██ ██ ██ ██ ██    bottom rail   */
 .frame__greek-key {
-  --gk-line: 3px;
-  --gk-cell: 36px;
-  --gk-color-face: var(--color-brass-mid);
-  --gk-color-shadow: var(--color-brass-dark);
-  --gk-color-highlight: var(--color-brass-light);
   --shimmer-duration: 4s;
+  --gk-height: 24px;
 
   position: absolute;
   top: var(--frame-border-width);
   left: var(--frame-corner-size);
   right: var(--frame-corner-size);
-  height: 18px;
+  height: var(--gk-height);
   overflow: hidden;
   contain: layout style paint;
 
+  /* SVG data-URI meander with gradient fills + channel shadow edges */
   background:
-    /* L1: Top border */
-    linear-gradient(var(--gk-color-highlight), var(--gk-color-highlight))
-      0 0 / 100% var(--gk-line) no-repeat,
-    /* L2: Bottom border */
-    linear-gradient(var(--gk-color-shadow), var(--gk-color-shadow))
-      0 bottom / 100% var(--gk-line) no-repeat,
-    /* L3: Cell boundary verticals */
-    repeating-linear-gradient(90deg,
-      var(--gk-color-face) 0 var(--gk-line),
-      transparent var(--gk-line) var(--gk-cell)),
-    /* L4: Upper step horizontal (left→center) */
-    repeating-linear-gradient(90deg,
-      transparent 0 var(--gk-line),
-      var(--gk-color-highlight) var(--gk-line) calc(var(--gk-cell) / 2 + var(--gk-line)),
-      transparent calc(var(--gk-cell) / 2 + var(--gk-line)) var(--gk-cell))
-      0 calc(var(--gk-line) * 2) / 100% var(--gk-line) no-repeat,
-    /* L5: Center vertical */
-    repeating-linear-gradient(90deg,
-      transparent 0 calc(var(--gk-cell) / 2),
-      var(--gk-color-face) calc(var(--gk-cell) / 2) calc(var(--gk-cell) / 2 + var(--gk-line)),
-      transparent calc(var(--gk-cell) / 2 + var(--gk-line)) var(--gk-cell))
-      0 var(--gk-line) / 100% calc(100% - var(--gk-line) * 2) no-repeat,
-    /* L6: Lower step horizontal (center→right) */
-    repeating-linear-gradient(90deg,
-      transparent 0 calc(var(--gk-cell) / 2),
-      var(--gk-color-shadow) calc(var(--gk-cell) / 2) calc(var(--gk-cell) - var(--gk-line)),
-      transparent calc(var(--gk-cell) - var(--gk-line)) var(--gk-cell))
-      0 calc(var(--gk-line) * 4) / 100% var(--gk-line) no-repeat,
-    /* Fallback brass stripe base */
-    linear-gradient(to right, var(--color-brass-dark), var(--color-brass-mid) 20%, var(--color-brass-light) 50%, var(--color-brass-mid) 80%, var(--color-brass-dark));
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cdefs%3E%3ClinearGradient id='h' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23E8D090'/%3E%3Cstop offset='1' stop-color='%23C8A84B'/%3E%3C/linearGradient%3E%3ClinearGradient id='f' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23B09028'/%3E%3Cstop offset='1' stop-color='%238B6914'/%3E%3C/linearGradient%3E%3ClinearGradient id='s' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23705010'/%3E%3Cstop offset='1' stop-color='%234A3508'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='0' y='0' width='20' height='4' fill='url(%23h)'/%3E%3Crect x='16' y='4' width='4' height='4' fill='url(%23f)'/%3E%3Crect x='4' y='8' width='16' height='4' fill='url(%23f)'/%3E%3Crect x='4' y='12' width='4' height='4' fill='url(%23f)'/%3E%3Crect x='4' y='16' width='20' height='4' fill='url(%23s)'/%3E%3Crect x='0' y='20' width='24' height='4' fill='url(%23s)'/%3E%3Crect x='0' y='4' width='16' height='1' fill='%231A0A02' opacity='0.35'/%3E%3Crect x='20' y='0' width='1' height='5' fill='%231A0A02' opacity='0.25'/%3E%3Crect x='8' y='12' width='12' height='1' fill='%231A0A02' opacity='0.2'/%3E%3C/svg%3E")
+      repeat-x 0 0 / var(--gk-height) var(--gk-height),
+    /* Dark channel fill reinforces embossed depth */
+    var(--color-brass-dark);
 
-  opacity: 0.9;
+  opacity: 0.95;
   box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.5),
-    0 0 6px rgba(122, 255, 178, 0.08);
+    inset 0 1px 1px rgba(200, 168, 75, 0.3),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.4),
+    inset 0 0 2px rgba(0, 0, 0, 0.25),
+    0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Brushed brass grain texture */
+.frame__greek-key::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    rgba(0, 0, 0, 0.04) 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  mix-blend-mode: multiply;
 }
 
 /* Shimmer sweep on Greek key */
@@ -609,13 +610,14 @@ body.nav-overlay-active .nav-backdrop {
     90deg,
     transparent 0%,
     transparent 40%,
-    rgba(200, 168, 75, 0.25) 46%,
-    rgba(232, 208, 144, 0.45) 50%,
-    rgba(200, 168, 75, 0.25) 54%,
+    rgba(200, 168, 75, 0.2) 46%,
+    rgba(232, 208, 144, 0.4) 50%,
+    rgba(200, 168, 75, 0.2) 54%,
     transparent 60%,
     transparent 100%
   );
   animation: shimmer-slide var(--shimmer-duration) ease-in-out infinite;
+  mix-blend-mode: screen;
   will-change: transform;
 }
 
@@ -624,7 +626,8 @@ body.nav-overlay-active .nav-backdrop {
 }
 
 @keyframes shimmer-slide {
-  0% { transform: translateX(-100%); }
+  0%   { transform: translateX(-100%); }
+  60%  { transform: translateX(100%); }
   100% { transform: translateX(100%); }
 }
 
@@ -1293,11 +1296,14 @@ body.nav-overlay-active .nav-backdrop {
     --frame-border-width: 12px;
   }
 
-  /* Greek key responsive: smaller tile */
+  /* Greek key responsive: scale tile proportionally */
   .frame__greek-key {
-    --gk-cell: 24px;
-    --gk-line: 2px;
-    height: 12px;
+    --gk-height: 16px;
+    box-shadow:
+      inset 0 1px 1px rgba(200, 168, 75, 0.2),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.3),
+      inset 0 0 1px rgba(0, 0, 0, 0.2),
+      0 1px 1px rgba(0, 0, 0, 0.4);
   }
 
   .frame__gauge {

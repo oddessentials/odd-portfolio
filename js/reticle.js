@@ -30,7 +30,7 @@ function createReticleSVG() {
   svg.setAttribute('viewBox', '-40 -40 80 80');
   svg.setAttribute('aria-hidden', 'true');
   svg.style.cssText =
-    'position:fixed;pointer-events:none;z-index:24;opacity:0;transition:opacity 0.1s;';
+    'position:fixed;pointer-events:none;z-index:25;opacity:0;transition:opacity 0.1s;';
 
   // Outer circle
   const outer = document.createElementNS(ns, 'circle');
@@ -261,6 +261,10 @@ function init() {
   document.body.appendChild(svgEl);
 
   labelEl = createLabel();
+
+  // Hide behind project overlay (body-level z-index can't nest inside #app-shell)
+  document.addEventListener('panel-open', () => { svgEl.style.display = 'none'; if (labelEl) labelEl.style.display = 'none'; });
+  document.addEventListener('panel-close', () => { svgEl.style.display = ''; if (labelEl) labelEl.style.display = ''; });
 
   // T033: On resize, recalculate reticle position if tracking
   window.addEventListener('resize', () => {

@@ -24,12 +24,16 @@ function init() {
   svgContainer = document.createElementNS(ns, 'svg');
   svgContainer.setAttribute('class', 'constellation-lines');
   svgContainer.style.cssText =
-    'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:23;';
+    'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:24;';
   svgContainer.setAttribute('aria-hidden', 'true');
   document.body.appendChild(svgContainer);
 
   // Listen for zone-change (dispatched by scroll-zones.js)
   document.addEventListener('zone-change', onZoneChange);
+
+  // Hide behind project overlay (body-level z-index can't nest inside #app-shell)
+  document.addEventListener('panel-open', () => { svgContainer.style.display = 'none'; });
+  document.addEventListener('panel-close', () => { svgContainer.style.display = ''; });
 
   // Listen for tier-change (dispatched by performance.js)
   document.addEventListener('tier-change', (e) => {
@@ -141,7 +145,11 @@ function animateDrawOn(line, star1, star2) {
   gsap.to(line, {
     attr: { 'stroke-dashoffset': 0 },
     duration: 0.6,
-    ease: 'power2.out'
+    ease: 'power2.out',
+    onComplete: () => {
+      line.removeAttribute('stroke-dasharray');
+      line.removeAttribute('stroke-dashoffset');
+    }
   });
 }
 
