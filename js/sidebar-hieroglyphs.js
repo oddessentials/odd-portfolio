@@ -106,6 +106,7 @@ function loadTextures() {
     tex.generateMipmaps = false;
     leftTexture = tex;
     if (leftMaterial) leftMaterial.uniforms.uTexture.value = tex;
+    updatePositions();
   }, undefined, (err) => {
     console.warn('[Arcane Console] Failed to load left sidebar texture:', err);
   });
@@ -115,6 +116,7 @@ function loadTextures() {
     tex.generateMipmaps = false;
     rightTexture = tex;
     if (rightMaterial) rightMaterial.uniforms.uTexture.value = tex;
+    updatePositions();
   }, undefined, (err) => {
     console.warn('[Arcane Console] Failed to load right sidebar texture:', err);
   });
@@ -173,11 +175,13 @@ function updatePositions() {
   if (leftPlane) {
     if (leftPanel) {
       const rect = leftPanel.getBoundingClientRect();
+      const texW = leftTexture ? leftTexture.image.width : rect.width;
+      const texH = leftTexture ? leftTexture.image.height : rect.height;
       leftPlane.visible = true;
       leftPlane.position.x = rect.left + rect.width / 2;
-      leftPlane.position.y = h - (rect.top + rect.height / 2);
-      leftPlane.scale.set(rect.width, rect.height, 1);
-      leftMaterial.uniforms.uResolution.value.set(rect.width, rect.height);
+      leftPlane.position.y = h - (rect.top + texH * 0.9 / 2);
+      leftPlane.scale.set(texW * 0.9, texH * 0.9, 1);
+      leftMaterial.uniforms.uResolution.value.set(texW * 0.9, texH * 0.9);
     } else {
       leftPlane.visible = false;
     }
@@ -185,11 +189,13 @@ function updatePositions() {
   if (rightPlane) {
     if (rightPanel) {
       const rect = rightPanel.getBoundingClientRect();
+      const texW = rightTexture ? rightTexture.image.width : rect.width;
+      const texH = rightTexture ? rightTexture.image.height : rect.height;
       rightPlane.visible = true;
       rightPlane.position.x = rect.left + rect.width / 2;
-      rightPlane.position.y = h - (rect.top + rect.height / 2);
-      rightPlane.scale.set(rect.width, rect.height, 1);
-      rightMaterial.uniforms.uResolution.value.set(rect.width, rect.height);
+      rightPlane.position.y = h - (rect.top + texH * 0.9 / 2);
+      rightPlane.scale.set(texW * 0.9, texH * 0.9, 1);
+      rightMaterial.uniforms.uResolution.value.set(texW * 0.9, texH * 0.9);
     } else {
       rightPlane.visible = false;
     }
@@ -249,9 +255,29 @@ function init({ renderer }) {
 function render() {
   if (!overlayScene || !overlayCamera || !mainRenderer) return;
   if (window.innerWidth < 768) return;
+  const h = window.innerHeight;
+  const dpr = mainRenderer.getPixelRatio();
   mainRenderer.autoClear = false;
   mainRenderer.clearDepth();
-  mainRenderer.render(overlayScene, overlayCamera);
+
+  // Scissor each plane to its panel rect to clip overflow
+  const panels = [
+    { plane: leftPlane, el: document.querySelector('#constellation-nav') },
+    { plane: rightPlane, el: document.querySelector('#status-panel') }
+  ];
+  mainRenderer.setScissorTest(true);
+  for (const { plane, el } of panels) {
+    if (!plane || !plane.visible || !el) continue;
+    const rect = el.getBoundingClientRect();
+    mainRenderer.setScissor(
+      rect.left * dpr,
+      (h - rect.bottom) * dpr,
+      rect.width * dpr,
+      rect.height * dpr
+    );
+    mainRenderer.render(overlayScene, overlayCamera);
+  }
+  mainRenderer.setScissorTest(false);
   mainRenderer.autoClear = true;
 }
 

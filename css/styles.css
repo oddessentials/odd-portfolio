@@ -667,7 +667,7 @@ body.nav-overlay-active .nav-backdrop {
 
 /* T008: Brand logo — home state (in header) */
 .brand-logo {
-  max-height: 40px;
+  max-height: 52px;
   width: auto;
   filter: sepia(0.6) saturate(1.5) brightness(0.8);
   opacity: 0.9;
@@ -681,9 +681,9 @@ body.nav-overlay-active .nav-backdrop {
 /* T008: Brand logo — following state */
 #brand-logo.logo--following {
   position: fixed;
-  width: 40px;
-  height: 40px;
-  max-height: 40px;
+  width: 52px;
+  height: 52px;
+  max-height: 52px;
   z-index: var(--z-logo-follow);
   pointer-events: none;
   filter: sepia(0.3) saturate(2) brightness(1.1) drop-shadow(0 0 8px rgba(200, 168, 75, 0.4));
