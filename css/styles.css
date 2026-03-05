@@ -52,6 +52,7 @@
   --z-canvas: 0;
   --z-frame: 10;
   --z-hud: 20;
+  --z-reticle: 24;
   --z-star-labels: 25;
   --z-logo-follow: 30;
   --z-hamburger: 35;
@@ -956,6 +957,9 @@ body.nav-overlay-active .nav-backdrop {
   pointer-events: auto;
 }
 
+/* Constellation lines SVG container (T034) */
+.constellation-lines { will-change: contents; }
+
 .star-label {
   position: absolute;
   font-family: var(--font-mono);
@@ -968,6 +972,25 @@ body.nav-overlay-active .nav-backdrop {
   opacity: 0;
   transition: opacity var(--dur-fast) ease;
   z-index: var(--z-star-labels);
+}
+
+/* --- Targeting reticle (US2) --- */
+.reticle { will-change: transform, opacity; }
+.reticle-label {
+  position: fixed;
+  z-index: var(--z-reticle);
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm, 12px);
+  color: var(--color-text-primary, #e8d5a3);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s;
+  padding: 2px 8px;
+  background: rgba(13,11,9,0.7);
+  border: 1px solid rgba(200,168,75,0.3);
+  border-radius: 2px;
+  transform: translateX(-50%);
 }
 
 #orb-hitzone {

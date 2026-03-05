@@ -54,7 +54,10 @@ cut.
   shells), dust mote particles (~180 points), supernova burst on click
   (ring + rays + sparks, particle pool), star glow sprites (core +
   halo), Gaussian pulse animation per star, post-processing (bloom +
-  chromatic aberration + vignette, 4 passes max).
+  chromatic aberration + vignette, 4 passes max), sidebar MSDF
+  hieroglyph etching with normal perturbation, roughness modulation,
+  cavity darkening, edge highlight, breathing light, shimmer pass,
+  and scan-line sweep (Amendment: 005-arcane-ux-overhaul).
 - **Project overlay is the primary success metric.** The project detail
   panel — not the orb animation — is what converts a visitor into a
   contact. The overlay MUST display at least one real visual asset
@@ -87,8 +90,9 @@ integrated GPUs (Intel Iris-class) as the baseline, not discrete GPUs.
   + bloom passes). Hard limit: under 50.
 - **Particle/instance budget:** maximum 1500 nebula background
   particles (THREE.Points), 180 dust mote instances, 7 project star
-  sprites + 7 halo sprites (created on demand during hover, not
-  persistent). Supernova pool: 60 pre-allocated particles.
+  sprites with glow halos baked into the sprite texture (always
+  visible, zero additional draw calls — Amendment:
+  005-arcane-ux-overhaul). Supernova pool: 60 pre-allocated particles.
 - **Texture memory:** under 1MB total (procedural-first approach).
 - **Post-processing:** maximum 4 render passes. Bloom at 0.75x
   resolution. No multi-pass UnrealBloomPass chains without profiling
@@ -460,4 +464,4 @@ preferences.
 - **Project inventory:** `portfolio-basic-list.md`
 - **Design assets:** `design-assets/`
 
-**Version**: 1.1.0 | **Ratified**: 2026-03-04 | **Last Amended**: 2026-03-04
+**Version**: 1.2.0 | **Ratified**: 2026-03-04 | **Last Amended**: 2026-03-04
