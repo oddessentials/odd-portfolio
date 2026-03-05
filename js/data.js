@@ -147,30 +147,30 @@ export const PROJECTS = [
 
 export const CONSTELLATION_ZONES = [
   {
-    name: 'Developer Tools',
+    name: 'DevOps Pipeline',
     scrollStart: 0.0,
     scrollEnd: 0.33,
-    projectIds: ['odd-ai-reviewers', 'repo-standards', 'odd-self-hosted-ci'],
+    projectIds: ['repo-standards', 'odd-self-hosted-ci', 'odd-ai-reviewers', 'ado-git-repo-insights'],
     nebulaHue: 'blue-violet',
     nebulaHueRgb: [0.42, 0.25, 0.63],
-    statusText: 'Browsing developer tools...'
+    statusText: 'Tracing the DevOps pipeline...'
   },
   {
-    name: 'Data & Analytics',
+    name: 'Products & Analytics',
     scrollStart: 0.33,
     scrollEnd: 0.66,
-    projectIds: ['ado-git-repo-insights', 'odd-fintech'],
+    projectIds: ['odd-ai-reviewers', 'odd-fintech', 'odd-map'],
     nebulaHue: 'warm-gold',
     nebulaHueRgb: [0.72, 0.53, 0.04],
-    statusText: 'Viewing data & analytics...'
+    statusText: 'Viewing products & analytics...'
   },
   {
-    name: 'Web & Client',
+    name: 'Community & Web',
     scrollStart: 0.66,
     scrollEnd: 1.0,
-    projectIds: ['odd-map', 'coney-island'],
+    projectIds: ['repo-standards', 'coney-island', 'odd-self-hosted-ci'],
     nebulaHue: 'green-teal',
     nebulaHueRgb: [0.10, 0.62, 0.56],
-    statusText: 'Exploring web & client projects...'
+    statusText: 'Exploring community & web...'
   }
 ];
