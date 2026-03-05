@@ -5,7 +5,7 @@ import { createNebulaSystem, createStarNodes, createDustSystem } from './texture
 import { init as initLogoFollow, resetOnResize as logoResetOnResize, isFollowing as isLogoFollowing } from './logo-follow.js';
 import { init as initReticle, tick as reticleTick, onStarEnter, onStarExit } from './reticle.js';
 import { init as initParallax, tick as parallaxTick } from './parallax.js';
-import { tick as sidebarHieroglyphsTick } from './sidebar-hieroglyphs.js';
+import { tick as sidebarHieroglyphsTick, render as sidebarHieroglyphsRender } from './sidebar-hieroglyphs.js';
 
 // Module-level references (exported at bottom)
 let scene, camera, renderer, orbGroup, starNodes, nebulaLayers;
@@ -336,6 +336,9 @@ function initScene() {
     } else {
       renderer.render(scene, camera);
     }
+
+    // Sidebar hieroglyph overlay (separate pass — avoids bloom/vignette)
+    sidebarHieroglyphsRender();
   });
 
   // Tab visibility: pause/wake ticker

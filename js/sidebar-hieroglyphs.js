@@ -1,12 +1,12 @@
 // js/sidebar-hieroglyphs.js — WebGL sidebar hieroglyph etching overlay
-// Phase 8 (US1): MSDF-based etched OE monogram with golden ratio construction
-// lines, cavity AO, edge highlights, and animated breathing/shimmer/scan effects.
+// Rendered as a separate overlay pass (own scene + ortho camera) to avoid
+// bloom, vignette, and tone-mapping from the main post-processing pipeline.
 import * as THREE from 'three';
 
 // ---------------------------------------------------------------------------
 // Module state
 // ---------------------------------------------------------------------------
-let scene, camera, renderer;
+let overlayScene, overlayCamera, mainRenderer;
 let leftPlane, rightPlane;
 let msdfTexture = null;
 let leftMaterial, rightMaterial;
@@ -84,10 +84,10 @@ const fragmentShader = /* glsl */`
 
     // Edge highlight (brass glint at transition)
     float edge = 1.0 - smoothstep(0.0, 0.08, abs(sd - 0.5));
-    vec3 edgeColor = vec3(0.8, 0.66, 0.3) * edge * 0.6;
+    vec3 edgeColor = vec3(0.8, 0.66, 0.3) * edge * 1.0;
 
     // Base color: dark etching with slight warmth
-    vec3 baseColor = vec3(0.08, 0.07, 0.06);
+    vec3 baseColor = vec3(0.12, 0.10, 0.08);
     vec3 etchColor = mix(baseColor, baseColor * 0.4, alpha) * cavity;
 
     // Simple directional light for normal response
@@ -108,7 +108,7 @@ const fragmentShader = /* glsl */`
 
     // Combine
     vec3 color = etchColor * (0.5 + diffuse * 0.5) + edgeColor + gridColor;
-    float finalAlpha = max(alpha * 0.4, gridLine * 0.3);
+    float finalAlpha = max(alpha * 0.55, gridLine * 0.4);
 
     // --- Animated effects ---
     // Breathing light (5s sinusoidal luminance)
@@ -140,6 +140,8 @@ function loadMSDF() {
     tex.generateMipmaps = false;
     if (leftMaterial) leftMaterial.uniforms.uMsdf.value = tex;
     if (rightMaterial) rightMaterial.uniforms.uMsdf.value = tex;
+  }, undefined, (err) => {
+    console.warn('[Arcane Console] Failed to load MSDF texture:', err);
   });
 }
 
@@ -175,74 +177,77 @@ function createPlanes() {
   const geo = new THREE.PlaneGeometry(1, 1);
 
   leftPlane = new THREE.Mesh(geo, leftMaterial);
-  leftPlane.renderOrder = -1;
-  scene.add(leftPlane);
+  overlayScene.add(leftPlane);
 
   rightPlane = new THREE.Mesh(geo.clone(), rightMaterial);
-  rightPlane.renderOrder = -1;
-  scene.add(rightPlane);
+  overlayScene.add(rightPlane);
 }
 
 // ---------------------------------------------------------------------------
-// updatePositions — sync WebGL plane positions/scales to CSS sidebar layout
+// updatePositions — sync planes to HUD panel bounding boxes (220px sidebars)
 // ---------------------------------------------------------------------------
 function updatePositions() {
-  if (!camera || !renderer) return;
+  if (!overlayCamera || !mainRenderer) return;
+
+  const w = window.innerWidth;
+  const h = window.innerHeight;
 
   // Hide on mobile
-  if (window.innerWidth < 768) {
+  if (w < 768) {
     if (leftPlane) leftPlane.visible = false;
     if (rightPlane) rightPlane.visible = false;
     return;
   }
 
-  if (leftPlane) leftPlane.visible = true;
-  if (rightPlane) rightPlane.visible = true;
+  // Update ortho camera to match viewport
+  overlayCamera.right = w;
+  overlayCamera.top = h;
+  overlayCamera.updateProjectionMatrix();
 
-  // Calculate visible area at z=0 from camera
-  const vFov = camera.fov * Math.PI / 180;
-  const visibleHeight = 2 * Math.tan(vFov / 2) * camera.position.z;
-  const visibleWidth = visibleHeight * camera.aspect;
+  // Get HUD panel bounding boxes (220px sidebar panels)
+  const leftPanel = document.querySelector('#constellation-nav');
+  const rightPanel = document.querySelector('#status-panel');
 
-  // Get CSS sidebar widths
-  const leftSidebar = document.querySelector('.frame__edge--left');
-  const rightSidebar = document.querySelector('.frame__edge--right');
-
-  const leftPx = leftSidebar ? leftSidebar.getBoundingClientRect().width : 40;
-  const rightPx = rightSidebar ? rightSidebar.getBoundingClientRect().width : 40;
-
-  const leftWorldW = (leftPx / window.innerWidth) * visibleWidth;
-  const rightWorldW = (rightPx / window.innerWidth) * visibleWidth;
-
-  // Position left plane at left edge
   if (leftPlane) {
-    leftPlane.position.x = -visibleWidth / 2 + leftWorldW / 2;
-    leftPlane.position.y = 0;
-    leftPlane.position.z = 0;
-    leftPlane.scale.set(leftWorldW, visibleHeight, 1);
-    leftMaterial.uniforms.uResolution.value.set(leftPx, window.innerHeight);
+    if (leftPanel) {
+      const rect = leftPanel.getBoundingClientRect();
+      leftPlane.visible = true;
+      leftPlane.position.x = rect.left + rect.width / 2;
+      leftPlane.position.y = h - (rect.top + rect.height / 2);
+      leftPlane.scale.set(rect.width, rect.height, 1);
+      leftMaterial.uniforms.uResolution.value.set(rect.width, rect.height);
+    } else {
+      leftPlane.visible = false;
+    }
   }
 
-  // Position right plane at right edge
   if (rightPlane) {
-    rightPlane.position.x = visibleWidth / 2 - rightWorldW / 2;
-    rightPlane.position.y = 0;
-    rightPlane.position.z = 0;
-    rightPlane.scale.set(rightWorldW, visibleHeight, 1);
-    rightMaterial.uniforms.uResolution.value.set(rightPx, window.innerHeight);
+    if (rightPanel) {
+      const rect = rightPanel.getBoundingClientRect();
+      rightPlane.visible = true;
+      rightPlane.position.x = rect.left + rect.width / 2;
+      rightPlane.position.y = h - (rect.top + rect.height / 2);
+      rightPlane.scale.set(rect.width, rect.height, 1);
+      rightMaterial.uniforms.uResolution.value.set(rect.width, rect.height);
+    } else {
+      rightPlane.visible = false;
+    }
   }
 }
 
 // ---------------------------------------------------------------------------
-// init — module entry point, called after scene is ready
+// init — create overlay scene + ortho camera, receive main renderer
 // ---------------------------------------------------------------------------
-function init({ scene: s, camera: c, renderer: r }) {
-  scene = s;
-  camera = c;
-  renderer = r;
+function init({ renderer }) {
+  mainRenderer = renderer;
 
   // Skip on mobile
   if (window.innerWidth < 768) return;
+
+  overlayScene = new THREE.Scene();
+  overlayCamera = new THREE.OrthographicCamera(
+    0, window.innerWidth, window.innerHeight, 0, -1, 1
+  );
 
   loadMSDF();
   createPlanes();
@@ -255,6 +260,19 @@ function init({ scene: s, camera: c, renderer: r }) {
   renderer.domElement.addEventListener('webglcontextrestored', () => {
     if (msdfTexture) msdfTexture.needsUpdate = true;
   });
+}
+
+// ---------------------------------------------------------------------------
+// render — overlay pass, called after main scene/composer render
+// ---------------------------------------------------------------------------
+function render() {
+  if (!overlayScene || !overlayCamera || !mainRenderer) return;
+  if (window.innerWidth < 768) return;
+
+  mainRenderer.autoClear = false;
+  mainRenderer.clearDepth();
+  mainRenderer.render(overlayScene, overlayCamera);
+  mainRenderer.autoClear = true;
 }
 
 // ---------------------------------------------------------------------------
@@ -282,4 +300,4 @@ function tick(elapsed) {
 // ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
-export { init, tick };
+export { init, tick, render };

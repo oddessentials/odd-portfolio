@@ -154,8 +154,8 @@ if (sceneReady) {
   const pp = initPostProcessing(scene, camera, renderer);
   ensureBurstPool(scene);
 
-  // Initialize sidebar hieroglyph etching overlays (Phase 8, US1)
-  initSidebarHieroglyphs({ scene, camera, renderer });
+  // Initialize sidebar hieroglyph etching overlays (separate overlay pass)
+  initSidebarHieroglyphs({ renderer });
 
   // Wire scroll zones to fire after reveal completes (FR-012)
   // MUST be registered BEFORE handleReducedMotion() — it dispatches
