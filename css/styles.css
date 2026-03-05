@@ -925,16 +925,22 @@ body.nav-overlay-active .nav-backdrop {
   font-weight: 600;
 }
 
-.odd-bot {
+.odd-bot-cluster {
   position: absolute;
   bottom: var(--space-lg);
   left: 50%;
   transform: translateX(-50%);
-  transform-origin: center center;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  z-index: 0;
+}
+
+.odd-bot {
   opacity: 0.3;
   color: var(--color-brass-mid);
-  z-index: 0;
-  transition: transform var(--dur-fast) ease;
+  transform-origin: center center;
+  line-height: 0;
 }
 
 /* Scan output and loading bar (terminal scan) */

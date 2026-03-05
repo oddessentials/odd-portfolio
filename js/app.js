@@ -123,8 +123,13 @@ function handleHighContrast() {
 // ---------------------------------------------------------------------------
 function initOddBot() {
   if (!gsap) return;
-  const botEl = document.querySelector('.odd-bot');
-  if (!botEl) return;
+  const center = document.querySelector('.odd-bot--center');
+  const left   = document.querySelector('.odd-bot--left');
+  const right  = document.querySelector('.odd-bot--right');
+  if (!center) return;
+
+  const flanks = [left, right].filter(Boolean);
+  const allBots = [center, ...flanks];
 
   const ZONE_ROTATIONS = { '-1': 135, 0: 90, 1: 180, 2: 270 };
   const reduced = () => prefersReducedMotion.matches;
@@ -132,39 +137,39 @@ function initOddBot() {
 
   function cancelHoldReturn() {
     if (holdReturn) { holdReturn.kill(); holdReturn = null; }
-    gsap.killTweensOf(botEl);
+    allBots.forEach(el => gsap.killTweensOf(el));
+  }
+
+  const RIGHT_OFFSET = 180;
+
+  function applyRotation(targetDeg, animate) {
+    const leftDeg  = -targetDeg;
+    const rightDeg = -targetDeg + RIGHT_OFFSET;
+    const ease = 'elastic.out(1, 0.5)';
+    if (!animate || reduced()) {
+      gsap.set(center, { rotation: targetDeg });
+      if (left)  gsap.set(left,  { rotation: leftDeg });
+      if (right) gsap.set(right, { rotation: rightDeg });
+    } else {
+      gsap.to(center, { rotation: targetDeg, duration: 0.6, ease });
+      if (left)  gsap.to(left,  { rotation: leftDeg, duration: 0.6, ease });
+      if (right) gsap.to(right, { rotation: rightDeg, duration: 0.6, ease });
+    }
   }
 
   document.addEventListener('zone-change', (e) => {
-    const zoneIndex = e.detail.zoneIndex;
-    const targetDeg = ZONE_ROTATIONS[zoneIndex] ?? 135;
+    const targetDeg = ZONE_ROTATIONS[e.detail.zoneIndex] ?? 135;
     cancelHoldReturn();
-    if (reduced()) {
-      gsap.set(botEl, { rotation: targetDeg });
-    } else {
-      gsap.to(botEl, { rotation: targetDeg, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
-    }
+    applyRotation(targetDeg, true);
   });
 
   document.addEventListener('terminal-scan-complete', () => {
     cancelHoldReturn();
-    if (reduced()) {
-      gsap.set(botEl, { rotation: 270 });
-      holdReturn = gsap.delayedCall(2, () => {
-        gsap.set(botEl, { rotation: 135 });
-        holdReturn = null;
-      });
-    } else {
-      gsap.to(botEl, {
-        rotation: 270, duration: 0.6, ease: 'elastic.out(1, 0.5)',
-        onComplete: () => {
-          holdReturn = gsap.delayedCall(2, () => {
-            gsap.to(botEl, { rotation: 135, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
-            holdReturn = null;
-          });
-        }
-      });
-    }
+    applyRotation(270, true);
+    holdReturn = gsap.delayedCall(2, () => {
+      applyRotation(135, true);
+      holdReturn = null;
+    });
   });
 }
 
