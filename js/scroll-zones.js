@@ -23,6 +23,18 @@ let nebulaLayers = null;
 let nebulaGroup = null;
 let getCurrentTier = null;
 
+// Gauge needle elements (cached in init)
+let gaugeLeft = null;
+let gaugeRight = null;
+
+// Needle angle stops per zone (clockwise sweep across 3 zones)
+const NEEDLE_ANGLES = {
+  rest:  { left: '-30deg',  right: '15deg' },
+  0:     { left: '10deg',   right: '55deg' },
+  1:     { left: '50deg',   right: '95deg' },
+  2:     { left: '90deg',   right: '135deg' }
+};
+
 // ---------------------------------------------------------------------------
 // init — store scene references and bootstrap scroll zones
 // ---------------------------------------------------------------------------
@@ -31,6 +43,8 @@ function init({ starNodes: sn, nebulaLayers: nl, nebulaGroup: ng, getCurrentTier
   nebulaLayers = nl;
   nebulaGroup = ng;
   getCurrentTier = gt;
+  gaugeLeft = document.querySelector('.frame__gauge--left');
+  gaugeRight = document.querySelector('.frame__gauge--right');
   initScrollZones();
 }
 
@@ -154,6 +168,9 @@ function handleScrollProgress(progress) {
       // Update status text
       if (cachedCmdText) cachedCmdText.textContent = zone.statusText;
       if (cachedPhaseIndicator) cachedPhaseIndicator.textContent = zone.name.toUpperCase();
+
+      // Spring gauge needles to zone angle
+      animateNeedles(activeZoneIndex, useInstant);
     } else {
       // No active zone — reset everything
       nebulaLayers.forEach(layer => {
@@ -187,12 +204,34 @@ function handleScrollProgress(progress) {
 
       if (cachedCmdText) cachedCmdText.textContent = 'Force multipliers for small businesses...';
       if (cachedPhaseIndicator) cachedPhaseIndicator.textContent = 'PORTFOLIO';
+
+      // Spring gauge needles back to rest
+      animateNeedles(-1, useInstant);
     }
   }
 
   // Nebula group rotation (suppressed under reduced motion)
   if (nebulaGroup && !reduced) {
     nebulaGroup.rotation.y = progress * Math.PI * 0.5;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// animateNeedles — spring gauge needles to zone-specific angles
+// ---------------------------------------------------------------------------
+function animateNeedles(zoneIndex, instant) {
+  if (!gaugeLeft || !gaugeRight) return;
+  const angles = zoneIndex >= 0 ? NEEDLE_ANGLES[zoneIndex] : NEEDLE_ANGLES.rest;
+  if (!angles) return;
+
+  if (instant) {
+    gsap.set(gaugeLeft, { '--needle-angle': angles.left });
+    gsap.set(gaugeRight, { '--needle-angle': angles.right });
+  } else {
+    gsap.killTweensOf(gaugeLeft, '--needle-angle');
+    gsap.killTweensOf(gaugeRight, '--needle-angle');
+    gsap.to(gaugeLeft, { '--needle-angle': angles.left, duration: 0.8, ease: 'elastic.out(1, 0.4)' });
+    gsap.to(gaugeRight, { '--needle-angle': angles.right, duration: 0.8, ease: 'elastic.out(1, 0.4)' });
   }
 }
 

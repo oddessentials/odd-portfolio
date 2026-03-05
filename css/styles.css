@@ -703,6 +703,7 @@ body.nav-overlay-active .nav-backdrop {
   grid-row: 1;
   z-index: calc(var(--z-hud) + 2);
   padding: var(--space-lg) var(--space-md);
+  padding-left: calc(var(--frame-border-width) * 2);
   background: rgba(20, 13, 5, 0.6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -825,6 +826,7 @@ body.nav-overlay-active .nav-backdrop {
   grid-row: 1;
   z-index: calc(var(--z-hud) + 2);
   padding: var(--space-lg) var(--space-md);
+  padding-right: calc(var(--frame-border-width) * 2);
   background: rgba(20, 13, 5, 0.6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -1020,7 +1022,7 @@ body.nav-overlay-active .nav-backdrop {
   z-index: var(--z-hud);
   display: flex;
   align-items: center;
-  padding: 0 var(--space-md);
+  padding: var(--space-md) calc(var(--frame-border-width) * 2) calc(var(--frame-border-width) * 2);
   gap: var(--space-xs);
   background: rgba(13, 11, 9, 0.95);
   border-top: 1px solid rgba(139, 105, 20, 0.25);
