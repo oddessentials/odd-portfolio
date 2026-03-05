@@ -6,7 +6,7 @@ import { PROJECTS, CONSTELLATION_ZONES } from './data.js';
 // Module-level references (exported at bottom)
 // ---------------------------------------------------------------------------
 let scene, camera, renderer, orbGroup, starNodes, nebulaLayers;
-let starGroup, dustMotes;
+let starGroup, dustMotes, nebulaGroup;
 const raycaster = new THREE.Raycaster();
 raycaster.params.Sprite = { threshold: 0.15 };
 const mouse = new THREE.Vector2(-9999, -9999);
@@ -14,6 +14,7 @@ let hoveredStar = null;
 let labelContainer = null;
 let isMobile = false;
 let xScale = 1.0;
+let yScale = 1.0;
 const designAspect = 16 / 9;
 
 // Logo follow references
@@ -112,6 +113,9 @@ function project3DtoScreen(position3D, cam, domElement) {
 // ---------------------------------------------------------------------------
 // Star label management
 // ---------------------------------------------------------------------------
+// Stars with x < -1.5 get left-anchored labels (label appears to right of star)
+const LEFT_ANCHOR_STARS = ['odd-fintech', 'ado-git-repo-insights'];
+
 function showStarLabel(starSprite) {
   if (!labelContainer) return;
   const project = starSprite.userData.project;
@@ -121,6 +125,10 @@ function showStarLabel(starSprite) {
     label.className = 'star-label';
     label.setAttribute('data-star-label', project.id);
     label.textContent = project.name;
+    // Static anchor override for edge-positioned stars (US3)
+    if (LEFT_ANCHOR_STARS.includes(project.id)) {
+      label.style.transform = 'translateX(0)';
+    }
     labelContainer.appendChild(label);
   }
   const worldPos = new THREE.Vector3();
@@ -246,6 +254,13 @@ function initLogoFollow() {
       hitzone.style.cursor = 'crosshair';
       logoReturnHome(gsap);
     });
+
+    // Document-level viewport exit detection (US1 FR-005)
+    document.addEventListener('mouseleave', () => {
+      if (!logoFollowing) return;
+      hitzone.style.cursor = 'crosshair';
+      logoReturnHome(gsap);
+    });
   }
 
   // --- Touch: snap logo to touch point, return on release ---
@@ -344,8 +359,38 @@ function initScene() {
 
   // -----------------------------------------------------------------------
   // Nebula System — 3 layered Points clouds (T002: viewport-distributed)
+  // Custom ShaderMaterial with zone color overlay uniforms (US2)
   // -----------------------------------------------------------------------
   nebulaLayers = [];
+  nebulaGroup = new THREE.Group();
+  orbGroup.add(nebulaGroup);
+
+  // Nebula vertex shader — replicates PointsMaterial behavior
+  const nebulaVertexShader = /* glsl */`
+    uniform float size;
+    varying vec3 vColor;
+    void main() {
+      vColor = color;
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = min(size * (300.0 / -mvPosition.z), 200.0);
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `;
+
+  // Nebula fragment shader — zone color additive overlay
+  const nebulaFragmentShader = /* glsl */`
+    uniform vec3 uZoneColor;
+    uniform float uZoneInfluence;
+    uniform float uOpacity;
+    varying vec3 vColor;
+    void main() {
+      float dist = length(gl_PointCoord - vec2(0.5));
+      if (dist > 0.5) discard;
+      float alpha = smoothstep(0.5, 0.1, dist) * uOpacity;
+      vec3 finalColor = mix(vColor, vColor + uZoneColor * 0.3, uZoneInfluence);
+      gl_FragColor = vec4(finalColor, alpha);
+    }
+  `;
 
   // T015: reduced counts on mobile
   const mobileFactor = isMobile ? 0.5 : 1;
@@ -405,18 +450,23 @@ function initScene() {
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    const mat = new THREE.PointsMaterial({
-      size: cfg.size,
-      sizeAttenuation: true,
+    const mat = new THREE.ShaderMaterial({
       vertexColors: true,
-      blending: cfg.blend,
       transparent: true,
+      blending: cfg.blend,
       depthWrite: false,
-      opacity: 0.8
+      uniforms: {
+        size: { value: cfg.size * 1000 },
+        uZoneColor: { value: new THREE.Color(0, 0, 0) },
+        uZoneInfluence: { value: 0.0 },
+        uOpacity: { value: 0.8 }
+      },
+      vertexShader: nebulaVertexShader,
+      fragmentShader: nebulaFragmentShader
     });
 
     const points = new THREE.Points(geo, mat);
-    orbGroup.add(points);
+    nebulaGroup.add(points);
     nebulaLayers.push(points);
   });
 
@@ -570,11 +620,23 @@ function initScene() {
     // Responsive star scaling (T003)
     const currentAspect = w / h;
     xScale = Math.min(1, currentAspect / designAspect);
+    // Y-axis scaling for portrait devices (US4)
+    yScale = Math.max(0.8, 1 - (1 - xScale) * 0.3);
     starNodes.forEach(sprite => {
       sprite.position.x = sprite.userData.basePosition[0] * xScale;
+      sprite.position.y = sprite.userData.basePosition[1] * yScale;
     });
-    // Nebula x-scaling (T004)
+    // Nebula x-scaling only (intentional asymmetry)
     nebulaLayers.forEach(layer => { layer.scale.x = xScale; });
+
+    // Logo state on resize (US1): return home if following, clear stale styles if not
+    if (logoFollowing) {
+      logoReturnHome(window.gsap);
+    } else if (logoEl) {
+      logoEl.style.left = '';
+      logoEl.style.top = '';
+      if (window.gsap) window.gsap.set(logoEl, { clearProps: 'transform' });
+    }
   }
   window.addEventListener('resize', onResize);
 
@@ -750,4 +812,4 @@ function handleStarExit(sprite) {
 // ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
-export { initScene, scene, camera, renderer, orbGroup, starNodes, nebulaLayers, isMobile };
+export { initScene, scene, camera, renderer, orbGroup, starNodes, nebulaLayers, nebulaGroup, isMobile };

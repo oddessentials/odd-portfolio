@@ -382,6 +382,38 @@ function initAutoTierDegradation(composerRef, bloomPassRef, customPassRef) {
     document.removeEventListener('terminal-scan-complete', terminalHandler);
     runBenchmark();
   }, 20000);
+
+  // Scroll-time safety net (T026): sample 10 frames during first scroll
+  let scrollSampled = false;
+  function onFirstScroll() {
+    if (scrollSampled || currentTier >= 3) return;
+    scrollSampled = true;
+    window.removeEventListener('scroll', onFirstScroll);
+
+    const scrollFrameTimes = [];
+    let scrollFrameCount = 0;
+
+    function measureScroll() {
+      const start = performance.now();
+      requestAnimationFrame(() => {
+        scrollFrameTimes.push(performance.now() - start);
+        scrollFrameCount++;
+        if (scrollFrameCount < 10) {
+          measureScroll();
+        } else {
+          const avg = scrollFrameTimes.reduce((a, b) => a + b, 0) / scrollFrameTimes.length;
+          console.log(`[Arcane Console] Scroll benchmark avg: ${avg.toFixed(2)}ms`);
+          if (avg > 20 && currentTier < 3) {
+            applyTier3();
+          }
+        }
+      });
+    }
+
+    measureScroll();
+  }
+
+  window.addEventListener('scroll', onFirstScroll, { passive: true });
 }
 
 // ---------------------------------------------------------------------------

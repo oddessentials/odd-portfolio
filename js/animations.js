@@ -1,5 +1,6 @@
 // js/animations.js — Reveal sequence, scroll interactions, micro-interactions
-import { scene, camera, renderer, orbGroup, starNodes, nebulaLayers } from './scene.js';
+import { scene, camera, renderer, orbGroup, starNodes, nebulaLayers, nebulaGroup } from './scene.js';
+import { getCurrentTier } from './performance.js';
 import { PROJECTS, CONSTELLATION_ZONES } from './data.js';
 import { setInitialFocus } from './interactions.js';
 
@@ -69,7 +70,7 @@ function playRevealSequence() {
   // Nebula layers hidden
   if (nebulaLayers) {
     nebulaLayers.forEach(layer => {
-      layer.material.opacity = 0;
+      layer.material.uniforms.uOpacity.value = 0;
       layer.scale.set(0.3, 0.3, 0.3);
     });
   }
@@ -121,8 +122,8 @@ function playRevealSequence() {
     // Nebula bloom
     if (nebulaLayers) {
       nebulaLayers.forEach((layer, i) => {
-        tl.to(layer.material, {
-          opacity: 0.7 + i * 0.03,
+        tl.to(layer.material.uniforms.uOpacity, {
+          value: 0.7 + i * 0.03,
           duration: 0.6,
           ease: 'sine.inOut'
         }, 1.0 + i * 0.1);
@@ -240,8 +241,8 @@ function playRevealSequence() {
   // Nebula layers bloom outward
   if (nebulaLayers) {
     nebulaLayers.forEach((layer, i) => {
-      tl.to(layer.material, {
-        opacity: 0.7 + i * 0.03,
+      tl.to(layer.material.uniforms.uOpacity, {
+        value: 0.7 + i * 0.03,
         duration: 0.8,
         ease: 'sine.inOut'
       }, 3.8 + i * 0.15);
@@ -495,135 +496,195 @@ function initSkipIntro(masterTimeline) {
 }
 
 // ---------------------------------------------------------------------------
-// initScrollInteractions — ScrollTrigger-driven exploration
+// Scroll-driven exploration — new pinless architecture (US2)
 // ---------------------------------------------------------------------------
-function initScrollInteractions() {
+let activeZoneIndex = -1;
+let scrollEnabled = false;
+let cachedCmdText = null;
+let cachedPhaseIndicator = null;
+
+function initScrollZones() {
   if (!gsap || !ScrollTrigger) return;
-  if (!orbGroup || !camera) return;
 
   gsap.registerPlugin(ScrollTrigger);
 
-  document.body.style.overflow = 'auto';
-  document.documentElement.style.overflow = 'auto';
+  const scrollDriver = document.getElementById('scroll-driver');
+  if (!scrollDriver) return;
 
-  let scrollDriver = document.getElementById('scroll-driver');
-  if (!scrollDriver) {
-    scrollDriver = document.createElement('div');
-    scrollDriver.id = 'scroll-driver';
-    scrollDriver.style.cssText = `height:${window.innerHeight + 300}px;width:100%;position:relative;pointer-events:none;`;
-    scrollDriver.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(scrollDriver);
-  }
+  // Set scroll-driver height dynamically
+  scrollDriver.style.height = (window.innerHeight + 300) + 'px';
 
-  const proxy = { orbRotY: 0, cameraZ: 4.5, paletteShift: 0 };
+  // Enable scrolling
+  document.body.classList.add('scroll-enabled');
+  scrollEnabled = true;
 
-  const scrollTl = gsap.timeline({
-    scrollTrigger: {
-      trigger: scrollDriver,
-      start: 'top top',
-      end: 'bottom bottom',
-      scrub: 1.5,
-      pin: '#app-shell',
-      anticipatePin: 1
-    }
-  });
+  // Cache DOM elements for per-frame handleScrollProgress
+  cachedCmdText = document.querySelector('.cmd-text');
+  cachedPhaseIndicator = document.querySelector('.phase-indicator');
 
-  scrollTl.to(proxy, {
-    orbRotY: 0.44,
-    cameraZ: 3.7,
-    duration: 1,
-    ease: 'none',
-    onUpdate: () => {
-      if (orbGroup) orbGroup.rotation.y = proxy.orbRotY;
-      if (camera) camera.position.z = proxy.cameraZ;
-    }
-  });
-
-  const cmdText = document.querySelector('.cmd-text');
-  const phaseIndicator = document.querySelector('.phase-indicator');
-
-  const zoneMessages = [
-    { cmd: 'scanning arcane tools constellation...', phase: 'ZONE 1' },
-    { cmd: 'interfacing with intelligence matrix...', phase: 'ZONE 2' },
-    { cmd: 'triangulating outpost network...', phase: 'ZONE 3' }
-  ];
-
-  CONSTELLATION_ZONES.forEach((zone, i) => {
-    ScrollTrigger.create({
-      trigger: scrollDriver,
-      start: () => (zone.scrollStart * 100) + '% top',
-      end: () => (zone.scrollEnd * 100) + '% top',
-      onEnter: () => {
-        brightenZoneStars(zone.projectIds, true);
-        if (cmdText) cmdText.textContent = zoneMessages[i].cmd;
-        if (phaseIndicator) phaseIndicator.textContent = zoneMessages[i].phase;
-      },
-      onLeaveBack: () => {
-        brightenZoneStars(zone.projectIds, false);
-        if (i === 0) {
-          if (cmdText) cmdText.textContent = 'select a constellation to begin';
-          if (phaseIndicator) phaseIndicator.textContent = 'READY';
-        } else {
-          if (cmdText) cmdText.textContent = zoneMessages[i - 1].cmd;
-          if (phaseIndicator) phaseIndicator.textContent = zoneMessages[i - 1].phase;
-        }
-      }
-    });
-  });
-
+  // ScrollTrigger reads progress — no pin, no scrub
   ScrollTrigger.create({
     trigger: scrollDriver,
-    start: '90% top',
-    end: '100% top',
-    onEnter: () => {
-      if (starNodes) {
+    start: 'top top',
+    end: 'bottom bottom',
+    onUpdate: (self) => handleScrollProgress(self.progress)
+  });
+
+  // Update scroll-driver height on resize (T028)
+  window.addEventListener('resize', () => {
+    scrollDriver.style.height = (window.innerHeight + 300) + 'px';
+    ScrollTrigger.refresh();
+  });
+
+  // Skip-scroll affordance (T020)
+  showSkipScrollAffordance();
+}
+
+function handleScrollProgress(progress) {
+  if (!starNodes || !nebulaLayers) return;
+
+  const reduced = prefersReducedMotion.matches;
+  const mobile = isMobileView();
+  const tier3 = getCurrentTier() >= 3;
+  const useInstant = reduced || mobile || tier3;
+
+  // Determine active zone
+  let newZoneIndex = -1;
+  for (let i = 0; i < CONSTELLATION_ZONES.length; i++) {
+    const zone = CONSTELLATION_ZONES[i];
+    if (progress >= zone.scrollStart && progress < zone.scrollEnd) {
+      newZoneIndex = i;
+      break;
+    }
+  }
+  // Edge case: progress === 1.0 belongs to last zone
+  if (progress >= 1.0 && CONSTELLATION_ZONES.length > 0) {
+    newZoneIndex = CONSTELLATION_ZONES.length - 1;
+  }
+
+  if (newZoneIndex !== activeZoneIndex) {
+    activeZoneIndex = newZoneIndex;
+
+    if (activeZoneIndex >= 0) {
+      const zone = CONSTELLATION_ZONES[activeZoneIndex];
+
+      // Update nebula uniforms
+      nebulaLayers.forEach(layer => {
+        const uniforms = layer.material.uniforms;
+        uniforms.uZoneColor.value.set(zone.nebulaHueRgb[0], zone.nebulaHueRgb[1], zone.nebulaHueRgb[2]);
+        if (useInstant) {
+          uniforms.uZoneInfluence.value = 1.0;
+        } else {
+          gsap.to(uniforms.uZoneInfluence, { value: 1.0, duration: 0.3, ease: 'power2.out' });
+        }
+      });
+
+      // Scale active zone stars to 1.3x, reset others to 1.0x
+      if (!reduced) {
         starNodes.forEach(sprite => {
           const base = sprite.userData.baseScale;
-          gsap.to(sprite.scale, { x: base, y: base, z: base, duration: 0.4, ease: 'power2.out' });
+          const isInZone = zone.projectIds.includes(sprite.userData.project.id);
+          const targetScale = isInZone ? base * 1.3 : base;
+          if (useInstant) {
+            gsap.set(sprite.scale, { x: targetScale, y: targetScale, z: targetScale });
+          } else {
+            gsap.to(sprite.scale, { x: targetScale, y: targetScale, z: targetScale, duration: 0.3, ease: 'power2.out' });
+          }
         });
       }
-      if (cmdText) cmdText.textContent = 'universe revealed. select a constellation to begin';
-      if (phaseIndicator) phaseIndicator.textContent = 'COMPLETE';
-    },
-    onLeaveBack: () => {
-      const lastZone = CONSTELLATION_ZONES[CONSTELLATION_ZONES.length - 1];
-      brightenZoneStars(lastZone.projectIds, true);
-      if (cmdText) cmdText.textContent = zoneMessages[zoneMessages.length - 1].cmd;
-      if (phaseIndicator) phaseIndicator.textContent = zoneMessages[zoneMessages.length - 1].phase;
+
+      // Update status text
+      if (cachedCmdText) cachedCmdText.textContent = zone.statusText;
+      if (cachedPhaseIndicator) cachedPhaseIndicator.textContent = zone.name.toUpperCase();
+    } else {
+      // No active zone — reset everything
+      nebulaLayers.forEach(layer => {
+        const uniforms = layer.material.uniforms;
+        if (useInstant) {
+          uniforms.uZoneInfluence.value = 0.0;
+        } else {
+          gsap.to(uniforms.uZoneInfluence, { value: 0.0, duration: 0.3, ease: 'power2.out' });
+        }
+      });
+
+      starNodes.forEach(sprite => {
+        const base = sprite.userData.baseScale;
+        if (useInstant) {
+          gsap.set(sprite.scale, { x: base, y: base, z: base });
+        } else {
+          gsap.to(sprite.scale, { x: base, y: base, z: base, duration: 0.3, ease: 'power2.out' });
+        }
+      });
+
+      if (cachedCmdText) cachedCmdText.textContent = 'Force multipliers for small businesses...';
+      if (cachedPhaseIndicator) cachedPhaseIndicator.textContent = 'PORTFOLIO';
     }
-  });
+  }
+
+  // Nebula group rotation (suppressed under reduced motion)
+  if (nebulaGroup && !reduced) {
+    nebulaGroup.rotation.y = progress * Math.PI * 0.5;
+  }
 }
 
 // ---------------------------------------------------------------------------
-// brightenZoneStars — scale up zone stars, dim others
+// Skip-scroll affordance (T020)
 // ---------------------------------------------------------------------------
-function brightenZoneStars(projectIds, brighten) {
-  if (!starNodes || !gsap) return;
+function showSkipScrollAffordance() {
+  if (!gsap) return;
 
-  starNodes.forEach(sprite => {
-    const base = sprite.userData.baseScale;
-    const isInZone = projectIds.includes(sprite.userData.project.id);
+  const btn = document.createElement('button');
+  btn.textContent = '\u2193 Scroll to explore';
+  btn.className = 'skip-scroll-btn';
+  btn.setAttribute('aria-label', 'Scroll to explore projects');
+  btn.style.cssText =
+    'position:fixed;bottom:24px;right:24px;z-index:200;' +
+    'padding:8px 20px;font-family:var(--font-mono);font-size:13px;' +
+    'color:var(--color-frame-bg,#0D0B09);cursor:pointer;border:none;border-radius:4px;' +
+    'background:linear-gradient(180deg,#C8A84B 0%,#8B6914 100%);' +
+    'box-shadow:inset 0 1px 0 rgba(255,255,255,0.2),0 2px 6px rgba(0,0,0,0.5);' +
+    'opacity:0;pointer-events:none;';
 
-    if (brighten) {
-      const targetScale = isInZone ? base * 1.3 : base * 0.7;
-      const targetOpacity = isInZone ? 1 : 0.4;
-      gsap.to(sprite.scale, {
-        x: targetScale, y: targetScale, z: targetScale,
-        duration: 0.4, ease: 'power2.out'
-      });
-      gsap.to(sprite.material, {
-        opacity: targetOpacity, duration: 0.4, ease: 'power2.out'
-      });
-    } else {
-      gsap.to(sprite.scale, {
-        x: base, y: base, z: base,
-        duration: 0.4, ease: 'power2.out'
-      });
-      gsap.to(sprite.material, {
-        opacity: 1, duration: 0.4, ease: 'power2.out'
-      });
-    }
+  document.body.appendChild(btn);
+
+  gsap.to(btn, {
+    opacity: 1, duration: 0.3, delay: 0.5,
+    onStart: () => { btn.style.pointerEvents = 'auto'; }
   });
+
+  function removeBtn() {
+    btn.style.pointerEvents = 'none';
+    if (btn.parentNode) {
+      gsap.to(btn, { opacity: 0, duration: 0.3, onComplete: () => btn.remove() });
+    }
+    document.removeEventListener('keydown', onKeyScroll);
+  }
+
+  // Auto-fade after 3 seconds
+  gsap.to(btn, { opacity: 0, duration: 0.5, delay: 3.5, onComplete: removeBtn });
+
+  btn.addEventListener('click', () => {
+    const scrollDriver = document.getElementById('scroll-driver');
+    if (scrollDriver) {
+      window.scrollTo({ top: scrollDriver.offsetHeight - window.innerHeight, behavior: 'smooth' });
+    }
+    removeBtn();
+  });
+
+  function onKeyScroll(e) {
+    if (e.key === 's' || e.key === 'S') {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      const overlay = document.getElementById('project-overlay');
+      if (overlay && !overlay.hasAttribute('hidden')) return;
+      if (window.__revealActive) return;
+      const scrollDriver = document.getElementById('scroll-driver');
+      if (scrollDriver) {
+        window.scrollTo({ top: scrollDriver.offsetHeight - window.innerHeight, behavior: 'smooth' });
+      }
+      removeBtn();
+    }
+  }
+  document.addEventListener('keydown', onKeyScroll);
 }
 
 // ---------------------------------------------------------------------------
@@ -667,7 +728,7 @@ function handleReducedMotion() {
     // No orb glass to set opacity on — just nebula and stars
     if (nebulaLayers) {
       nebulaLayers.forEach(layer => {
-        layer.material.opacity = 0.7;
+        layer.material.uniforms.uOpacity.value = 0.7;
         layer.scale.set(1, 1, 1);
       });
     }
@@ -685,6 +746,7 @@ function handleReducedMotion() {
     }
 
     window.__revealActive = false;
+    document.dispatchEvent(new CustomEvent('reveal-complete'));
     setInitialFocus();
   }
 
@@ -702,26 +764,25 @@ function handleReducedMotion() {
 }
 
 // ---------------------------------------------------------------------------
-// handleScrollDuringReveal — skip reveal if user scrolls
+// handleScrollDuringReveal — skip reveal if user scrolls (retained for app.js compat)
+// Body overflow is hidden during reveal so scroll events won't fire,
+// but wheel events can still skip the reveal animation.
 // ---------------------------------------------------------------------------
 function handleScrollDuringReveal(masterTimeline) {
   if (!masterTimeline) return;
 
-  function onScroll() {
+  function onWheel() {
     if (masterTimeline.isActive()) {
       masterTimeline.progress(1);
     }
-    window.removeEventListener('scroll', onScroll);
-    window.removeEventListener('wheel', onScroll);
+    window.removeEventListener('wheel', onWheel);
   }
 
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('wheel', onScroll, { passive: true });
+  window.addEventListener('wheel', onWheel, { passive: true });
 
   const prevOnComplete = masterTimeline.eventCallback('onComplete');
   masterTimeline.eventCallback('onComplete', () => {
-    window.removeEventListener('scroll', onScroll);
-    window.removeEventListener('wheel', onScroll);
+    window.removeEventListener('wheel', onWheel);
     if (typeof prevOnComplete === 'function') {
       prevOnComplete();
     }
@@ -751,7 +812,7 @@ function handlePanelScrollLock() {
 export {
   playRevealSequence,
   playTerminalScan,
-  initScrollInteractions,
+  initScrollZones,
   handleReducedMotion,
   initSkipIntro,
   handleScrollDuringReveal,

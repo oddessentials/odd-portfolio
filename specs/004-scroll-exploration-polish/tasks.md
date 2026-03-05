@@ -19,7 +19,7 @@
 
 **Purpose**: Update project data and configuration that all user stories depend on
 
-- [ ] T001 Update CONSTELLATION_ZONES professional names, statusText, nebulaHueRgb, and compressed scroll ranges (0.0–0.33, 0.33–0.66, 0.66–1.0) in js/data.js
+- [X] T001 Update CONSTELLATION_ZONES professional names, statusText, nebulaHueRgb, and compressed scroll ranges (0.0–0.33, 0.33–0.66, 0.66–1.0) in js/data.js
 
 ---
 
@@ -29,13 +29,13 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Add `#scroll-driver` div (aria-hidden="true", role="presentation", tabindex="-1") as sibling after `#app-shell` in index.html
-- [ ] T003 [P] Move `#star-labels` div from inside `#main-viewport` to body level (after `#app-shell`, before `#scroll-driver`) in index.html
-- [ ] T004 [P] Add CSS for `#scroll-driver` (position: relative, z-index: 0, pointer-events: none) in css/styles.css
-- [ ] T005 [P] Add CSS for `#app-shell` position: fixed with inset: 0 and z-index: 1 in css/styles.css
-- [ ] T006 [P] Add CSS for `body.scroll-enabled` (overflow-y: auto) to conditionally enable scrolling after reveal in css/styles.css
-- [ ] T007 [P] Add CSS for `#star-labels` as position: fixed, inset: 0, z-index: 25, pointer-events: none, overflow: visible in css/styles.css. Add `#star-labels .star-label { pointer-events: auto; }` rule
-- [ ] T008 Remove `initScrollInteractions()` call from js/app.js (line ~41) — this call fires before reveal completes and uses the old pin-based approach
+- [X] T002 Add `#scroll-driver` div (aria-hidden="true", role="presentation", tabindex="-1") as sibling after `#app-shell` in index.html
+- [X] T003 [P] Move `#star-labels` div from inside `#main-viewport` to body level (after `#app-shell`, before `#scroll-driver`) in index.html
+- [X] T004 [P] Add CSS for `#scroll-driver` (position: relative, z-index: 0, pointer-events: none) in css/styles.css
+- [X] T005 [P] Add CSS for `#app-shell` position: fixed with inset: 0 and z-index: 1 in css/styles.css
+- [X] T006 [P] Add CSS for `body.scroll-enabled` (overflow-y: auto) to conditionally enable scrolling after reveal in css/styles.css
+- [X] T007 [P] Add CSS for `#star-labels` as position: fixed, inset: 0, z-index: 25, pointer-events: none, overflow: visible in css/styles.css. Add `#star-labels .star-label { pointer-events: auto; }` rule
+- [X] T008 Remove `initScrollInteractions()` call from js/app.js (line ~41) — this call fires before reveal completes and uses the old pin-based approach
 
 **Checkpoint**: DOM restructured, CSS infrastructure ready — user story implementation can begin
 
@@ -49,9 +49,9 @@
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Add resize handler for logo state in js/scene.js onResize(): if logoFollowing, call logoReturnHome(); if not, clear stale inline left/top/transform styles from logoEl
-- [ ] T010 [US1] Add document-level mouseleave listener in js/scene.js initLogoFollow() that calls logoReturnHome() when cursor exits the browser viewport entirely (not just the hitzone)
-- [ ] T011 [US1] Verify engageLogo() in js/scene.js calls gsap.killTweensOf(logoEl) before re-engaging (handles mid-return-animation re-entry, FR-007). Audit against commit 58be354 to avoid duplicate work
+- [X] T009 [US1] Add resize handler for logo state in js/scene.js onResize(): if logoFollowing, call logoReturnHome(); if not, clear stale inline left/top/transform styles from logoEl
+- [X] T010 [US1] Add document-level mouseleave listener in js/scene.js initLogoFollow() that calls logoReturnHome() when cursor exits the browser viewport entirely (not just the hitzone)
+- [X] T011 [US1] Verify engageLogo() in js/scene.js calls gsap.killTweensOf(logoEl) before re-engaging (handles mid-return-animation re-entry, FR-007). Audit against commit 58be354 to avoid duplicate work
 
 **Checkpoint**: Logo tracks cursor reliably in all scenarios — enter/exit/resize/tab-switch cycles produce zero desync
 
@@ -67,15 +67,15 @@
 
 ### Implementation for User Story 2
 
-- [ ] T012 [US2] Delete old scroll code in js/animations.js: remove `initScrollInteractions()` (~70 lines), `brightenZoneStars()` (~28 lines), and `handleScrollDuringReveal()` functions
-- [ ] T013 [US2] Create custom nebula ShaderMaterial in js/scene.js: vertex shader (using uniform float size, varying vColor from vertex colors) + fragment shader (gl_PointCoord distance check, alpha smoothstep, uZoneColor/uZoneInfluence additive overlay). Replace PointsMaterial with ShaderMaterial({ vertexColors: true, transparent: true, blending: AdditiveBlending, depthWrite: false }) for each nebula layer
-- [ ] T014 [US2] Create nebulaGroup (THREE.Group) in js/scene.js and reparent all nebula layers into it. Stars remain children of scene root, not nebulaGroup. Export nebulaGroup and nebula material references for use by animations.js
-- [ ] T015 [US2] Implement initScrollZones() in js/animations.js: set #scroll-driver height to (window.innerHeight + 300)px, create ScrollTrigger.create({ trigger: '#scroll-driver', start: 'top top', end: 'bottom bottom', onUpdate: self => handleScrollProgress(self.progress) }) with no pin property. Add body.classList.add('scroll-enabled')
-- [ ] T016 [US2] Wire initScrollZones() to fire on the reveal-complete custom event in js/app.js (replacing the removed initScrollInteractions() call). Ensure ScrollTrigger is not created before reveal completes (FR-012)
-- [ ] T017 [US2] Implement handleScrollProgress(progress) in js/animations.js: determine activeZoneIndex from CONSTELLATION_ZONES scrollStart/scrollEnd ranges, update nebula uniforms (uZoneColor from zone.nebulaHueRgb, tween uZoneInfluence 0→1), scale active zone stars to 1.3x base (gsap.to), reset non-active stars to 1.0x, update status panel text, set nebulaGroup.rotation.y = progress * Math.PI * 0.5
-- [ ] T018 [US2] Add reduced-motion handling in handleScrollProgress(): check prefers-reduced-motion, if active use gsap.set() for all transitions (zero duration), suppress star scaling entirely, suppress nebulaGroup rotation (keep at 0)
-- [ ] T019 [US2] Add mobile handling in handleScrollProgress(): if isMobile, use gsap.set() for all zone transitions (instant snap, no lerp)
-- [ ] T020 [US2] Implement skip-scroll affordance in js/animations.js: after reveal completes, show "↓ Scroll to explore" button that scrolls to bottom of #scroll-driver on click, fades after 3 seconds. Repurpose S key shortcut after reveal
+- [X] T012 [US2] Delete old scroll code in js/animations.js: remove `initScrollInteractions()` (~70 lines), `brightenZoneStars()` (~28 lines), and `handleScrollDuringReveal()` functions
+- [X] T013 [US2] Create custom nebula ShaderMaterial in js/scene.js: vertex shader (using uniform float size, varying vColor from vertex colors) + fragment shader (gl_PointCoord distance check, alpha smoothstep, uZoneColor/uZoneInfluence additive overlay). Replace PointsMaterial with ShaderMaterial({ vertexColors: true, transparent: true, blending: AdditiveBlending, depthWrite: false }) for each nebula layer
+- [X] T014 [US2] Create nebulaGroup (THREE.Group) in js/scene.js and reparent all nebula layers into it. Stars remain children of scene root, not nebulaGroup. Export nebulaGroup and nebula material references for use by animations.js
+- [X] T015 [US2] Implement initScrollZones() in js/animations.js: set #scroll-driver height to (window.innerHeight + 300)px, create ScrollTrigger.create({ trigger: '#scroll-driver', start: 'top top', end: 'bottom bottom', onUpdate: self => handleScrollProgress(self.progress) }) with no pin property. Add body.classList.add('scroll-enabled')
+- [X] T016 [US2] Wire initScrollZones() to fire on the reveal-complete custom event in js/app.js (replacing the removed initScrollInteractions() call). Ensure ScrollTrigger is not created before reveal completes (FR-012)
+- [X] T017 [US2] Implement handleScrollProgress(progress) in js/animations.js: determine activeZoneIndex from CONSTELLATION_ZONES scrollStart/scrollEnd ranges, update nebula uniforms (uZoneColor from zone.nebulaHueRgb, tween uZoneInfluence 0→1), scale active zone stars to 1.3x base (gsap.to), reset non-active stars to 1.0x, update status panel text, set nebulaGroup.rotation.y = progress * Math.PI * 0.5
+- [X] T018 [US2] Add reduced-motion handling in handleScrollProgress(): check prefers-reduced-motion, if active use gsap.set() for all transitions (zero duration), suppress star scaling entirely, suppress nebulaGroup rotation (keep at 0)
+- [X] T019 [US2] Add mobile handling in handleScrollProgress(): if isMobile, use gsap.set() for all zone transitions (instant snap, no lerp)
+- [X] T020 [US2] Implement skip-scroll affordance in js/animations.js: after reveal completes, show "↓ Scroll to explore" button that scrolls to bottom of #scroll-driver on click, fades after 3 seconds. Repurpose S key shortcut after reveal
 
 **Checkpoint**: Scroll-driven exploration fully functional — 3 zones, reversible transitions, reduced-motion/mobile handling, skip affordance
 
@@ -89,8 +89,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T021 [US3] Add static per-star label anchor overrides in js/scene.js or js/interactions.js: odd-fintech (x=-2.2), ado-git-repo-insights (x=-2.0), and repo-standards (x=2.2) use left-anchored labels; all others use default right-anchored. Apply via CSS class or inline style when creating label elements
-- [ ] T022 [US3] Verify project3DtoScreen() coordinate projection still outputs correct viewport coordinates now that #star-labels is position:fixed at body level (no coordinate system changes expected — existing function already outputs viewport coords)
+- [X] T021 [US3] Add static per-star label anchor overrides in js/scene.js or js/interactions.js: odd-fintech (x=-2.2), ado-git-repo-insights (x=-2.0), and repo-standards (x=2.2) use left-anchored labels; all others use default right-anchored. Apply via CSS class or inline style when creating label elements
+- [X] T022 [US3] Verify project3DtoScreen() coordinate projection still outputs correct viewport coordinates now that #star-labels is position:fixed at body level (no coordinate system changes expected — existing function already outputs viewport coords)
 
 **Checkpoint**: All 7 star labels fully visible without clipping on desktop — sidebar buttons remain clickable
 
@@ -104,8 +104,8 @@
 
 ### Implementation for User Story 4
 
-- [ ] T023 [P] [US4] Add module-level `let yScale = 1;` variable in js/scene.js alongside existing xScale
-- [ ] T024 [US4] Update onResize() in js/scene.js: after computing xScale, add `yScale = Math.max(0.8, 1 - (1 - xScale) * 0.3)`. Update star loop to apply both axes: `sprite.position.x = basePosition[0] * xScale; sprite.position.y = basePosition[1] * yScale;`. Keep nebula layers X-only scaling (intentional asymmetry)
+- [X] T023 [P] [US4] Add module-level `let yScale = 1;` variable in js/scene.js alongside existing xScale
+- [X] T024 [US4] Update onResize() in js/scene.js: after computing xScale, add `yScale = Math.max(0.8, 1 - (1 - xScale) * 0.3)`. Update star loop to apply both axes: `sprite.position.x = basePosition[0] * xScale; sprite.position.y = basePosition[1] * yScale;`. Keep nebula layers X-only scaling (intentional asymmetry)
 
 **Checkpoint**: Stars distributed vertically on portrait viewports — yScale clamped at 0.8 minimum
 
@@ -121,7 +121,7 @@
 
 ### Implementation for User Story 5
 
-- [ ] T025 [US5] Audit all visible text in index.html, js/animations.js, and js/interactions.js for remaining fantasy-themed language during scroll interactions. Verify the `constellation` field in PROJECTS data is never rendered to users (internal identifier, intentionally retained)
+- [X] T025 [US5] Audit all visible text in index.html, js/animations.js, and js/interactions.js for remaining fantasy-themed language during scroll interactions. Verify the `constellation` field in PROJECTS data is never rendered to users (internal identifier, intentionally retained)
 
 **Checkpoint**: Zero fantasy text visible to users during scroll-driven interactions
 
@@ -131,10 +131,10 @@
 
 **Purpose**: Performance safety net, auto-tier integration, final validation
 
-- [ ] T026 [P] Add auto-tier scroll-time safety net in js/performance.js: after existing idle benchmark, collect 10-frame scroll-time sample during first user scroll. If average exceeds 20ms, downgrade to tier 3 (instant zone transitions via gsap.set)
-- [ ] T027 [P] Add tier-3 handling in handleScrollProgress() in js/animations.js: if current tier is 3, use gsap.set() for all zone transitions (same as reduced-motion code path)
-- [ ] T028 Verify #scroll-driver height updates on window resize in js/animations.js (recalculate window.innerHeight + 300 on resize)
-- [ ] T029 Run quickstart.md verification checklist: test all scenarios (logo 10-cycle, scroll zones, label clipping, Y-axis scaling, professional text, reduced-motion, keyboard nav, performance)
+- [X] T026 [P] Add auto-tier scroll-time safety net in js/performance.js: after existing idle benchmark, collect 10-frame scroll-time sample during first user scroll. If average exceeds 20ms, downgrade to tier 3 (instant zone transitions via gsap.set)
+- [X] T027 [P] Add tier-3 handling in handleScrollProgress() in js/animations.js: if current tier is 3, use gsap.set() for all zone transitions (same as reduced-motion code path)
+- [X] T028 Verify #scroll-driver height updates on window resize in js/animations.js (recalculate window.innerHeight + 300 on resize)
+- [X] T029 Run quickstart.md verification checklist: test all scenarios (logo 10-cycle, scroll zones, label clipping, Y-axis scaling, professional text, reduced-motion, keyboard nav, performance)
 
 ---
 

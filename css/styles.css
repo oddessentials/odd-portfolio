@@ -114,9 +114,21 @@ img {
   max-width: 100%;
 }
 
-/* Body scroll lock when nav overlay is active */
+/* Enable scrolling after reveal completes */
+body.scroll-enabled {
+  overflow-y: auto;
+}
+
+/* Body scroll lock when nav overlay is active — must override scroll-enabled */
 body.nav-overlay-active {
   overflow: hidden;
+}
+
+/* Scroll-driver spacer (behind fixed #app-shell) */
+#scroll-driver {
+  position: relative;
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* Mobile nav backdrop */
@@ -182,7 +194,9 @@ body.nav-overlay-active .nav-backdrop {
   height: 100vh;
   overflow: hidden;
   background: var(--color-frame-bg);
-  position: relative;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
 }
 
 /* ------------------------------------------------------------
@@ -925,10 +939,15 @@ body.nav-overlay-active .nav-backdrop {
 }
 
 #star-labels {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: var(--z-star-labels);
   pointer-events: none;
+  overflow: visible;
+}
+
+#star-labels .star-label {
+  pointer-events: auto;
 }
 
 .star-label {

@@ -147,27 +147,30 @@ export const PROJECTS = [
 
 export const CONSTELLATION_ZONES = [
   {
-    name: 'Arcane Tools',
-    scrollStart: 0.25,
-    scrollEnd: 0.50,
+    name: 'Developer Tools',
+    scrollStart: 0.0,
+    scrollEnd: 0.33,
     projectIds: ['odd-ai-reviewers', 'repo-standards', 'odd-self-hosted-ci'],
     nebulaHue: 'blue-violet',
-    statusText: 'scanning arcane tools constellation...'
+    nebulaHueRgb: [0.42, 0.25, 0.63],
+    statusText: 'Browsing developer tools...'
   },
   {
-    name: 'Intelligence Matrix',
-    scrollStart: 0.50,
-    scrollEnd: 0.75,
+    name: 'Data & Analytics',
+    scrollStart: 0.33,
+    scrollEnd: 0.66,
     projectIds: ['ado-git-repo-insights', 'odd-fintech'],
     nebulaHue: 'warm-gold',
-    statusText: 'interfacing with intelligence matrix...'
+    nebulaHueRgb: [0.72, 0.53, 0.04],
+    statusText: 'Viewing data & analytics...'
   },
   {
-    name: 'Outpost Network',
-    scrollStart: 0.75,
-    scrollEnd: 0.90,
+    name: 'Web & Client',
+    scrollStart: 0.66,
+    scrollEnd: 1.0,
     projectIds: ['odd-map', 'coney-island'],
     nebulaHue: 'green-teal',
-    statusText: 'triangulating outpost network...'
+    nebulaHueRgb: [0.10, 0.62, 0.56],
+    statusText: 'Exploring web & client projects...'
   }
 ];
