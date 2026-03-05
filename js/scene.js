@@ -365,14 +365,17 @@ function initScene() {
   nebulaGroup = new THREE.Group();
   orbGroup.add(nebulaGroup);
 
-  // Nebula vertex shader — replicates PointsMaterial behavior
+  // Nebula vertex shader — replicates PointsMaterial sizeAttenuation behavior
+  // Three.js formula: gl_PointSize = size * ( scale / -mvPosition.z )
+  // where scale = rendererHeight * pixelRatio * 0.5
   const nebulaVertexShader = /* glsl */`
     uniform float size;
+    uniform float scale;
     varying vec3 vColor;
     void main() {
       vColor = color;
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_PointSize = min(size * (300.0 / -mvPosition.z), 200.0);
+      gl_PointSize = min(size * (scale / -mvPosition.z), 200.0);
       gl_Position = projectionMatrix * mvPosition;
     }
   `;
@@ -450,13 +453,17 @@ function initScene() {
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
+    // scale matches Three.js PointsMaterial sizeAttenuation: height * dpr * 0.5
+    const nebulaScale = window.innerHeight * dpr * 0.5;
+
     const mat = new THREE.ShaderMaterial({
       vertexColors: true,
       transparent: true,
       blending: cfg.blend,
       depthWrite: false,
       uniforms: {
-        size: { value: cfg.size * 1000 },
+        size: { value: cfg.size },
+        scale: { value: nebulaScale },
         uZoneColor: { value: new THREE.Color(0, 0, 0) },
         uZoneInfluence: { value: 0.0 },
         uOpacity: { value: 0.8 }
@@ -626,8 +633,12 @@ function initScene() {
       sprite.position.x = sprite.userData.basePosition[0] * xScale;
       sprite.position.y = sprite.userData.basePosition[1] * yScale;
     });
-    // Nebula x-scaling only (intentional asymmetry)
-    nebulaLayers.forEach(layer => { layer.scale.x = xScale; });
+    // Nebula x-scaling only (intentional asymmetry) + update shader scale uniform
+    const newScale = h * newDpr * 0.5;
+    nebulaLayers.forEach(layer => {
+      layer.scale.x = xScale;
+      layer.material.uniforms.scale.value = newScale;
+    });
 
     // Logo state on resize (US1): return home if following, clear stale styles if not
     if (logoFollowing) {
