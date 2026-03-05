@@ -6,7 +6,7 @@ import { PROJECTS, CONSTELLATION_ZONES } from './data.js';
 // Module-level references (exported at bottom)
 // ---------------------------------------------------------------------------
 let scene, camera, renderer, orbGroup, starNodes, nebulaLayers;
-let starGroup, dustMotes;
+let starGroup, dustMotes, nebulaGroup;
 const raycaster = new THREE.Raycaster();
 raycaster.params.Sprite = { threshold: 0.15 };
 const mouse = new THREE.Vector2(-9999, -9999);
@@ -14,6 +14,7 @@ let hoveredStar = null;
 let labelContainer = null;
 let isMobile = false;
 let xScale = 1.0;
+let yScale = 1.0;
 const designAspect = 16 / 9;
 
 // Logo follow references
@@ -22,6 +23,7 @@ let logoQuickToX = null;
 let logoQuickToY = null;
 let logoQuickToRot = null;
 let logoFollowing = false;
+let logoReturning = false;
 let logoPrevX = 0;
 let logoPrevY = 0;
 
@@ -112,6 +114,9 @@ function project3DtoScreen(position3D, cam, domElement) {
 // ---------------------------------------------------------------------------
 // Star label management
 // ---------------------------------------------------------------------------
+// Stars with x < -1.5 get left-anchored labels (label appears to right of star)
+const LEFT_ANCHOR_STARS = ['odd-fintech', 'ado-git-repo-insights'];
+
 function showStarLabel(starSprite) {
   if (!labelContainer) return;
   const project = starSprite.userData.project;
@@ -121,6 +126,10 @@ function showStarLabel(starSprite) {
     label.className = 'star-label';
     label.setAttribute('data-star-label', project.id);
     label.textContent = project.name;
+    // Static anchor override for edge-positioned stars (US3)
+    if (LEFT_ANCHOR_STARS.includes(project.id)) {
+      label.style.transform = 'translateX(0)';
+    }
     labelContainer.appendChild(label);
   }
   const worldPos = new THREE.Vector3();
@@ -145,7 +154,9 @@ function hideStarLabel(starSprite) {
 // Logo follow-cursor setup (T009, T010)
 // ---------------------------------------------------------------------------
 function logoReturnHome(gsap) {
+  if (!logoFollowing) return;           // Guard: prevent double-fire
   logoFollowing = false;
+  logoReturning = true;                 // Block mousemove re-engagement during return
   const headerBand = document.querySelector('.frame__header-band');
   if (headerBand) {
     const homeRect = headerBand.getBoundingClientRect();
@@ -156,6 +167,7 @@ function logoReturnHome(gsap) {
       duration: 0.4,
       ease: 'power2.inOut',
       onComplete: () => {
+        logoReturning = false;          // Return complete — allow re-engagement
         logoEl.classList.remove('logo--following');
         logoEl.style.left = '';
         logoEl.style.top = '';
@@ -163,6 +175,7 @@ function logoReturnHome(gsap) {
       }
     });
   } else {
+    logoReturning = false;
     logoEl.classList.remove('logo--following');
     logoEl.style.left = '';
     logoEl.style.top = '';
@@ -209,6 +222,7 @@ function initLogoFollow() {
   // Shared engage helper — used by mouseenter and mousemove fallback
   function engageLogo(cx, cy) {
     gsap.killTweensOf(logoEl);
+    logoReturning = false;              // Cancel any in-progress return
     logoFollowing = true;
     logoPrevX = cx;
     logoPrevY = cy;
@@ -225,6 +239,7 @@ function initLogoFollow() {
     logoQuickToRot = gsap.quickTo(logoEl, 'rotation', { duration: 0.25, ease: 'power2.out' });
 
     hitzone.addEventListener('mouseenter', (e) => {
+      if (logoReturning) return;          // Don't re-engage during return animation
       engageLogo(e.clientX, e.clientY);
     });
 
@@ -232,6 +247,7 @@ function initLogoFollow() {
       // Fallback re-engagement: mouseenter may not fire reliably
       // after mouse exits and re-enters the browser viewport.
       if (!logoFollowing) {
+        if (logoReturning) return;      // Don't re-engage during return animation
         engageLogo(e.clientX, e.clientY);
         return;
       }
@@ -242,6 +258,13 @@ function initLogoFollow() {
     });
 
     hitzone.addEventListener('mouseleave', () => {
+      if (!logoFollowing) return;
+      hitzone.style.cursor = 'crosshair';
+      logoReturnHome(gsap);
+    });
+
+    // Document-level viewport exit detection (US1 FR-005)
+    document.addEventListener('mouseleave', () => {
       if (!logoFollowing) return;
       hitzone.style.cursor = 'crosshair';
       logoReturnHome(gsap);
@@ -344,8 +367,41 @@ function initScene() {
 
   // -----------------------------------------------------------------------
   // Nebula System — 3 layered Points clouds (T002: viewport-distributed)
+  // Custom ShaderMaterial with zone color overlay uniforms (US2)
   // -----------------------------------------------------------------------
   nebulaLayers = [];
+  nebulaGroup = new THREE.Group();
+  orbGroup.add(nebulaGroup);
+
+  // Nebula vertex shader — replicates PointsMaterial sizeAttenuation behavior
+  // Three.js formula: gl_PointSize = size * ( scale / -mvPosition.z )
+  // where scale = rendererHeight * pixelRatio * 0.5
+  const nebulaVertexShader = /* glsl */`
+    uniform float size;
+    uniform float scale;
+    varying vec3 vColor;
+    void main() {
+      vColor = color;
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = min(size * (scale / -mvPosition.z), 200.0);
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `;
+
+  // Nebula fragment shader — zone color additive overlay
+  const nebulaFragmentShader = /* glsl */`
+    uniform vec3 uZoneColor;
+    uniform float uZoneInfluence;
+    uniform float uOpacity;
+    varying vec3 vColor;
+    void main() {
+      float dist = length(gl_PointCoord - vec2(0.5));
+      if (dist > 0.5) discard;
+      float alpha = smoothstep(0.5, 0.1, dist) * uOpacity;
+      vec3 finalColor = mix(vColor, vColor + uZoneColor * 0.3, uZoneInfluence);
+      gl_FragColor = vec4(finalColor, alpha);
+    }
+  `;
 
   // T015: reduced counts on mobile
   const mobileFactor = isMobile ? 0.5 : 1;
@@ -405,18 +461,27 @@ function initScene() {
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    const mat = new THREE.PointsMaterial({
-      size: cfg.size,
-      sizeAttenuation: true,
+    // scale matches Three.js PointsMaterial sizeAttenuation: height * dpr * 0.5
+    const nebulaScale = window.innerHeight * dpr * 0.5;
+
+    const mat = new THREE.ShaderMaterial({
       vertexColors: true,
-      blending: cfg.blend,
       transparent: true,
+      blending: cfg.blend,
       depthWrite: false,
-      opacity: 0.8
+      uniforms: {
+        size: { value: cfg.size },
+        scale: { value: nebulaScale },
+        uZoneColor: { value: new THREE.Color(0, 0, 0) },
+        uZoneInfluence: { value: 0.0 },
+        uOpacity: { value: 0.8 }
+      },
+      vertexShader: nebulaVertexShader,
+      fragmentShader: nebulaFragmentShader
     });
 
     const points = new THREE.Points(geo, mat);
-    orbGroup.add(points);
+    nebulaGroup.add(points);
     nebulaLayers.push(points);
   });
 
@@ -570,11 +635,38 @@ function initScene() {
     // Responsive star scaling (T003)
     const currentAspect = w / h;
     xScale = Math.min(1, currentAspect / designAspect);
+    // Y-axis scaling for portrait devices (US4)
+    yScale = Math.max(0.8, 1 - (1 - xScale) * 0.3);
     starNodes.forEach(sprite => {
       sprite.position.x = sprite.userData.basePosition[0] * xScale;
+      sprite.position.y = sprite.userData.basePosition[1] * yScale;
     });
-    // Nebula x-scaling (T004)
-    nebulaLayers.forEach(layer => { layer.scale.x = xScale; });
+    // Nebula x-scaling only (intentional asymmetry) + update shader scale uniform
+    const newScale = h * newDpr * 0.5;
+    nebulaLayers.forEach(layer => {
+      layer.scale.x = xScale;
+      layer.material.uniforms.scale.value = newScale;
+    });
+
+    // Logo state on resize: snap home instantly + refresh quickTo caches
+    if (logoEl) {
+      const g = window.gsap;
+      if (g) g.killTweensOf(logoEl);
+      logoFollowing = false;
+      logoReturning = false;
+      logoEl.classList.remove('logo--following');
+      logoEl.style.left = '';
+      logoEl.style.top = '';
+      if (g) g.set(logoEl, { clearProps: 'transform' });
+      // Recreate quickTo instances to purge stale internal start-value caches
+      if (g && logoQuickToX) {
+        logoQuickToX = g.quickTo(logoEl, 'left', { duration: 0.3, ease: 'power2.out' });
+        logoQuickToY = g.quickTo(logoEl, 'top', { duration: 0.3, ease: 'power2.out' });
+        logoQuickToRot = g.quickTo(logoEl, 'rotation', { duration: 0.25, ease: 'power2.out' });
+      }
+      const hz = document.getElementById('orb-hitzone');
+      if (hz) hz.style.cursor = 'crosshair';
+    }
   }
   window.addEventListener('resize', onResize);
 
@@ -750,4 +842,4 @@ function handleStarExit(sprite) {
 // ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
-export { initScene, scene, camera, renderer, orbGroup, starNodes, nebulaLayers, isMobile };
+export { initScene, scene, camera, renderer, orbGroup, starNodes, nebulaLayers, nebulaGroup, isMobile };

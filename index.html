@@ -151,7 +151,6 @@
 
     <!-- Main viewport (center) -->
     <main id="main-viewport">
-      <div id="star-labels"></div>
       <div id="orb-hitzone" role="application" aria-label="Interactive portfolio viewer. Use the project navigation to explore projects." tabindex="0">
       </div>
       <img id="orb-fallback" src="assets/logo.svg" alt="OddEssentials portfolio projects" class="orb-fallback" style="max-width:300px;margin:auto;display:block;opacity:0.6;filter:sepia(0.3) brightness(0.8);padding-top:15vh;">
@@ -220,6 +219,9 @@
     <p id="project-hint" class="sr-only">Activate a project to open its detail panel. Press Escape to close.</p>
 
   </div><!-- /#app-shell -->
+
+  <div id="star-labels"></div>
+  <div id="scroll-driver" aria-hidden="true" role="presentation" tabindex="-1"></div>
 
   <script type="module" src="js/app.js"></script>
 </body>

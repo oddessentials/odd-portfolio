@@ -3,7 +3,7 @@ import { initScene, scene, camera, renderer } from './scene.js';
 import { initInteractions } from './interactions.js';
 import {
   playRevealSequence,
-  initScrollInteractions,
+  initScrollZones,
   handleReducedMotion,
   initSkipIntro,
   handleScrollDuringReveal,
@@ -26,6 +26,13 @@ if (sceneReady) {
   const pp = initPostProcessing(scene, camera, renderer);
   ensureBurstPool(scene);
 
+  // Wire scroll zones to fire after reveal completes (FR-012)
+  // MUST be registered BEFORE handleReducedMotion() — it dispatches
+  // reveal-complete synchronously, so the listener must already exist.
+  document.addEventListener('reveal-complete', () => {
+    initScrollZones();
+  }, { once: true });
+
   // Check reduced motion first — if active, skip all animations
   const isReduced = handleReducedMotion();
 
@@ -37,8 +44,6 @@ if (sceneReady) {
       initSkipIntro(masterTl);
       handleScrollDuringReveal(masterTl);
     }
-
-    initScrollInteractions();
   }
 
   // Auto-tier performance degradation (benchmarks 5s after reveal) — desktop only
