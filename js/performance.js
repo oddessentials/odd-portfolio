@@ -25,7 +25,8 @@ function getCurrentTier() {
 const VignetteShader = {
   uniforms: {
     tDiffuse: { value: null },
-    aberrationEnabled: { value: 1.0 }
+    aberrationEnabled: { value: 1.0 },
+    uResolution: { value: new THREE.Vector2(1, 1) }
   },
   vertexShader: /* glsl */`
     varying vec2 vUv;
@@ -37,10 +38,11 @@ const VignetteShader = {
   fragmentShader: /* glsl */`
     uniform sampler2D tDiffuse;
     uniform float aberrationEnabled;
+    uniform vec2 uResolution;
     varying vec2 vUv;
     void main() {
-      // Subtle uniform chromatic aberration (not orb-edge based)
-      float aberration = 0.0015 * aberrationEnabled;
+      // Fixed 1.5-pixel chromatic aberration regardless of resolution
+      float aberration = aberrationEnabled * 1.5 / uResolution.x;
       float r = texture2D(tDiffuse, vUv + vec2(aberration, 0.0)).r;
       float g = texture2D(tDiffuse, vUv).g;
       float b = texture2D(tDiffuse, vUv - vec2(aberration, 0.0)).b;
@@ -81,6 +83,8 @@ function initPostProcessing(sceneRef, cameraRef, rendererRef) {
 
   // Pass 3: Uniform vignette (replaces orb-edge chromatic aberration)
   customPass = new ShaderPass(VignetteShader);
+  const dpr = rendererRef.getPixelRatio();
+  customPass.uniforms.uResolution.value.set(w * dpr, h * dpr);
   composer.addPass(customPass);
 
   // Pass 4: OutputPass (tone mapping + color space)
@@ -92,15 +96,16 @@ function initPostProcessing(sceneRef, cameraRef, rendererRef) {
   rendererRef._composerActive = true;
   rendererRef._originalRender = rendererRef.render.bind(rendererRef);
 
-  // Handle resize — update composer and bloom resolution (full window dims)
+  // Handle resize — sync DPR, update composer + aberration resolution
   const onResize = () => {
     const rw = window.innerWidth;
     const rh = window.innerHeight;
+    const newDpr = rendererRef.getPixelRatio();
+    composer.setPixelRatio(newDpr);
     composer.setSize(rw, rh);
-    bloomPass.resolution.set(
-      Math.floor(rw * 0.75),
-      Math.floor(rh * 0.75)
-    );
+    if (customPass) {
+      customPass.uniforms.uResolution.value.set(rw * newDpr, rh * newDpr);
+    }
   };
   window.addEventListener('resize', onResize);
 
