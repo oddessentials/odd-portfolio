@@ -178,8 +178,8 @@ function updatePositions() {
       const texW = leftTexture ? leftTexture.image.width : rect.width;
       const texH = leftTexture ? leftTexture.image.height : rect.height;
       leftPlane.visible = true;
-      leftPlane.position.x = rect.left + rect.width / 2;
-      leftPlane.position.y = h - (rect.top + texH * 0.9 / 2);
+      leftPlane.position.x = rect.left + rect.width / 2 + rect.width * 0.25;
+      leftPlane.position.y = h - (rect.top + texH * 0.9 / 2 + rect.height * 0.05);
       leftPlane.scale.set(texW * 0.9, texH * 0.9, 1);
       leftMaterial.uniforms.uResolution.value.set(texW * 0.9, texH * 0.9);
     } else {
@@ -192,8 +192,8 @@ function updatePositions() {
       const texW = rightTexture ? rightTexture.image.width : rect.width;
       const texH = rightTexture ? rightTexture.image.height : rect.height;
       rightPlane.visible = true;
-      rightPlane.position.x = rect.left + rect.width / 2;
-      rightPlane.position.y = h - (rect.top + texH * 0.9 / 2);
+      rightPlane.position.x = rect.left + rect.width / 2 - rect.width * 0.25;
+      rightPlane.position.y = h - (rect.top + texH * 0.9 / 2 + rect.height * 0.05);
       rightPlane.scale.set(texW * 0.9, texH * 0.9, 1);
       rightMaterial.uniforms.uResolution.value.set(texW * 0.9, texH * 0.9);
     } else {
