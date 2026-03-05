@@ -535,13 +535,13 @@ body.nav-overlay-active .nav-backdrop {
 }
 
 .frame__gauge--left {
-  left: calc(var(--frame-border-width) / 2 - var(--frame-gauge-size) / 2);
+  left: calc(var(--frame-border-width) - var(--frame-gauge-size) / 2);
   top: 50%;
   transform: translateY(-50%);
 }
 
 .frame__gauge--right {
-  right: calc(var(--frame-border-width) / 2 - var(--frame-gauge-size) / 2);
+  right: calc(var(--frame-border-width) - var(--frame-gauge-size) / 2);
   top: 50%;
   transform: translateY(-50%);
 }
