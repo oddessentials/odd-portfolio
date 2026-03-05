@@ -1416,9 +1416,10 @@ body.nav-overlay-active .nav-backdrop {
    15. MEDIA QUERIES — Accessibility
    ------------------------------------------------------------ */
 
-/* CSS Containment (T022) */
+/* CSS Containment (T022) — no `paint` on .frame: it creates a containing
+   block for position:fixed (traps logo z-index below sidebars) */
 .frame {
-  contain: layout style paint;
+  contain: layout style;
 }
 #command-line {
   contain: layout style;

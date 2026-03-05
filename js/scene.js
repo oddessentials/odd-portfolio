@@ -23,6 +23,7 @@ let logoQuickToX = null;
 let logoQuickToY = null;
 let logoQuickToRot = null;
 let logoFollowing = false;
+let logoReturning = false;
 let logoPrevX = 0;
 let logoPrevY = 0;
 
@@ -153,7 +154,9 @@ function hideStarLabel(starSprite) {
 // Logo follow-cursor setup (T009, T010)
 // ---------------------------------------------------------------------------
 function logoReturnHome(gsap) {
+  if (!logoFollowing) return;           // Guard: prevent double-fire
   logoFollowing = false;
+  logoReturning = true;                 // Block mousemove re-engagement during return
   const headerBand = document.querySelector('.frame__header-band');
   if (headerBand) {
     const homeRect = headerBand.getBoundingClientRect();
@@ -164,6 +167,7 @@ function logoReturnHome(gsap) {
       duration: 0.4,
       ease: 'power2.inOut',
       onComplete: () => {
+        logoReturning = false;          // Return complete — allow re-engagement
         logoEl.classList.remove('logo--following');
         logoEl.style.left = '';
         logoEl.style.top = '';
@@ -171,6 +175,7 @@ function logoReturnHome(gsap) {
       }
     });
   } else {
+    logoReturning = false;
     logoEl.classList.remove('logo--following');
     logoEl.style.left = '';
     logoEl.style.top = '';
@@ -217,6 +222,7 @@ function initLogoFollow() {
   // Shared engage helper — used by mouseenter and mousemove fallback
   function engageLogo(cx, cy) {
     gsap.killTweensOf(logoEl);
+    logoReturning = false;              // Cancel any in-progress return
     logoFollowing = true;
     logoPrevX = cx;
     logoPrevY = cy;
@@ -233,6 +239,7 @@ function initLogoFollow() {
     logoQuickToRot = gsap.quickTo(logoEl, 'rotation', { duration: 0.25, ease: 'power2.out' });
 
     hitzone.addEventListener('mouseenter', (e) => {
+      if (logoReturning) return;          // Don't re-engage during return animation
       engageLogo(e.clientX, e.clientY);
     });
 
@@ -240,6 +247,7 @@ function initLogoFollow() {
       // Fallback re-engagement: mouseenter may not fire reliably
       // after mouse exits and re-enters the browser viewport.
       if (!logoFollowing) {
+        if (logoReturning) return;      // Don't re-engage during return animation
         engageLogo(e.clientX, e.clientY);
         return;
       }
@@ -640,13 +648,24 @@ function initScene() {
       layer.material.uniforms.scale.value = newScale;
     });
 
-    // Logo state on resize (US1): return home if following, clear stale styles if not
-    if (logoFollowing) {
-      logoReturnHome(window.gsap);
-    } else if (logoEl) {
+    // Logo state on resize: snap home instantly + refresh quickTo caches
+    if (logoEl) {
+      const g = window.gsap;
+      if (g) g.killTweensOf(logoEl);
+      logoFollowing = false;
+      logoReturning = false;
+      logoEl.classList.remove('logo--following');
       logoEl.style.left = '';
       logoEl.style.top = '';
-      if (window.gsap) window.gsap.set(logoEl, { clearProps: 'transform' });
+      if (g) g.set(logoEl, { clearProps: 'transform' });
+      // Recreate quickTo instances to purge stale internal start-value caches
+      if (g && logoQuickToX) {
+        logoQuickToX = g.quickTo(logoEl, 'left', { duration: 0.3, ease: 'power2.out' });
+        logoQuickToY = g.quickTo(logoEl, 'top', { duration: 0.3, ease: 'power2.out' });
+        logoQuickToRot = g.quickTo(logoEl, 'rotation', { duration: 0.25, ease: 'power2.out' });
+      }
+      const hz = document.getElementById('orb-hitzone');
+      if (hz) hz.style.cursor = 'crosshair';
     }
   }
   window.addEventListener('resize', onResize);
