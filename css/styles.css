@@ -40,7 +40,8 @@
   --frame-border-width: 18px;
   --frame-bracket-ratio: 2.5;
   --frame-corner-size: calc(var(--frame-border-width) * var(--frame-bracket-ratio));
-  --frame-gauge-size: calc(var(--frame-border-width) * 2.25);
+  --frame-gauge-size-left: calc(var(--frame-border-width) * 2.8);
+  --frame-gauge-size-right: calc(var(--frame-border-width) * 2.0);
   --hud-panel-width: 220px;
   --cmd-line-height: 48px;
 
@@ -472,8 +473,6 @@ body.nav-overlay-active .nav-backdrop {
 /* --- 6.3 Gauges — circular dials --- */
 .frame__gauge {
   position: absolute;
-  width: var(--frame-gauge-size);
-  height: var(--frame-gauge-size);
   border-radius: 50%;
   background:
     radial-gradient(circle at 50% 50%, var(--color-iron) 45%, var(--color-brass-dark) 46%, var(--color-brass-mid) 52%, var(--color-brass-light) 54%, var(--color-brass-mid) 56%, var(--color-brass-dark) 58%, transparent 59%);
@@ -487,7 +486,7 @@ body.nav-overlay-active .nav-backdrop {
 .frame__gauge::before {
   content: '';
   position: absolute;
-  inset: 8px;
+  inset: 18%;
   border-radius: 50%;
   background:
     conic-gradient(
@@ -526,7 +525,7 @@ body.nav-overlay-active .nav-backdrop {
   top: 50%;
   left: 50%;
   width: 3px;
-  height: 14px;
+  height: 35%;
   background: linear-gradient(to top, var(--color-brass-light), #ff6b35);
   transform-origin: bottom center;
   transform: translate(-50%, -100%) rotate(var(--needle-angle));
@@ -535,14 +534,18 @@ body.nav-overlay-active .nav-backdrop {
 }
 
 .frame__gauge--left {
-  left: calc(var(--frame-border-width) - var(--frame-gauge-size) / 2);
-  top: 50%;
+  width: var(--frame-gauge-size-left);
+  height: var(--frame-gauge-size-left);
+  left: calc(var(--frame-border-width) - var(--frame-gauge-size-left) / 2 + 4px);
+  top: 35%;
   transform: translateY(-50%);
 }
 
 .frame__gauge--right {
-  right: calc(var(--frame-border-width) - var(--frame-gauge-size) / 2);
-  top: 50%;
+  width: var(--frame-gauge-size-right);
+  height: var(--frame-gauge-size-right);
+  right: calc(var(--frame-border-width) - var(--frame-gauge-size-right) / 2);
+  top: 60%;
   transform: translateY(-50%);
 }
 
@@ -1329,7 +1332,7 @@ body.nav-overlay-active .nav-backdrop {
   :root {
     --hud-panel-width: 160px;
     --frame-border-width: 12px;
-    /* --frame-corner-size and --frame-gauge-size auto-cascade from calc() */
+    /* --frame-corner-size, --frame-gauge-size-left/right auto-cascade from calc() */
   }
 
   /* Greek key: --gk-height and box-shadow auto-cascade from --frame-border-width */
@@ -1341,7 +1344,7 @@ body.nav-overlay-active .nav-backdrop {
     height: 8px;
   }
 
-  /* Gauge size + position auto-cascade from --frame-gauge-size calc */
+  /* Gauge size + position auto-cascade from --frame-gauge-size-left/right calc */
 }
 
 /* T012, T013: Mobile (max-width: 767px) — full-bleed, hamburger, sidebars hidden */

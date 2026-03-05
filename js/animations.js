@@ -182,9 +182,9 @@ function playRevealSequence() {
 
   // Phase 2 (1600-3800ms): Console powers up
   tl.fromTo('.frame__gauge--left', {
-    '--needle-angle': '-135deg'
+    '--needle-angle': '135deg'
   }, {
-    '--needle-angle': '-30deg',
+    '--needle-angle': '30deg',
     duration: 0.8,
     ease: 'elastic.out(1, 0.4)'
   }, 1.6);

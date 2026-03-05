@@ -28,12 +28,12 @@ let getCurrentTier = null;
 let gaugeLeft = null;
 let gaugeRight = null;
 
-// Needle angle stops per zone (clockwise sweep across 3 zones)
+// Needle angle stops per zone (left sweeps CCW, right sweeps CW)
 const NEEDLE_ANGLES = {
-  rest:  { left: '-30deg',  right: '15deg' },
-  0:     { left: '10deg',   right: '55deg' },
-  1:     { left: '50deg',   right: '95deg' },
-  2:     { left: '90deg',   right: '135deg' }
+  rest:  { left: '30deg',   right: '15deg' },
+  0:     { left: '-10deg',  right: '55deg' },
+  1:     { left: '-50deg',  right: '95deg' },
+  2:     { left: '-90deg',  right: '135deg' }
 };
 
 // ---------------------------------------------------------------------------
