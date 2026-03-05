@@ -36,12 +36,14 @@ function playRevealSequence() {
   const navLabel = document.querySelector('#constellation-nav .hud-label');
   const statusLabel = document.querySelector('#status-panel .hud-label');
 
-  // Frame elements — hidden and displaced
+  // Frame elements — hidden and displaced (offset scales with corner size)
+  const cornerOffset = parseFloat(getComputedStyle(document.documentElement)
+    .getPropertyValue('--frame-corner-size')) * 0.75 || 34;
   gsap.set(corners, { opacity: 0 });
-  gsap.set('.frame__corner--tl', { x: -60, y: -60 });
-  gsap.set('.frame__corner--tr', { x: 60, y: -60 });
-  gsap.set('.frame__corner--bl', { x: -60, y: 60 });
-  gsap.set('.frame__corner--br', { x: 60, y: 60 });
+  gsap.set('.frame__corner--tl', { x: -cornerOffset, y: -cornerOffset });
+  gsap.set('.frame__corner--tr', { x: cornerOffset, y: -cornerOffset });
+  gsap.set('.frame__corner--bl', { x: -cornerOffset, y: cornerOffset });
+  gsap.set('.frame__corner--br', { x: cornerOffset, y: cornerOffset });
   gsap.set('.frame__edge--top, .frame__edge--bottom', { scaleX: 0 });
   gsap.set('.frame__edge--left, .frame__edge--right', { scaleY: 0 });
   gsap.set(gauges, { scale: 0, opacity: 0 });

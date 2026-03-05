@@ -19,9 +19,9 @@
 
 **Purpose**: Update design tokens and add new custom properties that all stories depend on.
 
-- [ ] T001 Add `--frame-bracket-ratio: 2.5` and `--frame-gauge-size: calc(var(--frame-border-width) * 2.25)` custom properties to `:root` in css/styles.css (line ~39)
-- [ ] T002 Change `--frame-corner-size` from `80px` to `calc(var(--frame-border-width) * var(--frame-bracket-ratio))` in `:root` in css/styles.css (line ~41)
-- [ ] T003 Add CSS comment documenting that `.frame`'s `contain: layout style` (without `paint`) is required for gauge negative positioning — if `paint` is ever added, gauges will be clipped — in css/styles.css (line ~1448)
+- [x] T001 Add `--frame-bracket-ratio: 2.5` and `--frame-gauge-size: calc(var(--frame-border-width) * 2.25)` custom properties to `:root` in css/styles.css (line ~39)
+- [x] T002 Change `--frame-corner-size` from `80px` to `calc(var(--frame-border-width) * var(--frame-bracket-ratio))` in `:root` in css/styles.css (line ~41)
+- [x] T003 Add CSS comment documenting that `.frame`'s `contain: layout style` (without `paint`) is required for gauge negative positioning — if `paint` is ever added, gauges will be clipped — in css/styles.css (line ~1448)
 
 **Checkpoint**: Custom properties updated — corner and edge sizing cascades correctly.
 
@@ -33,9 +33,9 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 Remove shared `border-radius: 8px` from base `.frame__corner` rule in css/styles.css (line ~282) — clip-path makes it dead code
-- [ ] T005 Replace shared `.frame__corner` `radial-gradient` background with a simple opaque fallback gradient (linear-gradient with brass tones, no transparent stops) in css/styles.css (line ~280-281)
-- [ ] T006 Reduce shared corner `box-shadow` outer glow from `0 0 20px` spread to `0 0 8px` to minimize hard clip-path edge artifacts in css/styles.css (line ~316-320)
+- [x] T004 Remove shared `border-radius: 8px` from base `.frame__corner` rule in css/styles.css (line ~282) — clip-path makes it dead code
+- [x] T005 Replace shared `.frame__corner` `radial-gradient` background with a simple opaque fallback gradient (linear-gradient with brass tones, no transparent stops) in css/styles.css (line ~280-281)
+- [x] T006 Reduce shared corner `box-shadow` outer glow from `0 0 20px` spread to `0 0 8px` to minimize hard clip-path edge artifacts in css/styles.css (line ~316-320)
 
 **Checkpoint**: Foundation ready — all corners have opaque backgrounds and reduced shadows.
 
@@ -49,15 +49,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Add `clip-path: polygon()` and `-webkit-clip-path: polygon()` to `.frame__corner--tl` creating the TL L-bracket shape in css/styles.css (line ~322-330)
-- [ ] T008 [P] [US1] Add `clip-path: polygon()` and `-webkit-clip-path: polygon()` to `.frame__corner--tr` creating the TR L-bracket shape (mirrored X) in css/styles.css (line ~332-340)
-- [ ] T009 [P] [US1] Add `clip-path: polygon()` and `-webkit-clip-path: polygon()` to `.frame__corner--bl` creating the BL L-bracket shape (mirrored Y) in css/styles.css (line ~342-350)
-- [ ] T010 [P] [US1] Add `clip-path: polygon()` and `-webkit-clip-path: polygon()` to `.frame__corner--br` creating the BR L-bracket shape (mirrored XY) in css/styles.css (line ~352-360)
-- [ ] T011 [US1] Replace per-corner `radial-gradient` + `linear-gradient` backgrounds with opaque 3-stop linear-gradients (dark edge, highlight band, dark edge) matching adjoining edge rail profiles — update all four `--tl/--tr/--bl/--br` rules in css/styles.css (lines ~326-360)
-- [ ] T012 [US1] Remove dead `border-bottom-right-radius`, `border-bottom-left-radius`, `border-top-right-radius`, `border-top-left-radius` declarations from all four corner variants in css/styles.css (lines ~325, 335, 345, 355)
-- [ ] T013 [US1] Add 1px interior bevel — `box-shadow: inset` with dark offset on inner elbow edges of each corner variant (FR-014) in css/styles.css (lines ~322-360)
-- [ ] T014 [US1] Reposition rivet `::before` from `top:10px; left:10px` to horizontal arm center and `::after` from `bottom:10px; right:10px` to vertical arm center — update shared rivet positions in css/styles.css (lines ~300-308)
-- [ ] T015 [US1] Reduce rivet size from `12px` to `10px` to fit proportionally on 18px-wide bracket arms in css/styles.css (lines ~290-291)
+- [x] T007 [US1] Add `clip-path: polygon()` and `-webkit-clip-path: polygon()` to `.frame__corner--tl` creating the TL L-bracket shape in css/styles.css (line ~322-330)
+- [x] T008 [P] [US1] Add `clip-path: polygon()` and `-webkit-clip-path: polygon()` to `.frame__corner--tr` creating the TR L-bracket shape (mirrored X) in css/styles.css (line ~332-340)
+- [x] T009 [P] [US1] Add `clip-path: polygon()` and `-webkit-clip-path: polygon()` to `.frame__corner--bl` creating the BL L-bracket shape (mirrored Y) in css/styles.css (line ~342-350)
+- [x] T010 [P] [US1] Add `clip-path: polygon()` and `-webkit-clip-path: polygon()` to `.frame__corner--br` creating the BR L-bracket shape (mirrored XY) in css/styles.css (line ~352-360)
+- [x] T011 [US1] Replace per-corner `radial-gradient` + `linear-gradient` backgrounds with opaque 3-stop linear-gradients (dark edge, highlight band, dark edge) matching adjoining edge rail profiles — update all four `--tl/--tr/--bl/--br` rules in css/styles.css (lines ~326-360)
+- [x] T012 [US1] Remove dead `border-bottom-right-radius`, `border-bottom-left-radius`, `border-top-right-radius`, `border-top-left-radius` declarations from all four corner variants in css/styles.css (lines ~325, 335, 345, 355)
+- [x] T013 [US1] Add 1px interior bevel — `box-shadow: inset` with dark offset on inner elbow edges of each corner variant (FR-014) in css/styles.css (lines ~322-360)
+- [x] T014 [US1] Reposition rivet `::before` from `top:10px; left:10px` to horizontal arm center and `::after` from `bottom:10px; right:10px` to vertical arm center — update shared rivet positions in css/styles.css (lines ~300-308)
+- [x] T015 [US1] Reduce rivet size from `12px` to `10px` to fit proportionally on 18px-wide bracket arms in css/styles.css (lines ~290-291)
 
 **Checkpoint**: All four corners render as opaque L-brackets with rivets on arms and interior bevel. Visual test at desktop.
 
@@ -71,12 +71,12 @@
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Change `.frame__gauge` width and height from `64px` to `var(--frame-gauge-size)` in css/styles.css (line ~471-472) — auto-cascades at all breakpoints
-- [ ] T017 [US2] Update `.frame__gauge` background `radial-gradient` stop percentages to maintain the same ring proportions at the new diameter in css/styles.css (line ~474-476)
-- [ ] T018 [US2] Scale `.frame__gauge::before` (gauge face) inset from `12px` to `8px` and adjust `conic-gradient` tick marks for new diameter in css/styles.css (lines ~483-512)
-- [ ] T019 [US2] Scale `.frame__gauge::after` (needle) height from `20px` to `14px` minimum and widen base by 1px for tapered silhouette in css/styles.css (lines ~519-531)
-- [ ] T020 [US2] Reposition `.frame__gauge--left` from `left: 28px` to `left: calc(var(--frame-border-width) / 2 - var(--frame-gauge-size) / 2)` (centers on rail, auto-cascades) in css/styles.css (line ~533-534)
-- [ ] T021 [P] [US2] Reposition `.frame__gauge--right` from `right: 28px` to `right: calc(var(--frame-border-width) / 2 - var(--frame-gauge-size) / 2)` (centers on rail, auto-cascades) in css/styles.css (line ~539-540)
+- [x] T016 [US2] Change `.frame__gauge` width and height from `64px` to `var(--frame-gauge-size)` in css/styles.css (line ~471-472) — auto-cascades at all breakpoints
+- [x] T017 [US2] Update `.frame__gauge` background `radial-gradient` stop percentages to maintain the same ring proportions at the new diameter in css/styles.css (line ~474-476)
+- [x] T018 [US2] Scale `.frame__gauge::before` (gauge face) inset from `12px` to `8px` and adjust `conic-gradient` tick marks for new diameter in css/styles.css (lines ~483-512)
+- [x] T019 [US2] Scale `.frame__gauge::after` (needle) height from `20px` to `14px` minimum and widen base by 1px for tapered silhouette in css/styles.css (lines ~519-531)
+- [x] T020 [US2] Reposition `.frame__gauge--left` from `left: 28px` to `left: calc(var(--frame-border-width) / 2 - var(--frame-gauge-size) / 2)` (centers on rail, auto-cascades) in css/styles.css (line ~533-534)
+- [x] T021 [P] [US2] Reposition `.frame__gauge--right` from `right: 28px` to `right: calc(var(--frame-border-width) / 2 - var(--frame-gauge-size) / 2)` (centers on rail, auto-cascades) in css/styles.css (line ~539-540)
 
 **Checkpoint**: Both gauges centered on border rails. Needle animation plays correctly at new size.
 
@@ -90,9 +90,9 @@
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Verify edge rail `left`/`right`/`top`/`bottom` positioning uses `var(--frame-corner-size)` and automatically adjusts with the new value — inspect all four `.frame__edge--*` rules in css/styles.css (lines ~379-429)
-- [ ] T023 [US3] Verify `.frame__greek-key` `left`/`right` positioning uses `var(--frame-corner-size)` and automatically extends with new corner size in css/styles.css (lines ~563-564)
-- [ ] T024 [US3] Verify Greek key `background-size` tile alignment still works cleanly at the new wider band (no mid-tile clipping at edges) in css/styles.css (line ~574)
+- [x] T022 [US3] Verify edge rail `left`/`right`/`top`/`bottom` positioning uses `var(--frame-corner-size)` and automatically adjusts with the new value — inspect all four `.frame__edge--*` rules in css/styles.css (lines ~379-429)
+- [x] T023 [US3] Verify `.frame__greek-key` `left`/`right` positioning uses `var(--frame-corner-size)` and automatically extends with new corner size in css/styles.css (lines ~563-564)
+- [x] T024 [US3] Verify Greek key `background-size` tile alignment still works cleanly at the new wider band (no mid-tile clipping at edges) in css/styles.css (line ~574)
 
 **Checkpoint**: Edges extend seamlessly to new corners. Greek key band fills wider area correctly.
 
@@ -106,11 +106,11 @@
 
 ### Implementation for User Story 4
 
-- [ ] T025 [US4] Remove explicit `--frame-corner-size: 60px` override from tablet breakpoint — the `calc()` auto-resolves to `30px` when `--frame-border-width: 12px` in css/styles.css (line ~1295)
-- [ ] T026 [US4] Remove explicit `.frame__gauge` width/height override from tablet breakpoint — `var(--frame-gauge-size)` auto-resolves to `27px` when `--frame-border-width: 12px`. Remove gauge position overrides too (calc auto-cascades) in css/styles.css (lines ~1309-1320)
-- [ ] T027 [US4] Enforce minimum rivet size of `8px` at tablet breakpoint in css/styles.css (within tablet media query ~1292)
-- [ ] T028 [US4] Remove explicit `--frame-corner-size: 40px` override from mobile breakpoint — auto-resolves to `20px` when `--frame-border-width: 8px` in css/styles.css (line ~1327)
-- [ ] T029 [US4] Simplify mobile corners — remove clip-path at mobile breakpoint (8x20px arms are indistinguishable from simple stubs) in css/styles.css (within mobile media query ~1324)
+- [x] T025 [US4] Remove explicit `--frame-corner-size: 60px` override from tablet breakpoint — the `calc()` auto-resolves to `30px` when `--frame-border-width: 12px` in css/styles.css (line ~1295)
+- [x] T026 [US4] Remove explicit `.frame__gauge` width/height override from tablet breakpoint — `var(--frame-gauge-size)` auto-resolves to `27px` when `--frame-border-width: 12px`. Remove gauge position overrides too (calc auto-cascades) in css/styles.css (lines ~1309-1320)
+- [x] T027 [US4] Enforce minimum rivet size of `8px` at tablet breakpoint in css/styles.css (within tablet media query ~1292)
+- [x] T028 [US4] Remove explicit `--frame-corner-size: 40px` override from mobile breakpoint — auto-resolves to `20px` when `--frame-border-width: 8px` in css/styles.css (line ~1327)
+- [x] T029 [US4] Simplify mobile corners — remove clip-path at mobile breakpoint (8x20px arms are indistinguishable from simple stubs) in css/styles.css (within mobile media query ~1324)
 
 **Checkpoint**: Frame scales correctly at all three breakpoints.
 
@@ -120,10 +120,10 @@
 
 **Purpose**: Animation verification, cross-browser testing, cleanup.
 
-- [ ] T030 Update reveal animation fly-in offsets in js/animations.js (lines 41-44) — change hardcoded `60` to a computed value: `const offset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--frame-corner-size')) * 0.75` so offsets scale proportionally with corner size at any breakpoint
-- [ ] T031 Verify reveal animation in js/animations.js — confirm gauge `scale: 0 → 1` and `--needle-angle` elastic animation work at new gauge size. No changes expected.
-- [ ] T032 Cross-browser visual test: Chrome, Firefox, Safari — verify clip-path renders correctly on all four corners, gauge positioning clips cleanly at viewport edge.
-- [ ] T033 Run quickstart.md testing checklist — all 9 items pass. Include verification that `aria-hidden="true"` and `pointer-events: none` remain on `.frame` (FR-011).
+- [x] T030 Update reveal animation fly-in offsets in js/animations.js (lines 41-44) — change hardcoded `60` to a computed value: `const offset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--frame-corner-size')) * 0.75` so offsets scale proportionally with corner size at any breakpoint
+- [x] T031 Verify reveal animation in js/animations.js — confirm gauge `scale: 0 → 1` and `--needle-angle` elastic animation work at new gauge size. No changes expected.
+- [x] T032 Cross-browser visual test: Chrome, Firefox, Safari — verify clip-path renders correctly on all four corners, gauge positioning clips cleanly at viewport edge.
+- [x] T033 Run quickstart.md testing checklist — all 9 items pass. Include verification that `aria-hidden="true"` and `pointer-events: none` remain on `.frame` (FR-011).
 
 ---
 

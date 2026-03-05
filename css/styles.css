@@ -38,7 +38,9 @@
 
   /* Frame dimensions */
   --frame-border-width: 18px;
-  --frame-corner-size: 80px;
+  --frame-bracket-ratio: 2.5;
+  --frame-corner-size: calc(var(--frame-border-width) * var(--frame-bracket-ratio));
+  --frame-gauge-size: calc(var(--frame-border-width) * 2.25);
   --hud-panel-width: 220px;
   --cmd-line-height: 48px;
 
@@ -278,8 +280,7 @@ body.nav-overlay-active .nav-backdrop {
   width: var(--frame-corner-size);
   height: var(--frame-corner-size);
   background:
-    radial-gradient(circle at 50% 50%, var(--color-brass-light) 0%, var(--color-brass-mid) 40%, var(--color-brass-dark) 80%, transparent 81%);
-  border-radius: 8px;
+    linear-gradient(135deg, var(--color-brass-dark) 0%, var(--color-brass-mid) 15%, var(--color-brass-light) 50%, var(--color-brass-mid) 85%, var(--color-brass-dark) 100%);
 }
 
 /* Rivet pseudo-elements on corners */
@@ -287,8 +288,8 @@ body.nav-overlay-active .nav-backdrop {
 .frame__corner::after {
   content: '';
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #e8d090, var(--color-brass-light) 40%, var(--color-brass-mid) 70%, var(--color-brass-dark));
   box-shadow:
@@ -297,66 +298,69 @@ body.nav-overlay-active .nav-backdrop {
     0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
+/* Rivet on horizontal arm (centered vertically on arm width, offset along arm) */
 .frame__corner::before {
-  top: 10px;
-  left: 10px;
+  top: 4px;
+  left: 28px;
 }
 
+/* Rivet on vertical arm (centered horizontally on arm width, offset along arm) */
 .frame__corner::after {
-  bottom: 10px;
-  right: 10px;
+  top: 28px;
+  left: 4px;
 }
 
-/* Inner rivet ring on corners */
-.frame__corner--tl,
-.frame__corner--tr,
-.frame__corner--bl,
-.frame__corner--br {
-  box-shadow:
-    inset 0 0 12px rgba(200, 168, 75, 0.3),
-    inset 0 0 2px rgba(0, 0, 0, 0.8),
-    0 0 20px rgba(200, 168, 75, 0.15),
-    0 0 4px rgba(0, 0, 0, 0.9);
-}
 
 .frame__corner--tl {
   top: 0;
   left: 0;
-  border-bottom-right-radius: 20px;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(232, 208, 144, 0.6) 0%, transparent 30%),
-    radial-gradient(circle at 70% 70%, rgba(74, 53, 8, 0.8) 0%, transparent 40%),
-    linear-gradient(135deg, var(--color-brass-light) 0%, var(--color-brass-mid) 50%, var(--color-brass-dark) 100%);
+  background: linear-gradient(135deg, var(--color-brass-dark) 0%, var(--color-brass-mid) 15%, var(--color-brass-light) 50%, var(--color-brass-mid) 85%, var(--color-brass-dark) 100%);
+  -webkit-clip-path: polygon(0 0, 100% 0, 100% var(--frame-border-width), var(--frame-border-width) var(--frame-border-width), var(--frame-border-width) 100%, 0 100%);
+  clip-path: polygon(0 0, 100% 0, 100% var(--frame-border-width), var(--frame-border-width) var(--frame-border-width), var(--frame-border-width) 100%, 0 100%);
+  box-shadow:
+    inset -1px 0 0 rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 1px 0 0 rgba(200, 168, 75, 0.2),
+    inset 0 1px 0 rgba(200, 168, 75, 0.2);
 }
 
 .frame__corner--tr {
   top: 0;
   right: 0;
-  border-bottom-left-radius: 20px;
-  background:
-    radial-gradient(circle at 80% 20%, rgba(232, 208, 144, 0.6) 0%, transparent 30%),
-    radial-gradient(circle at 30% 70%, rgba(74, 53, 8, 0.8) 0%, transparent 40%),
-    linear-gradient(225deg, var(--color-brass-light) 0%, var(--color-brass-mid) 50%, var(--color-brass-dark) 100%);
+  background: linear-gradient(225deg, var(--color-brass-dark) 0%, var(--color-brass-mid) 15%, var(--color-brass-light) 50%, var(--color-brass-mid) 85%, var(--color-brass-dark) 100%);
+  -webkit-clip-path: polygon(0 0, 100% 0, 100% 100%, calc(100% - var(--frame-border-width)) 100%, calc(100% - var(--frame-border-width)) var(--frame-border-width), 0 var(--frame-border-width));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, calc(100% - var(--frame-border-width)) 100%, calc(100% - var(--frame-border-width)) var(--frame-border-width), 0 var(--frame-border-width));
+  box-shadow:
+    inset 1px 0 0 rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset -1px 0 0 rgba(200, 168, 75, 0.2),
+    inset 0 1px 0 rgba(200, 168, 75, 0.2);
 }
 
 .frame__corner--bl {
   bottom: 0;
   left: 0;
-  border-top-right-radius: 20px;
-  background:
-    radial-gradient(circle at 20% 80%, rgba(232, 208, 144, 0.6) 0%, transparent 30%),
-    radial-gradient(circle at 70% 30%, rgba(74, 53, 8, 0.8) 0%, transparent 40%),
-    linear-gradient(45deg, var(--color-brass-light) 0%, var(--color-brass-mid) 50%, var(--color-brass-dark) 100%);
+  background: linear-gradient(45deg, var(--color-brass-dark) 0%, var(--color-brass-mid) 15%, var(--color-brass-light) 50%, var(--color-brass-mid) 85%, var(--color-brass-dark) 100%);
+  -webkit-clip-path: polygon(0 0, var(--frame-border-width) 0, var(--frame-border-width) calc(100% - var(--frame-border-width)), 100% calc(100% - var(--frame-border-width)), 100% 100%, 0 100%);
+  clip-path: polygon(0 0, var(--frame-border-width) 0, var(--frame-border-width) calc(100% - var(--frame-border-width)), 100% calc(100% - var(--frame-border-width)), 100% 100%, 0 100%);
+  box-shadow:
+    inset -1px 0 0 rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(0, 0, 0, 0.5),
+    inset 1px 0 0 rgba(200, 168, 75, 0.2),
+    inset 0 -1px 0 rgba(200, 168, 75, 0.2);
 }
 
 .frame__corner--br {
   bottom: 0;
   right: 0;
-  border-top-left-radius: 20px;
-  background:
-    radial-gradient(circle at 80% 80%, rgba(232, 208, 144, 0.6) 0%, transparent 30%),
-    radial-gradient(circle at 30% 30%, rgba(74, 53, 8, 0.8) 0%, transparent 40%),
-    linear-gradient(315deg, var(--color-brass-light) 0%, var(--color-brass-mid) 50%, var(--color-brass-dark) 100%);
+  background: linear-gradient(315deg, var(--color-brass-dark) 0%, var(--color-brass-mid) 15%, var(--color-brass-light) 50%, var(--color-brass-mid) 85%, var(--color-brass-dark) 100%);
+  -webkit-clip-path: polygon(calc(100% - var(--frame-border-width)) 0, 100% 0, 100% 100%, 0 100%, 0 calc(100% - var(--frame-border-width)), calc(100% - var(--frame-border-width)) calc(100% - var(--frame-border-width)));
+  clip-path: polygon(calc(100% - var(--frame-border-width)) 0, 100% 0, 100% 100%, 0 100%, 0 calc(100% - var(--frame-border-width)), calc(100% - var(--frame-border-width)) calc(100% - var(--frame-border-width)));
+  box-shadow:
+    inset 1px 0 0 rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(0, 0, 0, 0.5),
+    inset -1px 0 0 rgba(200, 168, 75, 0.2),
+    inset 0 -1px 0 rgba(200, 168, 75, 0.2);
 }
 
 /* --- 6.2 Frame edges --- */
@@ -468,22 +472,22 @@ body.nav-overlay-active .nav-backdrop {
 /* --- 6.3 Gauges — circular dials --- */
 .frame__gauge {
   position: absolute;
-  width: 64px;
-  height: 64px;
+  width: var(--frame-gauge-size);
+  height: var(--frame-gauge-size);
   border-radius: 50%;
   background:
     radial-gradient(circle at 50% 50%, var(--color-iron) 45%, var(--color-brass-dark) 46%, var(--color-brass-mid) 52%, var(--color-brass-light) 54%, var(--color-brass-mid) 56%, var(--color-brass-dark) 58%, transparent 59%);
   box-shadow:
-    inset 0 0 8px rgba(0, 0, 0, 0.8),
-    0 0 6px rgba(0, 0, 0, 0.5),
-    0 0 12px rgba(200, 168, 75, 0.1);
+    inset 0 0 6px rgba(0, 0, 0, 0.8),
+    0 0 4px rgba(0, 0, 0, 0.5),
+    0 0 8px rgba(200, 168, 75, 0.1);
 }
 
 /* Gauge face */
 .frame__gauge::before {
   content: '';
   position: absolute;
-  inset: 12px;
+  inset: 8px;
   border-radius: 50%;
   background:
     conic-gradient(
@@ -521,8 +525,8 @@ body.nav-overlay-active .nav-backdrop {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 2px;
-  height: 20px;
+  width: 3px;
+  height: 14px;
   background: linear-gradient(to top, var(--color-brass-light), #ff6b35);
   transform-origin: bottom center;
   transform: translate(-50%, -100%) rotate(var(--needle-angle));
@@ -531,13 +535,13 @@ body.nav-overlay-active .nav-backdrop {
 }
 
 .frame__gauge--left {
-  left: 28px;
+  left: calc(var(--frame-border-width) / 2 - var(--frame-gauge-size) / 2);
   top: 50%;
   transform: translateY(-50%);
 }
 
 .frame__gauge--right {
-  right: 28px;
+  right: calc(var(--frame-border-width) / 2 - var(--frame-gauge-size) / 2);
   top: 50%;
   transform: translateY(-50%);
 }
@@ -1292,8 +1296,8 @@ body.nav-overlay-active .nav-backdrop {
 @media (max-width: 1199px) {
   :root {
     --hud-panel-width: 160px;
-    --frame-corner-size: 60px;
     --frame-border-width: 12px;
+    /* --frame-corner-size and --frame-gauge-size auto-cascade from calc() */
   }
 
   /* Greek key responsive: scale tile proportionally */
@@ -1306,26 +1310,37 @@ body.nav-overlay-active .nav-backdrop {
       0 1px 1px rgba(0, 0, 0, 0.4);
   }
 
-  .frame__gauge {
-    width: 48px;
-    height: 48px;
+  /* Minimum rivet size at tablet (Creative Director: 8px floor) */
+  .frame__corner::before,
+  .frame__corner::after {
+    width: 8px;
+    height: 8px;
   }
 
-  .frame__gauge--left {
-    left: 16px;
-  }
-
-  .frame__gauge--right {
-    right: 16px;
-  }
+  /* Gauge size + position auto-cascade from --frame-gauge-size calc */
 }
 
 /* T012, T013: Mobile (max-width: 767px) — full-bleed, hamburger, sidebars hidden */
 @media (max-width: 767px) {
   :root {
     --frame-border-width: 8px;
-    --frame-corner-size: 40px;
+    /* --frame-corner-size auto-cascades to 20px (8 * 2.5) */
     --cmd-line-height: 40px;
+  }
+
+  /* At 20px corners with 8px arms, L-bracket is too small to distinguish — remove clip-path */
+  .frame__corner--tl,
+  .frame__corner--tr,
+  .frame__corner--bl,
+  .frame__corner--br {
+    -webkit-clip-path: none;
+    clip-path: none;
+  }
+
+  /* Rivets overflow 20px corners at desktop positions — hide on mobile */
+  .frame__corner::before,
+  .frame__corner::after {
+    display: none;
   }
 
   #app-shell {
@@ -1446,7 +1461,10 @@ body.nav-overlay-active .nav-backdrop {
    ------------------------------------------------------------ */
 
 /* CSS Containment (T022) — no `paint` on .frame: it creates a containing
-   block for position:fixed (traps logo z-index below sidebars) */
+   block for position:fixed (traps logo z-index below sidebars).
+   IMPORTANT: `contain: paint` would also clip gauge negative positioning
+   (gauges extend past .frame boundary to straddle the border rail).
+   Do NOT add `paint` containment without updating gauge layout. */
 .frame {
   contain: layout style;
 }
