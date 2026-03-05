@@ -2,6 +2,7 @@
 import { camera, starNodes, nebulaLayers } from './scene.js';
 import { setInitialFocus } from './interactions.js';
 import { playTerminalScan } from './terminal.js';
+import { getMaterials } from './sidebar-hieroglyphs.js';
 
 const gsap = window.gsap;
 const isMobileView = () => window.innerWidth < 768;
@@ -222,6 +223,19 @@ function playRevealSequence() {
   tl.to([navLabel, statusLabel], {
     opacity: 1, duration: 0.3, ease: 'power2.out'
   }, 2.0);
+
+  // Glyph reveal wipe: bottom-to-top at t=2.2, completes t=2.7 (before terminal scan)
+  const sidebarMats = getMaterials();
+  if (sidebarMats.leftMaterial) {
+    tl.to(sidebarMats.leftMaterial.uniforms.uRevealProgress, {
+      value: 1, duration: 0.5, ease: 'power2.inOut'
+    }, 2.2);
+  }
+  if (sidebarMats.rightMaterial) {
+    tl.to(sidebarMats.rightMaterial.uniforms.uRevealProgress, {
+      value: 1, duration: 0.5, ease: 'power2.inOut'
+    }, 2.2);
+  }
 
   // Wire terminal scan at t=2.8 (after scan lines finish fade-in at t=2.75)
   tl.call(playTerminalScan, null, 2.8);

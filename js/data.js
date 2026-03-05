@@ -1,5 +1,21 @@
 // js/data.js — Project data and constellation zone definitions
 // T003: Star positions updated to viewport-distributed coordinates
+// T015: Added glyph fields (glyphName, glyphRotation, glyphType, glyphAtlasIndex)
+
+// ---------------------------------------------------------------------------
+// Glyph atlas UV cells — 512x256 atlas, 4x2 grid, 128x128 square cells
+// Guard padding: 4px per edge (horiz: 4/512=0.0078125, vert: 4/256=0.015625)
+// ---------------------------------------------------------------------------
+export const GLYPH_ATLAS_CELLS = [
+  { index: 0, name: 'architect', gridCol: 0, gridRow: 0, uvMin: [0.0078125, 0.015625],  uvMax: [0.2421875, 0.484375]  },
+  { index: 1, name: 'guardian',  gridCol: 1, gridRow: 0, uvMin: [0.2578125, 0.015625],  uvMax: [0.4921875, 0.484375]  },
+  { index: 2, name: 'sovereign', gridCol: 2, gridRow: 0, uvMin: [0.5078125, 0.015625],  uvMax: [0.7421875, 0.484375]  },
+  { index: 3, name: 'voyager',   gridCol: 3, gridRow: 0, uvMin: [0.7578125, 0.015625],  uvMax: [0.9921875, 0.484375]  },
+  { index: 4, name: 'origin',    gridCol: 0, gridRow: 1, uvMin: [0.0078125, 0.515625],  uvMax: [0.2421875, 0.984375]  },
+  { index: 5, name: 'orbit',     gridCol: 1, gridRow: 1, uvMin: [0.2578125, 0.515625],  uvMax: [0.4921875, 0.984375]  },
+  { index: 6, name: 'axis',      gridCol: 2, gridRow: 1, uvMin: [0.5078125, 0.515625],  uvMax: [0.7421875, 0.984375]  },
+  { index: 7, name: 'spiral',    gridCol: 3, gridRow: 1, uvMin: [0.7578125, 0.515625],  uvMax: [0.9921875, 0.984375]  }
+];
 
 export const PROJECTS = [
   {
@@ -8,6 +24,7 @@ export const PROJECTS = [
     shortDesc: 'AI code review pipeline',
     tagline: 'Extensible AI code review pipeline with multi-agent analysis',
     category: 'ai-devops',
+    glyphName: 'guardian', glyphRotation: 90, glyphType: 'full', glyphAtlasIndex: 1,
     constellation: 'The Forge Septet',
     accentColor: '#FF6B35',
     starSize: 1.4,
@@ -28,6 +45,7 @@ export const PROJECTS = [
     shortDesc: 'Azure DevOps PR metrics',
     tagline: 'Extract Azure DevOps PR metrics to SQLite with PowerBI-compatible dashboards',
     category: 'data-devops',
+    glyphName: 'voyager', glyphRotation: 180, glyphType: 'full', glyphAtlasIndex: 3,
     constellation: "The Scribe's Lens",
     accentColor: '#00C9D4',
     starSize: 1.15,
@@ -53,6 +71,7 @@ export const PROJECTS = [
     shortDesc: 'Repo quality standards',
     tagline: 'Authoritative JSON specification for repository quality standards across multiple stacks',
     category: 'tooling',
+    glyphName: 'axis', glyphRotation: 0, glyphType: 'derived', glyphAtlasIndex: 6,
     constellation: 'The Iron Codex',
     accentColor: '#F5C518',
     starSize: 1.0,
@@ -72,6 +91,7 @@ export const PROJECTS = [
     shortDesc: 'Self-hosted CI runtime',
     tagline: 'Docker-first, provider-pluggable self-hosted CI runtime at zero cloud cost',
     category: 'infrastructure',
+    glyphName: 'orbit', glyphRotation: 0, glyphType: 'derived', glyphAtlasIndex: 5,
     constellation: 'The Engine Core',
     accentColor: '#4ADE80',
     starSize: 1.0,
@@ -92,6 +112,7 @@ export const PROJECTS = [
     shortDesc: 'Interactive office locator',
     tagline: 'White-label interactive office locator with multi-provider rendering and region navigation',
     category: 'frontend',
+    glyphName: 'origin', glyphRotation: 0, glyphType: 'full', glyphAtlasIndex: 4,
     constellation: "The Navigator's Rose",
     accentColor: '#2DD4BF',
     starSize: 1.15,
@@ -111,6 +132,7 @@ export const PROJECTS = [
     shortDesc: 'Financial intelligence dashboard',
     tagline: 'Financial intelligence dashboard with real-time market data and congressional trade monitoring',
     category: 'fintech',
+    glyphName: 'sovereign', glyphRotation: 270, glyphType: 'full', glyphAtlasIndex: 2,
     constellation: "The Alchemist's Eye",
     accentColor: '#A855F7',
     starSize: 1.4,
@@ -129,6 +151,7 @@ export const PROJECTS = [
     shortDesc: 'Restaurant with AI chat',
     tagline: 'A 100+ year old family-owned restaurant with an interactive AI-powered chat agent',
     category: 'web',
+    glyphName: 'architect', glyphRotation: 135, glyphType: 'full', glyphAtlasIndex: 0,
     constellation: 'The Hearth Star',
     accentColor: '#FB7185',
     starSize: 1.0,

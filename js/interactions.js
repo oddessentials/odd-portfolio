@@ -1,6 +1,7 @@
 // js/interactions.js — Keyboard navigation + hamburger menu + nav hover effects
 import { PROJECTS } from './data.js';
 import { init as initPanel, showProjectPanel, closeProjectPanel, handleFocusTrap } from './panel.js';
+import { setHoveredProject, clearHover, getNavRect } from './glyph-compositor.js';
 
 // ---------------------------------------------------------------------------
 // Hamburger menu state
@@ -192,6 +193,14 @@ function updateAriaPressed(activeId) {
 // ---------------------------------------------------------------------------
 // Nav hover effects for desktop (T008)
 // ---------------------------------------------------------------------------
+function computeNormalizedY(btn) {
+  const rect = getNavRect();
+  if (!rect) return 0.5;
+  const btnRect = btn.getBoundingClientRect();
+  const btnCenter = btnRect.top + btnRect.height * 0.5;
+  return Math.max(0, Math.min(1, (btnCenter - rect.top) / rect.height));
+}
+
 function initNavHoverEffects(navButtons) {
   const gsap = window.gsap;
   if (!gsap) return;
@@ -207,9 +216,11 @@ function initNavHoverEffects(navButtons) {
     if (!desc) return;
 
     btn.addEventListener('mouseenter', () => {
+      setHoveredProject(computeNormalizedY(btn));
       if (prefersReducedMotion.matches) {
         desc.style.maxHeight = '1.5em';
         desc.style.opacity = '1';
+        if (glyph) gsap.set(glyph, { scale: 1.2 });
         return;
       }
       gsap.killTweensOf(desc);
@@ -220,9 +231,11 @@ function initNavHoverEffects(navButtons) {
     });
 
     btn.addEventListener('mouseleave', () => {
+      clearHover();
       if (prefersReducedMotion.matches) {
         desc.style.maxHeight = '0';
         desc.style.opacity = '0';
+        if (glyph) gsap.set(glyph, { scale: 1 });
         return;
       }
       gsap.killTweensOf(desc);
@@ -232,16 +245,30 @@ function initNavHoverEffects(navButtons) {
       }
     });
 
-    // Keyboard parity: focus-visible
-    btn.addEventListener('focus', () => {
+    // Keyboard parity: focusin fires for all focus (T044)
+    btn.addEventListener('focusin', () => {
+      setHoveredProject(computeNormalizedY(btn));
+      if (prefersReducedMotion.matches) {
+        if (glyph) gsap.set(glyph, { scale: 1.2 });
+      }
       if (!btn.matches(':focus-visible')) return;
       gsap.killTweensOf(desc);
       gsap.to(desc, { maxHeight: '1.5em', opacity: 1, duration: 0.3, ease: 'power2.out' });
+      if (glyph && !prefersReducedMotion.matches) {
+        gsap.to(glyph, { scale: 1.2, duration: 0.3, ease: 'back.out(2)' });
+      }
     });
 
-    btn.addEventListener('blur', () => {
+    btn.addEventListener('focusout', () => {
+      clearHover();
+      if (prefersReducedMotion.matches) {
+        if (glyph) gsap.set(glyph, { scale: 1 });
+      }
       gsap.killTweensOf(desc);
       gsap.to(desc, { maxHeight: 0, opacity: 0, duration: 0.2, ease: 'power2.in' });
+      if (glyph && !prefersReducedMotion.matches) {
+        gsap.to(glyph, { scale: 1, duration: 0.2, ease: 'power2.out' });
+      }
     });
   });
 }

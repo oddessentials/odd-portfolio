@@ -776,16 +776,19 @@ body.nav-overlay-active .nav-backdrop {
 }
 
 #constellation-nav .glyph {
-  font-size: var(--text-base);
-  color: var(--color-brass-light);
+  fill: var(--color-brass-light);
   flex-shrink: 0;
   width: 20px;
-  text-align: center;
-  transition: color var(--dur-fast) ease, text-shadow var(--dur-fast) ease;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter var(--dur-fast) ease;
 }
 
-#constellation-nav button:hover .glyph {
-  text-shadow: 0 0 6px var(--color-brass-light);
+#constellation-nav button:hover .glyph,
+#constellation-nav button:focus-visible .glyph {
+  filter: drop-shadow(0 0 6px var(--color-brass-light));
 }
 
 /* Project label container */
@@ -900,18 +903,35 @@ body.nav-overlay-active .nav-backdrop {
 }
 
 .mana-meter::-webkit-meter-optimum-value {
-  background: linear-gradient(to right, #4ADE80, #7AFFB2);
+  background: linear-gradient(to right, var(--color-brass-mid), var(--color-brass-light));
   border-radius: 2px;
 }
 
 .mana-meter::-moz-meter-bar {
-  background: linear-gradient(to right, #4ADE80, #7AFFB2);
+  background: linear-gradient(to right, var(--color-brass-mid), var(--color-brass-light));
   border-radius: 2px;
 }
 
 .phase-indicator {
   color: var(--color-text-mono);
   font-weight: 600;
+}
+
+.phi-constant {
+  color: var(--color-brass-light);
+  font-weight: 600;
+}
+
+.odd-bot {
+  position: absolute;
+  bottom: var(--space-lg);
+  left: 50%;
+  transform: translateX(-50%);
+  transform-origin: center center;
+  opacity: 0.3;
+  color: var(--color-brass-mid);
+  z-index: 0;
+  transition: transform var(--dur-fast) ease;
 }
 
 /* Scan output and loading bar (terminal scan) */

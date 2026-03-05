@@ -46,7 +46,9 @@ cut.
   `/assets` folder. No build system, no backend, no CMS.
 - The project data model is exactly:
   `id, name, tagline, category, logoUrl?, mediaType?, mediaUrl?,
-  links[]`. No additional fields without explicit owner approval.
+  links[], glyphName, glyphRotation, glyphType, glyphAtlasIndex`.
+  No additional fields without explicit owner approval.
+  (Amendment: 008-sidebar-glyph-language, glyph fields approved 2026-03-05.)
 - **Shader feature list is frozen** at the following effects (included
   in scope, not expandable without explicit approval):
   rim glow (Fresnel-based edge), fake refraction UV offset, procedural
@@ -56,8 +58,11 @@ cut.
   halo), Gaussian pulse animation per star, post-processing (bloom +
   chromatic aberration + vignette, 4 passes max), sidebar MSDF
   hieroglyph etching with normal perturbation, roughness modulation,
-  cavity darkening, edge highlight, breathing light, shimmer pass,
-  and scan-line sweep (Amendment: 005-arcane-ux-overhaul).
+  cavity darkening, edge highlight, breathing light,
+  and event-triggered scan-line sweep (Amendment: 005-arcane-ux-overhaul),
+  per-glyph atlas selection, atlas UV lookup, hover-driven brightness
+  response, scroll-driven positional shift, and Odd Bot state rotation
+  (Amendment: 008-sidebar-glyph-language, owner-approved 2026-03-05).
 - **Project overlay is the primary success metric.** The project detail
   panel — not the orb animation — is what converts a visitor into a
   contact. The overlay MUST display at least one real visual asset
@@ -464,4 +469,4 @@ preferences.
 - **Project inventory:** `portfolio-basic-list.md`
 - **Design assets:** `design-assets/`
 
-**Version**: 1.2.0 | **Ratified**: 2026-03-04 | **Last Amended**: 2026-03-04
+**Version**: 1.3.0 | **Ratified**: 2026-03-04 | **Last Amended**: 2026-03-05

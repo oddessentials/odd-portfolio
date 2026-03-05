@@ -11,12 +11,34 @@ import { ensureBurstPool, createSupernovaBurst } from './burst.js';
 // Module state
 // ---------------------------------------------------------------------------
 let currentTier = 1;
+let initialTierFromGPU = false;  // T051: true if Tier 2 was set via GPU detection
 let composer = null;
 let bloomPass = null;
 let customPass = null;
 
 function getCurrentTier() {
   return currentTier;
+}
+
+// ---------------------------------------------------------------------------
+// T051: Integrated GPU detection via WEBGL_debug_renderer_info
+// ---------------------------------------------------------------------------
+function detectIntegratedGPU(renderer) {
+  const gl = renderer.getContext();
+  const ext = gl.getExtension('WEBGL_debug_renderer_info');
+  if (!ext) return false;
+
+  const unmasked = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+  if (!unmasked) return false;
+
+  console.log(`[Arcane Console] GPU detected: ${unmasked}`);
+
+  // Intel integrated: Iris, UHD, HD Graphics
+  if (/intel.*(iris|uhd|hd)\s*graphics/i.test(unmasked)) return true;
+  // AMD APU: "Radeon Graphics" without discrete model number (e.g., RX, Vega 56)
+  if (/amd.*radeon\s+graphics$/i.test(unmasked)) return true;
+
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -113,6 +135,18 @@ function initPostProcessing(sceneRef, cameraRef, rendererRef) {
 }
 
 // ---------------------------------------------------------------------------
+// T051: Apply initial GPU-based tier (call after renderer is created)
+// ---------------------------------------------------------------------------
+function initGPUDetection(renderer) {
+  if (detectIntegratedGPU(renderer)) {
+    currentTier = 2;
+    initialTierFromGPU = true;
+    console.log('[Arcane Console] Integrated GPU detected — defaulting to Tier 2');
+    document.dispatchEvent(new CustomEvent('tier-change', { detail: { tier: 2 } }));
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Auto-Tier Degradation
 // ---------------------------------------------------------------------------
 let benchmarkStarted = false;
@@ -146,6 +180,15 @@ function initAutoTierDegradation(composerRef, bloomPassRef, customPassRef) {
     function evaluateTier() {
       const avg = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
       console.log(`[Arcane Console] Benchmark avg frame time: ${avg.toFixed(2)}ms`);
+
+      // T054: If GPU detection set Tier 2 but benchmark shows <14ms, promote to Tier 1
+      if (initialTierFromGPU && currentTier === 2 && avg < 14) {
+        currentTier = 1;
+        initialTierFromGPU = false;
+        console.log('[Arcane Console] Integrated GPU promoted to Tier 1 (avg <14ms)');
+        document.dispatchEvent(new CustomEvent('tier-change', { detail: { tier: 1 } }));
+        return;
+      }
 
       if (avg < 20) {
         currentTier = 1;
@@ -290,6 +333,7 @@ export {
   initPostProcessing,
   createSupernovaBurst,
   initAutoTierDegradation,
+  initGPUDetection,
   getCurrentTier,
   ensureBurstPool
 };

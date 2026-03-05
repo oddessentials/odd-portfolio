@@ -18,12 +18,12 @@ function playTerminalScan() {
     const loadingBar = document.querySelector('.loading-bar');
     const phaseIndicator = document.querySelector('.phase-indicator');
 
-    if (scanLines[0]) scanLines[0].textContent = '7 systems nominal';
-    if (scanLines[1]) scanLines[1].textContent = '[##########] 100%';
+    if (scanLines[0]) scanLines[0].textContent = '7 Constellations Active';
+    if (scanLines[1]) scanLines[1].textContent = 'phi Alignment: Stable';
     if (scanLines[2]) scanLines[2].textContent = '';
     if (loadingBarFill) loadingBarFill.style.transform = 'scaleX(1)';
     if (loadingBar) loadingBar.setAttribute('aria-valuenow', '100');
-    if (phaseIndicator) phaseIndicator.textContent = 'PORTFOLIO READY';
+    if (phaseIndicator) phaseIndicator.textContent = 'GOLDEN RATIO LOCKED';
 
     document.dispatchEvent(new CustomEvent('terminal-scan-complete'));
     return null;
@@ -48,8 +48,8 @@ function playTerminalScan() {
     const barStr = '[' + '#'.repeat(Math.round(pct / 10)) + '.'.repeat(10 - Math.round(pct / 10)) + '] ' + pct + '%';
 
     tl.to(scanLines[0] || {}, {
-      duration: project.id.length * 0.033,
-      text: { value: 'Scanning ' + project.id + '...', delimiter: '' },
+      duration: ('Charting ' + project.constellation + '...').length * 0.033,
+      text: { value: 'Charting ' + project.constellation + '...', delimiter: '' },
       ease: 'none'
     }, i * 0.7);
 
@@ -64,18 +64,18 @@ function playTerminalScan() {
   const finalTime = PROJECTS.length * 0.7 + 0.5;
   tl.to(scanLines[0] || {}, {
     duration: 0.5,
-    text: { value: '7 systems nominal', delimiter: '' },
+    text: { value: '7 Constellations Active', delimiter: '' },
     ease: 'none'
   }, finalTime);
 
   tl.call(() => {
-    if (scanLines[1]) scanLines[1].textContent = '[##########] 100%';
+    if (scanLines[1]) scanLines[1].textContent = 'phi Alignment: Stable';
   }, null, finalTime);
 
-  // Phase indicator: PORTFOLIO READY + glow flash
+  // Phase indicator: GOLDEN RATIO LOCKED + glow flash
   tl.call(() => {
     if (phaseIndicator) {
-      phaseIndicator.textContent = 'PORTFOLIO READY';
+      phaseIndicator.textContent = 'GOLDEN RATIO LOCKED';
       if (!prefersHighContrast) {
         gsap.fromTo(phaseIndicator, {
           textShadow: '0 0 12px rgba(200, 168, 75, 0.8)'

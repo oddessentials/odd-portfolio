@@ -9,17 +9,19 @@ import {
 } from './animations.js';
 import { init as initScrollZones } from './scroll-zones.js';
 import { init as initConstellationLines } from './constellation-lines.js';
-import { init as initSidebarHieroglyphs } from './sidebar-hieroglyphs.js';
+import { init as initSidebarHieroglyphs, setHighContrast, getMaterials } from './sidebar-hieroglyphs.js';
 import {
   initPostProcessing,
   ensureBurstPool,
   initAutoTierDegradation,
+  initGPUDetection,
   getCurrentTier
 } from './performance.js';
 
 const gsap = window.gsap;
 const ScrollTrigger = window.ScrollTrigger;
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const prefersHighContrast = window.matchMedia('(prefers-contrast: more)');
 
 // ---------------------------------------------------------------------------
 // handleReducedMotion — respect prefers-reduced-motion
@@ -54,7 +56,7 @@ function handleReducedMotion() {
     }
 
     if (cmdText) cmdText.textContent = 'Force multipliers for small businesses...';
-    if (phaseIndicator) phaseIndicator.textContent = 'PORTFOLIO READY';
+    if (phaseIndicator) phaseIndicator.textContent = 'GOLDEN RATIO LOCKED';
 
     // Show terminal scan final state under reduced motion
     playTerminalScan();
@@ -74,6 +76,11 @@ function handleReducedMotion() {
       });
     }
     if (camera) camera.position.z = 4.5;
+
+    // Instant glyph reveal under reduced motion (T050)
+    const mats = getMaterials();
+    if (mats.leftMaterial) mats.leftMaterial.uniforms.uRevealProgress.value = 1.0;
+    if (mats.rightMaterial) mats.rightMaterial.uniforms.uRevealProgress.value = 1.0;
 
     if (ScrollTrigger) {
       ScrollTrigger.getAll().forEach(st => st.kill());
@@ -95,6 +102,70 @@ function handleReducedMotion() {
   });
 
   return prefersReducedMotion.matches;
+}
+
+// ---------------------------------------------------------------------------
+// handleHighContrast — respect prefers-contrast:more (T024, FR-016)
+// High contrast takes precedence: hides WebGL sidebar overlay entirely.
+// ---------------------------------------------------------------------------
+function handleHighContrast() {
+  if (prefersHighContrast.matches) {
+    setHighContrast(true);
+  }
+
+  prefersHighContrast.addEventListener('change', (e) => {
+    setHighContrast(e.matches);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// initOddBot — rotation state machine for the Odd Bot element (T040)
+// ---------------------------------------------------------------------------
+function initOddBot() {
+  if (!gsap) return;
+  const botEl = document.querySelector('.odd-bot');
+  if (!botEl) return;
+
+  const ZONE_ROTATIONS = { '-1': 135, 0: 90, 1: 180, 2: 270 };
+  const reduced = () => prefersReducedMotion.matches;
+  let holdReturn = null;
+
+  function cancelHoldReturn() {
+    if (holdReturn) { holdReturn.kill(); holdReturn = null; }
+    gsap.killTweensOf(botEl);
+  }
+
+  document.addEventListener('zone-change', (e) => {
+    const zoneIndex = e.detail.zoneIndex;
+    const targetDeg = ZONE_ROTATIONS[zoneIndex] ?? 135;
+    cancelHoldReturn();
+    if (reduced()) {
+      gsap.set(botEl, { rotation: targetDeg });
+    } else {
+      gsap.to(botEl, { rotation: targetDeg, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
+    }
+  });
+
+  document.addEventListener('terminal-scan-complete', () => {
+    cancelHoldReturn();
+    if (reduced()) {
+      gsap.set(botEl, { rotation: 270 });
+      holdReturn = gsap.delayedCall(2, () => {
+        gsap.set(botEl, { rotation: 135 });
+        holdReturn = null;
+      });
+    } else {
+      gsap.to(botEl, {
+        rotation: 270, duration: 0.6, ease: 'elastic.out(1, 0.5)',
+        onComplete: () => {
+          holdReturn = gsap.delayedCall(2, () => {
+            gsap.to(botEl, { rotation: 135, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
+            holdReturn = null;
+          });
+        }
+      });
+    }
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -130,13 +201,13 @@ function playDiscoverabilityAffordance() {
     });
   }
 
-  if (phaseIndicator && phaseIndicator.textContent !== 'PORTFOLIO READY') {
+  if (phaseIndicator && phaseIndicator.textContent !== 'GOLDEN RATIO LOCKED') {
     gsap.to(phaseIndicator, {
       duration: 0.01,
       delay: 0.8,
       onComplete: () => {
-        if (phaseIndicator.textContent !== 'PORTFOLIO READY') {
-          phaseIndicator.textContent = 'PORTFOLIO';
+        if (phaseIndicator.textContent !== 'GOLDEN RATIO LOCKED') {
+          phaseIndicator.textContent = 'phi LOCKED';
         }
       }
     });
@@ -150,12 +221,21 @@ initInteractions();
 const sceneReady = initScene();
 
 if (sceneReady) {
+  // T051: Detect integrated GPU and default to Tier 2 if found
+  initGPUDetection(renderer);
+
   // Initialize post-processing pipeline (T016: returns null on mobile)
   const pp = initPostProcessing(scene, camera, renderer);
   ensureBurstPool(scene);
 
   // Initialize sidebar hieroglyph etching overlays (separate overlay pass)
   initSidebarHieroglyphs({ renderer });
+
+  // High contrast: hide WebGL sidebar overlay when prefers-contrast:more (T024)
+  handleHighContrast();
+
+  // Initialize Odd Bot rotation state machine (T040)
+  initOddBot();
 
   // Wire scroll zones to fire after reveal completes (FR-012)
   // MUST be registered BEFORE handleReducedMotion() — it dispatches
