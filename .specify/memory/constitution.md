@@ -44,11 +44,14 @@ cut.
 
 - The deliverable is a **single `index.html` file** with an optional
   `/assets` folder. No build system, no backend, no CMS.
-- The project data model is exactly:
-  `id, name, tagline, category, logoUrl?, mediaType?, mediaUrl?,
-  links[], glyphName, glyphRotation, glyphType, glyphAtlasIndex`.
-  No additional fields without explicit owner approval.
-  (Amendment: 008-sidebar-glyph-language, glyph fields approved 2026-03-05.)
+- The project data model supports a **variable project count with
+  cluster support**. Approved fields: `id, name, shortDesc, tagline,
+  category, status, isCluster, clusterMembers, constellation,
+  accentColor, starSize, position, logoUrl?, mediaType?, mediaUrl?,
+  screenshots?, links[]`. No additional fields without explicit owner
+  approval.
+  (Amendment: 009-constellation-zone-enhancements, owner-approved 2026-03-06.
+  Removed dead glyph fields: glyphName, glyphRotation, glyphType, glyphAtlasIndex.)
 - **Shader feature list is frozen** at the following effects (included
   in scope, not expandable without explicit approval):
   rim glow (Fresnel-based edge), fake refraction UV offset, procedural
@@ -70,8 +73,8 @@ cut.
   have exactly two prominent CTAs (primary: live demo or store link;
   secondary: GitHub), open in under 100ms from click, and contain no
   animations that delay content access.
-- Star positions are 7 hard-coded `(x, y, z)` values. No
-  constellation-grouping algorithm.
+- Star and cluster positions are **data-driven from the project
+  array**. No constellation-grouping algorithm.
 - **Excluded from POC scope:** audio, 2D fallback rendering system,
   responsive breakpoints below 1200px, real-time external data
   fetching, CMS integration, routing beyond a project overlay.
@@ -91,12 +94,13 @@ integrated GPUs (Intel Iris-class) as the baseline, not discrete GPUs.
   before renderer creation. No exceptions. (1.5 balances retina
   crispness against fragment-rate cost on integrated GPUs.)
 - **Draw call budget:** under 30 for the orb scene at steady state
-  (glass shell + inner glow + rim + 3 nebula layers + 7 stars + halos
-  + bloom passes). Hard limit: under 50.
+  (3 nebula layers + variable-count project star sprites and cluster
+  groups + halos + bloom passes). Hard limit: under 50.
 - **Particle/instance budget:** maximum 1500 nebula background
-  particles (THREE.Points), 180 dust mote instances, 7 project star
-  sprites with glow halos baked into the sprite texture (always
-  visible, zero additional draw calls — Amendment:
+  particles (THREE.Points), 180 dust mote instances, variable-count
+  project star sprites and cluster groups with glow halos baked into
+  the sprite texture (always visible, zero additional draw calls —
+  Amendment:
   005-arcane-ux-overhaul). Supernova pool: 60 pre-allocated particles.
 - **Texture memory:** under 1MB total (procedural-first approach).
 - **Post-processing:** maximum 4 render passes. Bloom at 0.75x
@@ -193,8 +197,8 @@ text is none of these things.
 The steampunk frame and the cosmic orb interior are two distinct visual
 worlds. They MUST NOT contaminate each other.
 
-- **Accent colors (7 project colors) stay inside the orb.** They MUST
-  NOT appear on the frame, HUD panels, or command line.
+- **Accent colors (per-project accent colors) stay inside the orb.**
+  They MUST NOT appear on the frame, HUD panels, or command line.
 - **Steampunk ornamentation stays on the frame.** No gears, rivets,
   runes, or brass textures cross the glass boundary into the orb.
 - **Ornamentation intensity follows the Rule of Thirds:**
@@ -469,4 +473,4 @@ preferences.
 - **Project inventory:** `portfolio-basic-list.md`
 - **Design assets:** `design-assets/`
 
-**Version**: 1.3.0 | **Ratified**: 2026-03-04 | **Last Amended**: 2026-03-05
+**Version**: 1.4.0 | **Ratified**: 2026-03-04 | **Last Amended**: 2026-03-06

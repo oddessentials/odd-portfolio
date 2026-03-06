@@ -1685,3 +1685,132 @@ body.nav-overlay-active .nav-backdrop {
     text-shadow: none;
   }
 }
+
+/* --- Nav badge (In Progress indicator on nav buttons) --- */
+.nav-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-brass-light, #C8A84B);
+  background: rgba(200,168,75,0.12);
+  border: 1px solid rgba(200,168,75,0.3);
+  border-radius: 2px;
+  padding: 1px 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* --- Status badge (panel in-progress indicator) --- */
+.status-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm, 12px);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 2px;
+  margin-bottom: 8px;
+}
+.status-badge--in-progress {
+  color: var(--color-brass-light, #C8A84B);
+  background: rgba(200,168,75,0.15);
+  border: 1px solid rgba(200,168,75,0.3);
+}
+
+/* --- Cluster member list (panel) --- */
+.cluster-member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cluster-member {
+  padding: 10px 12px;
+  background: rgba(28,31,36,0.5);
+  border: 1px solid rgba(139,105,20,0.15);
+  border-radius: 4px;
+}
+.cluster-member__name {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm, 12px);
+  margin: 0 0 4px;
+}
+.cluster-member__desc {
+  font-family: var(--font-body);
+  font-size: var(--text-sm, 12px);
+  color: var(--color-text-secondary, #a08858);
+  margin: 0 0 6px;
+}
+.cluster-member__link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-brass-light, #C8A84B);
+  text-decoration: none;
+  transition: color var(--dur-fast, 200ms) ease;
+}
+.cluster-member__link:hover {
+  color: var(--color-focus-ring, #ffd700);
+}
+.cluster-member__link:focus-visible {
+  outline: 2px solid var(--color-focus-ring, #ffd700);
+  outline-offset: 2px;
+}
+
+/* --- Related repos section (Coney Island panel) --- */
+.related-repos {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(139,105,20,0.15);
+}
+
+/* --- Social links (T042) --- */
+.social-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-brass-dark);
+}
+
+.social-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-brass-light, #C8A84B);
+  transition: color 0.2s ease;
+  text-decoration: none;
+  padding: 2px;
+  border-radius: 2px;
+}
+
+.social-links a:hover {
+  color: #ffd700;
+}
+
+.social-links a:focus-visible {
+  outline: 3px solid var(--color-focus-ring, #ffd700);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.8), 0 0 0 4px var(--color-focus-ring, #ffd700);
+}
+
+/* Hide desktop social links on mobile (status panel is hidden anyway) */
+@media (max-width: 767px) {
+  #status-panel .social-links {
+    display: none;
+  }
+}
+
+/* Mobile social links inside hamburger nav — hidden on desktop */
+.social-links--mobile {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .social-links--mobile {
+    display: flex;
+    margin-top: auto;
+    padding: 12px var(--space-md);
+    border-top: 1px solid var(--color-brass-dark);
+  }
+}

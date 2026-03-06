@@ -4,11 +4,10 @@ import { initInteractions, setInitialFocus } from './interactions.js';
 import { playTerminalScan } from './terminal.js';
 import {
   playRevealSequence,
-  initSkipIntro,
-  handleScrollDuringReveal
+  initSkipIntro
 } from './animations.js';
 import { init as initScrollZones } from './scroll-zones.js';
-import { init as initConstellationLines } from './constellation-lines.js';
+import { init as initConstellationLines, playIntroShowcase, killShowcase } from './constellation-lines.js';
 import { init as initSidebarHieroglyphs, setHighContrast, getMaterials } from './sidebar-hieroglyphs.js';
 import {
   initPostProcessing,
@@ -69,10 +68,20 @@ function handleReducedMotion() {
       });
     }
     if (starNodes) {
-      starNodes.forEach(sprite => {
-        const base = sprite.userData.baseScale;
-        sprite.scale.set(base, base, base);
-        sprite.material.opacity = 1;
+      starNodes.forEach(node => {
+        if (node.material) {
+          const base = node.userData.baseScale;
+          node.scale.set(base, base, base);
+          node.material.opacity = 1;
+        } else if (node.children) {
+          node.scale.set(1, 1, 1);
+          const isPaused = node.userData.project && node.userData.project.status === 'paused';
+          node.children.forEach(child => {
+            if (child.material && child.userData && child.userData.isSubPoint) {
+              child.material.opacity = isPaused ? 0.20 : 1;
+            }
+          });
+        }
       });
     }
     if (camera) camera.position.z = 4.5;
@@ -205,6 +214,24 @@ function initOddBot() {
 }
 
 // ---------------------------------------------------------------------------
+// handleScrollDuringReveal — skip reveal if user scrolls (moved from animations.js)
+// ---------------------------------------------------------------------------
+function handleScrollDuringReveal(masterTimeline) {
+  if (!masterTimeline) return;
+  function onWheel() {
+    if (masterTimeline.isActive()) masterTimeline.progress(1);
+    killShowcase();
+    window.removeEventListener('wheel', onWheel);
+  }
+  window.addEventListener('wheel', onWheel, { passive: true });
+  const prevOnComplete = masterTimeline.eventCallback('onComplete');
+  masterTimeline.eventCallback('onComplete', () => {
+    window.removeEventListener('wheel', onWheel);
+    if (typeof prevOnComplete === 'function') prevOnComplete();
+  });
+}
+
+// ---------------------------------------------------------------------------
 // playDiscoverabilityAffordance — sonar pulse + CLI prompt
 // ---------------------------------------------------------------------------
 function playDiscoverabilityAffordance() {
@@ -213,19 +240,23 @@ function playDiscoverabilityAffordance() {
 
   const cmdText = document.querySelector('.cmd-text');
   const phaseIndicator = document.querySelector('.phase-indicator');
+  const staggerDelay = 0.2 * 7 / starNodes.length; // Scale delay for constant total duration
 
-  starNodes.forEach((sprite, i) => {
-    const baseScale = sprite.userData.baseScale;
-    gsap.to(sprite.scale, {
-      x: baseScale * 1.5,
-      y: baseScale * 1.5,
-      z: baseScale * 1.5,
-      duration: 0.4,
-      delay: i * 0.2,
-      ease: 'sine.out',
-      yoyo: true,
-      repeat: 1
-    });
+  starNodes.forEach((node, i) => {
+    if (node.userData.project && node.userData.project.status === 'paused') return;
+    if (node.material) {
+      const baseScale = node.userData.baseScale;
+      gsap.to(node.scale, {
+        x: baseScale * 1.5, y: baseScale * 1.5, z: baseScale * 1.5,
+        duration: 0.4, delay: i * staggerDelay, ease: 'sine.out', yoyo: true, repeat: 1
+      });
+    } else if (node.children) {
+      // Cluster group — pulse the group scale
+      gsap.to(node.scale, {
+        x: 1.3, y: 1.3, z: 1.3,
+        duration: 0.4, delay: i * staggerDelay, ease: 'sine.out', yoyo: true, repeat: 1
+      });
+    }
   });
 
   if (cmdText) {
@@ -282,6 +313,12 @@ if (sceneReady) {
   document.addEventListener('reveal-complete', () => {
     initScrollZones({ starNodes, nebulaLayers, nebulaGroup, getCurrentTier });
     initConstellationLines();
+    // T037-T040: Intro showcase — flash zone constellations after reveal
+    const scTl = playIntroShowcase();
+    if (scTl) {
+      // Kill showcase if user scrolls or zone-change fires (T039)
+      document.addEventListener('zone-change', () => killShowcase(), { once: true });
+    }
   }, { once: true });
 
   // Wire discoverability affordance to fire 2s after reveal completes

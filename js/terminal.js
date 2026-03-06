@@ -6,11 +6,19 @@ const prefersReducedMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)",
 );
 
+// Compute active count dynamically (exclude clusters)
+function getActiveCount() {
+  return PROJECTS.filter(p => p.status === "active" && !p.isCluster).length;
+}
+
 // ---------------------------------------------------------------------------
 // playTerminalScan — independent terminal loading animation (T013)
 // ---------------------------------------------------------------------------
 function playTerminalScan() {
   if (!gsap) return null;
+
+  const activeCount = getActiveCount();
+  const activeLabel = activeCount + " Essentials Active";
 
   // Reduced motion: show final state immediately
   if (prefersReducedMotion.matches) {
@@ -19,7 +27,7 @@ function playTerminalScan() {
     const loadingBar = document.querySelector(".loading-bar");
     const phaseIndicator = document.querySelector(".phase-indicator");
 
-    if (scanLines[0]) scanLines[0].textContent = "7 Essentials Active";
+    if (scanLines[0]) scanLines[0].textContent = activeLabel;
     if (scanLines[1]) scanLines[1].textContent = "phi Alignment: Stable";
     if (scanLines[2]) scanLines[2].textContent = "";
     if (loadingBarFill) loadingBarFill.style.transform = "scaleX(1)";
@@ -44,9 +52,13 @@ function playTerminalScan() {
     },
   });
 
-  const percentages = [14, 28, 43, 57, 71, 86, 100];
+  // Scan individual (non-cluster) projects for the terminal display
+  const scanTargets = PROJECTS.filter(p => !p.isCluster);
+  const percentages = scanTargets.map((_, i) =>
+    Math.round(((i + 1) / scanTargets.length) * 100)
+  );
 
-  PROJECTS.forEach((project, i) => {
+  scanTargets.forEach((project, i) => {
     const pct = percentages[i];
     const barStr =
       "[" +
@@ -82,12 +94,12 @@ function playTerminalScan() {
   });
 
   // Final state
-  const finalTime = PROJECTS.length * 0.7 + 0.5;
+  const finalTime = scanTargets.length * 0.7 + 0.5;
   tl.to(
     scanLines[0] || {},
     {
       duration: 0.5,
-      text: { value: "7 Essentials Active", delimiter: "" },
+      text: { value: activeLabel, delimiter: "" },
       ease: "none",
     },
     finalTime,

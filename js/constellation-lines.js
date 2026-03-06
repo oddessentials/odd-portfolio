@@ -1,4 +1,4 @@
-// js/constellation-lines.js — SVG constellation lines connecting related project nodes (T034-T043)
+// js/constellation-lines.js — SVG constellation lines (US2: T028-T040)
 import * as THREE from 'three';
 import { project3DtoScreen, camera, renderer, starNodes } from './scene.js';
 import { CONSTELLATION_ZONES } from './data.js';
@@ -6,201 +6,102 @@ import { CONSTELLATION_ZONES } from './data.js';
 const gsap = window.gsap;
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// ---------------------------------------------------------------------------
+// Module state
+// ---------------------------------------------------------------------------
 let svgContainer = null;
+let watermarkGroup = null;
+let activeGroup = null;
+let watermarkLines = [];
 let activeLines = [];
+let allTrackedLines = []; // Merged for single tick() iteration
 let currentZoneIndex = -1;
-let tierLevel = 1;
-let fadeSequence = 0; // race condition guard for zone transitions
+let fadeSequence = 0;
+let showcaseTl = null; // Intro showcase timeline reference (T037)
 
-// Reusable vectors for per-frame tick (avoid GC pressure)
 const _wPos1 = new THREE.Vector3();
 const _wPos2 = new THREE.Vector3();
 
-// ---------------------------------------------------------------------------
-// T034-T035: init — create SVG container, wire event listeners
-// ---------------------------------------------------------------------------
-function init() {
+// Zone visual constants (derived from nebulaHueRgb)
+const ZONE_HEX = ['#6B40A1', '#B8870A', '#1A9E8F'];
+const ZONE_HEX_BRIGHT = ['#9B6BD4', '#E8B73A', '#4ACEBF'];
+const ZONE_HEX_WATERMARK = ['#8B7099', '#A89B78', '#6B9B95'];
+
+// createSVGDefs — filters + gradients per zone (T028)
+function createSVGDefs() {
   const ns = 'http://www.w3.org/2000/svg';
-  svgContainer = document.createElementNS(ns, 'svg');
-  svgContainer.setAttribute('class', 'constellation-lines');
-  svgContainer.style.cssText =
-    'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:24;';
-  svgContainer.setAttribute('aria-hidden', 'true');
-  document.body.appendChild(svgContainer);
+  const defs = document.createElementNS(ns, 'defs');
+  const el = (tag, attrs) => {
+    const e = document.createElementNS(ns, tag);
+    Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+    return e;
+  };
+  for (let z = 0; z < ZONE_HEX.length; z++) {
+    const filter = el('filter', { id: `zone-glow-${z}`, 'color-interpolation-filters': 'sRGB',
+      x: '-50%', y: '-50%', width: '200%', height: '200%' });
+    filter.appendChild(el('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '3', result: 'blur' }));
+    filter.appendChild(el('feFlood', { 'flood-color': ZONE_HEX[z], 'flood-opacity': '0.6', result: 'color' }));
+    filter.appendChild(el('feComposite', { in: 'color', in2: 'blur', operator: 'in', result: 'coloredGlow' }));
+    const merge = el('feMerge', {});
+    merge.appendChild(el('feMergeNode', { in: 'coloredGlow' }));
+    merge.appendChild(el('feMergeNode', { in: 'SourceGraphic' }));
+    filter.appendChild(merge);
+    defs.appendChild(filter);
 
-  // Listen for zone-change (dispatched by scroll-zones.js)
-  document.addEventListener('zone-change', onZoneChange);
-
-  // Hide behind project overlay (body-level z-index can't nest inside #app-shell)
-  document.addEventListener('panel-open', () => { svgContainer.style.display = 'none'; });
-  document.addEventListener('panel-close', () => { svgContainer.style.display = ''; });
-
-  // Listen for tier-change (dispatched by performance.js)
-  document.addEventListener('tier-change', (e) => {
-    tierLevel = e.detail.tier;
-  });
-
-  // Register own GSAP ticker for position updates + pulse
-  const startTime = performance.now();
-  gsap.ticker.add(() => {
-    const elapsed = (performance.now() - startTime) / 1000;
-    tick();
-    updatePulse(elapsed);
-  });
-}
-
-// ---------------------------------------------------------------------------
-// T036: Zone-change handler
-// ---------------------------------------------------------------------------
-function onZoneChange(e) {
-  const { zoneIndex, zone } = e.detail;
-
-  if (zoneIndex === currentZoneIndex) return;
-
-  // Increment sequence to invalidate stale fadeOut callbacks
-  const seq = ++fadeSequence;
-
-  // Fade out existing lines, then build new ones
-  if (activeLines.length > 0) {
-    fadeOutLines(() => {
-      if (seq !== fadeSequence) return; // stale callback — newer zone change superseded
-      clearLines();
-      if (zoneIndex >= 0 && zone) {
-        currentZoneIndex = zoneIndex;
-        createZoneLines(zone);
-      } else {
-        currentZoneIndex = -1;
-      }
+    const grad = el('linearGradient', { id: `zone-grad-${z}`, gradientUnits: 'objectBoundingBox' });
+    [[0, ZONE_HEX[z], 1], [50, ZONE_HEX_BRIGHT[z], 1], [100, ZONE_HEX[z], 0.4]].forEach(([off, col, op]) => {
+      grad.appendChild(el('stop', { offset: off + '%', 'stop-color': col, 'stop-opacity': String(op) }));
     });
-  } else {
-    currentZoneIndex = zoneIndex;
-    if (zoneIndex >= 0 && zone) {
-      createZoneLines(zone);
-    }
+    defs.appendChild(grad);
   }
+  svgContainer.appendChild(defs);
 }
 
-// ---------------------------------------------------------------------------
-// createZoneLines — chain topology: N-1 lines for N projects
-// ---------------------------------------------------------------------------
-function createZoneLines(zone) {
-  if (!starNodes || !camera || !renderer) return;
+// getZoneStars — resolve zone projectIds to starNodes, excluding dead-rock
+function getZoneStars(zone) {
+  if (!starNodes) return [];
+  return zone.projectIds
+    .map(id => starNodes.find(n => n.userData.project.id === id))
+    .filter(n => n && n.userData.project.status !== 'paused');
+}
 
+// initWatermarkLines — persistent dashed lines for all zones (T029)
+function initWatermarkLines() {
+  if (!starNodes || !svgContainer) return;
   const ns = 'http://www.w3.org/2000/svg';
-  const projectStars = zone.projectIds
-    .map(id => starNodes.find(s => s.userData.project.id === id))
-    .filter(Boolean);
+  const reduced = prefersReducedMotion();
 
-  // Need at least 2 stars to draw a line
-  if (projectStars.length < 2) return;
+  watermarkGroup = document.createElementNS(ns, 'g');
+  watermarkGroup.setAttribute('class', 'watermark-lines');
+  svgContainer.appendChild(watermarkGroup);
 
-  for (let i = 0; i < projectStars.length - 1; i++) {
-    const line = document.createElementNS(ns, 'line');
-    const r = Math.round(zone.nebulaHueRgb[0] * 255);
-    const g = Math.round(zone.nebulaHueRgb[1] * 255);
-    const b = Math.round(zone.nebulaHueRgb[2] * 255);
-    const color = `rgb(${r}, ${g}, ${b})`;
-    line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '1.5');
-    line.setAttribute('stroke-linecap', 'round');
-    line.setAttribute('stroke-opacity', '0.5');
-
-    const star1 = projectStars[i];
-    const star2 = projectStars[i + 1];
-
-    svgContainer.appendChild(line);
-    activeLines.push({ element: line, star1, star2 });
-
-    // T037: Draw-on animation
-    animateDrawOn(line, star1, star2);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// T037: Draw-on animation — stroke-dashoffset reveal
-// ---------------------------------------------------------------------------
-function animateDrawOn(line, star1, star2) {
-  star1.getWorldPosition(_wPos1);
-  star2.getWorldPosition(_wPos2);
-  const s1 = project3DtoScreen(_wPos1, camera, renderer.domElement);
-  const s2 = project3DtoScreen(_wPos2, camera, renderer.domElement);
-
-  line.setAttribute('x1', s1.x);
-  line.setAttribute('y1', s1.y);
-  line.setAttribute('x2', s2.x);
-  line.setAttribute('y2', s2.y);
-
-  const dx = s2.x - s1.x;
-  const dy = s2.y - s1.y;
-  const length = Math.sqrt(dx * dx + dy * dy);
-
-  if (prefersReducedMotion()) {
-    // Show instantly — no animation
-    return;
-  }
-
-  line.setAttribute('stroke-dasharray', length);
-  line.setAttribute('stroke-dashoffset', length);
-
-  gsap.to(line, {
-    attr: { 'stroke-dashoffset': 0 },
-    duration: 0.6,
-    ease: 'power2.out',
-    onComplete: () => {
-      line.removeAttribute('stroke-dasharray');
-      line.removeAttribute('stroke-dashoffset');
+  CONSTELLATION_ZONES.forEach((zone, zIdx) => {
+    const stars = getZoneStars(zone);
+    for (let i = 0; i < stars.length - 1; i++) {
+      const line = document.createElementNS(ns, 'line');
+      line.setAttribute('stroke', ZONE_HEX_WATERMARK[zIdx]);
+      line.setAttribute('stroke-width', '1');
+      line.setAttribute('stroke-linecap', 'round');
+      line.setAttribute('stroke-opacity', '0.20');
+      if (!reduced) line.setAttribute('stroke-dasharray', '8 12');
+      watermarkGroup.appendChild(line);
+      watermarkLines.push({ element: line, star1: stars[i], star2: stars[i + 1], zoneIndex: zIdx });
     }
   });
+
+  rebuildTrackedLines();
 }
 
-// ---------------------------------------------------------------------------
-// T038: Zone transition choreography — fade out existing lines
-// ---------------------------------------------------------------------------
-function fadeOutLines(callback) {
-  if (prefersReducedMotion() || activeLines.length === 0) {
-    clearLines();
-    if (callback) callback();
-    return;
-  }
-
-  const elements = activeLines.map(l => l.element);
-  gsap.to(elements, {
-    attr: { 'stroke-opacity': 0 },
-    duration: 0.4,
-    ease: 'power2.in',
-    onComplete: () => {
-      clearLines();
-      if (callback) callback();
-    }
-  });
+function rebuildTrackedLines() {
+  allTrackedLines = [...watermarkLines, ...activeLines];
 }
 
-function clearLines() {
-  activeLines.forEach(l => l.element.remove());
-  activeLines = [];
-}
-
-// ---------------------------------------------------------------------------
-// T039: Pulse/glow — subtle opacity oscillation (only when tierLevel < 2)
-// ---------------------------------------------------------------------------
-function updatePulse(elapsed) {
-  if (prefersReducedMotion() || tierLevel >= 2) return;
-  if (activeLines.length === 0) return;
-
-  const pulse = 0.4 + 0.15 * Math.sin(elapsed * 2);
-  activeLines.forEach(l => {
-    l.element.setAttribute('stroke-opacity', pulse);
-  });
-}
-
-// ---------------------------------------------------------------------------
-// T040: Tick — update SVG line endpoints to track star world positions
-// ---------------------------------------------------------------------------
+// tick — update all tracked SVG line endpoints per frame (T030)
 function tick() {
-  if (activeLines.length === 0) return;
+  if (allTrackedLines.length === 0) return;
   if (!camera || !renderer) return;
 
-  activeLines.forEach(l => {
+  allTrackedLines.forEach(l => {
     l.star1.getWorldPosition(_wPos1);
     l.star2.getWorldPosition(_wPos2);
     const s1 = project3DtoScreen(_wPos1, camera, renderer.domElement);
@@ -212,7 +113,232 @@ function tick() {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Exports
-// ---------------------------------------------------------------------------
-export { init };
+// createActiveLines — premium lines for the active zone (T031)
+function createActiveLines(zone, zoneIndex) {
+  if (!starNodes || !svgContainer) return;
+  const ns = 'http://www.w3.org/2000/svg';
+  const reduced = prefersReducedMotion();
+
+  if (!activeGroup) {
+    activeGroup = document.createElementNS(ns, 'g');
+    activeGroup.setAttribute('class', 'active-lines');
+    svgContainer.appendChild(activeGroup);
+  }
+
+  const stars = getZoneStars(zone);
+  if (stars.length < 2) return;
+
+  for (let i = 0; i < stars.length - 1; i++) {
+    const line = document.createElementNS(ns, 'line');
+    if (reduced) {
+      line.setAttribute('stroke', ZONE_HEX[zoneIndex]);
+    } else {
+      line.setAttribute('stroke', `url(#zone-grad-${zoneIndex})`);
+      line.setAttribute('filter', `url(#zone-glow-${zoneIndex})`);
+    }
+    line.setAttribute('stroke-width', '2');
+    line.setAttribute('stroke-linecap', 'round');
+    line.setAttribute('stroke-opacity', '0.7');
+    activeGroup.appendChild(line);
+
+    const entry = { element: line, star1: stars[i], star2: stars[i + 1], zoneIndex };
+    activeLines.push(entry);
+    animateDrawOn(line, stars[i], stars[i + 1], reduced);
+  }
+
+  rebuildTrackedLines();
+}
+
+// animateDrawOn — stroke-dashoffset reveal, then energy flow (T031-T032)
+function animateDrawOn(line, star1, star2, reduced) {
+  star1.getWorldPosition(_wPos1);
+  star2.getWorldPosition(_wPos2);
+  const s1 = project3DtoScreen(_wPos1, camera, renderer.domElement);
+  const s2 = project3DtoScreen(_wPos2, camera, renderer.domElement);
+  line.setAttribute('x1', s1.x);
+  line.setAttribute('y1', s1.y);
+  line.setAttribute('x2', s2.x);
+  line.setAttribute('y2', s2.y);
+
+  if (reduced) return;
+
+  const dx = s2.x - s1.x;
+  const dy = s2.y - s1.y;
+  const length = Math.sqrt(dx * dx + dy * dy);
+
+  line.setAttribute('stroke-dasharray', String(length));
+  line.setAttribute('stroke-dashoffset', String(length));
+
+  gsap.to(line, {
+    attr: { 'stroke-dashoffset': 0 },
+    duration: 0.6,
+    ease: 'power2.out',
+    onComplete: () => startEnergyFlow(line, length)
+  });
+}
+
+// startEnergyFlow — repeating dash animation (~200px/s) (T032)
+function startEnergyFlow(line, totalLength) {
+  if (prefersReducedMotion()) return;
+  const cycleLength = 40; // 15 + 10 + 5 + 10
+  line.setAttribute('stroke-dasharray', '15 10 5 10');
+  line.setAttribute('stroke-dashoffset', '0');
+  gsap.to(line, {
+    attr: { 'stroke-dashoffset': -cycleLength },
+    duration: Math.max(0.5, totalLength / 200),
+    repeat: -1,
+    ease: 'none'
+  });
+}
+
+// onZoneChange — watermark↔active transitions (T033)
+function onZoneChange(e) {
+  const { zoneIndex, zone } = e.detail;
+  if (zoneIndex === currentZoneIndex) return;
+
+  const seq = ++fadeSequence;
+
+  if (activeLines.length > 0) {
+    fadeOutActiveLines(() => {
+      if (seq !== fadeSequence) return;
+      clearActiveLines();
+      currentZoneIndex = zoneIndex;
+      if (zoneIndex >= 0 && zone) createActiveLines(zone, zoneIndex);
+    });
+  } else {
+    currentZoneIndex = zoneIndex;
+    if (zoneIndex >= 0 && zone) createActiveLines(zone, zoneIndex);
+  }
+}
+
+function fadeOutActiveLines(callback) {
+  if (prefersReducedMotion() || activeLines.length === 0) {
+    clearActiveLines();
+    if (callback) callback();
+    return;
+  }
+  const elements = activeLines.map(l => l.element);
+  gsap.to(elements, {
+    attr: { 'stroke-opacity': 0 },
+    duration: 0.4,
+    ease: 'power2.in',
+    onComplete: () => {
+      clearActiveLines();
+      if (callback) callback();
+    }
+  });
+}
+
+function clearActiveLines() {
+  activeLines.forEach(l => {
+    gsap.killTweensOf(l.element);
+    l.element.remove();
+  });
+  activeLines = [];
+  rebuildTrackedLines();
+}
+
+// playIntroShowcase — rapid zone flash during reveal (T037)
+function playIntroShowcase() {
+  if (!gsap || !starNodes || !svgContainer) return null;
+  if (prefersReducedMotion() || window.innerWidth < 768) return null;
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const tempGroup = document.createElementNS(ns, 'g');
+  tempGroup.setAttribute('class', 'showcase-lines');
+  svgContainer.appendChild(tempGroup);
+
+  // Build temporary preview lines for all zones
+  const zoneSets = CONSTELLATION_ZONES.map((zone, zIdx) => {
+    const stars = getZoneStars(zone);
+    const lines = [];
+    for (let i = 0; i < stars.length - 1; i++) {
+      const line = document.createElementNS(ns, 'line');
+      line.setAttribute('stroke', ZONE_HEX[zIdx]);
+      line.setAttribute('stroke-width', '1.5');
+      line.setAttribute('stroke-linecap', 'round');
+      line.setAttribute('stroke-opacity', '0');
+      // Set initial positions
+      stars[i].getWorldPosition(_wPos1);
+      stars[i + 1].getWorldPosition(_wPos2);
+      const s1 = project3DtoScreen(_wPos1, camera, renderer.domElement);
+      const s2 = project3DtoScreen(_wPos2, camera, renderer.domElement);
+      line.setAttribute('x1', s1.x);
+      line.setAttribute('y1', s1.y);
+      line.setAttribute('x2', s2.x);
+      line.setAttribute('y2', s2.y);
+      tempGroup.appendChild(line);
+      lines.push(line);
+    }
+    return lines;
+  });
+
+  showcaseTl = gsap.timeline({
+    onComplete: () => {
+      tempGroup.remove();
+      showcaseTl = null;
+    }
+  });
+
+  // Flash each zone with overlapping crossfade (~1.15s total)
+  zoneSets.forEach((lines, i) => {
+    if (lines.length === 0) return;
+    const t = i * 0.3; // 0.1s overlap between zones
+    showcaseTl.to(lines, {
+      attr: { 'stroke-opacity': 0.5 },
+      duration: 0.15,
+      ease: 'power2.out'
+    }, t);
+    showcaseTl.to(lines, {
+      attr: { 'stroke-opacity': 0 },
+      duration: 0.2,
+      ease: 'power2.in'
+    }, t + 0.2);
+  });
+
+  return showcaseTl;
+}
+
+// killShowcase — clean kill for skip handling (T039)
+function killShowcase() {
+  if (!showcaseTl) return;
+  showcaseTl.kill();
+  showcaseTl = null;
+  const tempGroup = svgContainer && svgContainer.querySelector('.showcase-lines');
+  if (tempGroup) {
+    if (gsap) {
+      const lines = tempGroup.querySelectorAll('line');
+      gsap.to(lines, {
+        attr: { 'stroke-opacity': 0 },
+        duration: 0.1,
+        onComplete: () => tempGroup.remove()
+      });
+    } else {
+      tempGroup.remove();
+    }
+  }
+}
+
+// init — SVG container, defs, watermark, wire events (T028-T035)
+function init() {
+  const ns = 'http://www.w3.org/2000/svg';
+  svgContainer = document.createElementNS(ns, 'svg');
+  svgContainer.setAttribute('class', 'constellation-lines');
+  svgContainer.style.cssText =
+    'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:24;';
+  svgContainer.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(svgContainer);
+
+  createSVGDefs();
+  initWatermarkLines();
+
+  document.addEventListener('zone-change', onZoneChange);
+
+  // Hide behind project overlay (T034)
+  document.addEventListener('panel-open', () => { svgContainer.style.display = 'none'; });
+  document.addEventListener('panel-close', () => { svgContainer.style.display = ''; });
+
+  gsap.ticker.add(tick);
+}
+
+export { init, playIntroShowcase, killShowcase };

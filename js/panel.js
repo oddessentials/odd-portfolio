@@ -16,12 +16,52 @@ let _beforeOpen = null;
 const CATEGORY_ICONS = {
   'ai-devops': '<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><circle cx="24" cy="18" r="8"/><path d="M12 40c0-6.627 5.373-12 12-12s12 5.373 12 12"/><circle cx="36" cy="12" r="4"/><line x1="36" y1="16" x2="36" y2="22"/></svg>',
   'data-devops': '<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="6" width="32" height="10" rx="2"/><rect x="8" y="20" width="32" height="10" rx="2"/><rect x="8" y="34" width="32" height="10" rx="2"/><circle cx="14" cy="11" r="2" fill="currentColor"/><circle cx="14" cy="25" r="2" fill="currentColor"/><circle cx="14" cy="39" r="2" fill="currentColor"/></svg>',
+  'devops': '<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><circle cx="24" cy="24" r="16"/><path d="M24 8v32M8 24h32"/><circle cx="24" cy="24" r="6" fill="currentColor"/></svg>',
   'tooling': '<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 8l28 0M10 16l28 0M10 24l20 0M10 32l14 0M10 40l8 0"/><path d="M36 28l4-4 4 4-4 4z"/></svg>',
   'infrastructure': '<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><rect x="14" y="6" width="20" height="14" rx="2"/><rect x="14" y="28" width="20" height="14" rx="2"/><line x1="24" y1="20" x2="24" y2="28"/><circle cx="20" cy="12" r="2" fill="currentColor"/><circle cx="28" cy="12" r="2" fill="currentColor"/></svg>',
   'frontend': '<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="40" height="28" rx="3"/><line x1="4" y1="16" x2="44" y2="16"/><circle cx="10" cy="12" r="1.5" fill="currentColor"/><circle cx="16" cy="12" r="1.5" fill="currentColor"/><polyline points="14,26 20,30 14,34"/><line x1="24" y1="34" x2="34" y2="34"/></svg>',
   'fintech': '<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4,36 12,24 20,30 28,14 36,22 44,10"/><line x1="4" y1="42" x2="44" y2="42"/><line x1="4" y1="6" x2="4" y2="42"/></svg>',
+  'application': '<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="36" height="36" rx="4"/><line x1="6" y1="14" x2="42" y2="14"/><circle cx="12" cy="10" r="1.5" fill="currentColor"/><circle cx="18" cy="10" r="1.5" fill="currentColor"/><rect x="12" y="20" width="24" height="16" rx="2"/></svg>',
+  'experiments': '<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6v14l-10 18a4 4 0 003.5 6h25a4 4 0 003.5-6L30 20V6"/><line x1="16" y1="6" x2="32" y2="6"/><circle cx="22" cy="32" r="2" fill="currentColor"/><circle cx="28" cy="28" r="1.5" fill="currentColor"/></svg>',
+  'reference': '<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="4" width="28" height="40" rx="2"/><line x1="14" y1="12" x2="30" y2="12"/><line x1="14" y1="20" x2="30" y2="20"/><line x1="14" y1="28" x2="24" y2="28"/></svg>',
   'web': '<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><circle cx="24" cy="24" r="18"/><ellipse cx="24" cy="24" rx="8" ry="18"/><line x1="6" y1="24" x2="42" y2="24"/><line x1="24" y1="6" x2="24" y2="42"/></svg>'
 };
+
+// Shared helper: render cluster member list
+function renderClusterMemberList(members, accentColor) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'cluster-member-list';
+  members.forEach(member => {
+    const item = document.createElement('div');
+    item.className = 'cluster-member';
+    const nameEl = document.createElement('h3');
+    nameEl.className = 'cluster-member__name';
+    nameEl.textContent = member.name;
+    if (accentColor) nameEl.style.color = accentColor;
+    item.appendChild(nameEl);
+    const descEl = document.createElement('p');
+    descEl.className = 'cluster-member__desc';
+    descEl.textContent = member.description;
+    item.appendChild(descEl);
+    if (member.status === 'in-progress') {
+      const badge = document.createElement('span');
+      badge.className = 'status-badge status-badge--in-progress';
+      badge.textContent = 'In Progress';
+      item.appendChild(badge);
+    }
+    if (member.url) {
+      const link = document.createElement('a');
+      link.href = member.url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = 'GitHub';
+      link.className = 'cluster-member__link';
+      item.appendChild(link);
+    }
+    wrapper.appendChild(item);
+  });
+  return wrapper;
+}
 
 // ---------------------------------------------------------------------------
 // Extract YouTube video ID from URL
@@ -60,6 +100,51 @@ function showProjectPanel(project, trigger) {
   const taglineEl = overlayEl.querySelector('.overlay__tagline');
   titleEl.textContent = project.name;
   taglineEl.textContent = project.tagline;
+
+  // In-progress status badge
+  const descZone = overlayEl.querySelector('.overlay__description-zone');
+  descZone.innerHTML = '';
+  if (project.status === 'in-progress') {
+    const badge = document.createElement('span');
+    badge.className = 'status-badge status-badge--in-progress';
+    badge.textContent = 'In Progress';
+    descZone.appendChild(badge);
+  }
+
+  // Cluster panel: list view, no media
+  if (project.isCluster && project.clusterMembers && project.clusterMembers.length > 0) {
+    const logoZone = overlayEl.querySelector('.overlay__logo-zone');
+    logoZone.innerHTML = '';
+    const mediaZone = overlayEl.querySelector('.overlay__media-zone');
+    mediaZone.innerHTML = '';
+    mediaZone.appendChild(renderClusterMemberList(project.clusterMembers, project.accentColor));
+
+    // Links footer
+    const linksFooter = overlayEl.querySelector('.overlay__links');
+    linksFooter.innerHTML = '';
+    project.links.slice(0, 5).forEach((link) => {
+      const a = document.createElement('a');
+      a.href = link.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = link.label;
+      if (!link.primary) a.className = 'secondary';
+      linksFooter.appendChild(a);
+    });
+
+    overlayEl.setAttribute('aria-label', project.name + ' project details');
+    overlayEl.removeAttribute('hidden');
+    if (window.ScrollTrigger) {
+      window.ScrollTrigger.getAll().forEach(st => st.disable());
+    }
+    document.body.style.overflow = 'hidden';
+    document.dispatchEvent(new CustomEvent('panel-open', { detail: { project } }));
+    requestAnimationFrame(() => {
+      closeBtn.focus();
+      updateFocusableElements();
+    });
+    return;
+  }
 
   // Logo zone
   const logoZone = overlayEl.querySelector('.overlay__logo-zone');
@@ -163,6 +248,18 @@ function showProjectPanel(project, trigger) {
       mediaZone.appendChild(placeholder);
       break;
     }
+  }
+
+  // Related Repositories section (for non-cluster stars with clusterMembers, e.g. Coney Island)
+  if (!project.isCluster && project.clusterMembers && project.clusterMembers.length > 0) {
+    const repoSection = document.createElement('div');
+    repoSection.className = 'related-repos';
+    const repoHeading = document.createElement('h3');
+    repoHeading.textContent = 'Related Repositories';
+    repoHeading.style.cssText = 'font-family:var(--font-mono);font-size:var(--text-sm);color:var(--color-text-secondary);margin:16px 0 8px;';
+    repoSection.appendChild(repoHeading);
+    repoSection.appendChild(renderClusterMemberList(project.clusterMembers, project.accentColor));
+    mediaZone.appendChild(repoSection);
   }
 
   // Links footer
