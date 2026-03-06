@@ -19,6 +19,10 @@ const NEEDLE_ANGLES = {
   2:     { left: '270deg',  right: '-270deg' }
 };
 
+// Needle tween refs (kill by reference, not property filter)
+let needleTweenLeft = null;
+let needleTweenRight = null;
+
 // Micro-tremor state (T012)
 let tremorTweenLeft = null;
 let tremorTweenRight = null;
@@ -61,18 +65,25 @@ function animateNeedles(zoneIndex, instant) {
   // T012: Pause micro-tremor during transition
   stopMicroTremor();
 
+  // Kill any in-flight needle tweens by reference (not property filter)
+  if (needleTweenLeft) { needleTweenLeft.kill(); needleTweenLeft = null; }
+  if (needleTweenRight) { needleTweenRight.kill(); needleTweenRight = null; }
+
   if (instant) {
     gsap.set(gaugeLeft, { '--needle-angle': angles.left });
     gsap.set(gaugeRight, { '--needle-angle': angles.right });
-    // T012: Restart tremor immediately for instant transitions
     startMicroTremor(angles);
   } else {
-    gsap.killTweensOf(gaugeLeft, '--needle-angle');
-    gsap.killTweensOf(gaugeRight, '--needle-angle');
-    gsap.to(gaugeLeft, { '--needle-angle': angles.left, duration: 0.8, ease: 'elastic.out(1, 0.4)' });
-    gsap.to(gaugeRight, {
-      '--needle-angle': angles.right, duration: 0.8, ease: 'elastic.out(1, 0.4)',
-      onComplete: () => startMicroTremor(angles)
+    needleTweenLeft = gsap.to(gaugeLeft, {
+      '--needle-angle': angles.left, duration: 0.8, ease: 'elastic.out(1, 0.75)'
+    });
+    needleTweenRight = gsap.to(gaugeRight, {
+      '--needle-angle': angles.right, duration: 0.8, ease: 'elastic.out(1, 0.75)',
+      onComplete: () => {
+        needleTweenLeft = null;
+        needleTweenRight = null;
+        startMicroTremor(angles);
+      }
     });
   }
 }
