@@ -60,7 +60,7 @@ function initScrollZones() {
   if (!scrollDriver) return;
 
   // Set scroll-driver height dynamically
-  scrollDriver.style.height = (window.innerHeight + 300) + 'px';
+  scrollDriver.style.height = (window.innerHeight + 2200) + 'px';
 
   // Enable scrolling
   document.body.classList.add('scroll-enabled');
@@ -80,7 +80,7 @@ function initScrollZones() {
 
   // Update scroll-driver height on resize (T028)
   window.addEventListener('resize', () => {
-    scrollDriver.style.height = (window.innerHeight + 300) + 'px';
+    scrollDriver.style.height = (window.innerHeight + 2200) + 'px';
     ScrollTrigger.refresh();
   });
 
