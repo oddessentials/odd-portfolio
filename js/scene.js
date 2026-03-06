@@ -139,7 +139,7 @@ function initScene() {
     raycaster.setFromCamera(clickMouse, camera);
     const hits = raycaster.intersectObjects(starNodes, true);
     const target = hits.length > 0 ? hits[0].object : null;
-    if (target && target.userData.project && target.userData.project.status !== 'paused') {
+    if (target && target.userData.project) {
       document.dispatchEvent(new CustomEvent('star-click', {
         detail: target.userData.project,
         bubbles: true
@@ -161,7 +161,7 @@ function initScene() {
     const hits = raycaster.intersectObjects(starNodes, true);
     for (let i = 0; i < hits.length; i++) {
       const obj = hits[i].object;
-      if (obj.userData && obj.userData.project && obj.userData.project.status !== 'paused') {
+      if (obj.userData && obj.userData.project) {
         document.dispatchEvent(new CustomEvent('star-click', {
           detail: obj.userData.project,
           bubbles: true
@@ -326,15 +326,22 @@ function initScene() {
       }
     }
 
-    if (hitObj && hitObj.userData.project.status !== 'paused') {
+    if (hitObj) {
       // For cluster children (hit-area or sub-point sprites), use the parent group
       const hoverTarget = (hitObj.userData.isHitArea || hitObj.userData.isSubPoint) ? hitObj.parent : hitObj;
-      if (hoveredStar !== hoverTarget) {
+      const isPaused = hoverTarget.userData.project && hoverTarget.userData.project.status === 'paused';
+      if (isPaused) {
+        // Dead rock: show pointer cursor for click, but no reticle/scale
+        if (hoveredStar && hoveredStar !== hoverTarget) { onStarExit(hoveredStar); hoveredStar = null; }
+        hitzone.style.cursor = 'pointer';
+      } else if (hoveredStar !== hoverTarget) {
         if (hoveredStar) onStarExit(hoveredStar);
         hoveredStar = hoverTarget;
         onStarEnter(hoverTarget);
+        hitzone.style.cursor = 'pointer';
+      } else {
+        hitzone.style.cursor = 'pointer';
       }
-      hitzone.style.cursor = 'pointer';
     } else {
       if (hoveredStar) {
         onStarExit(hoveredStar);

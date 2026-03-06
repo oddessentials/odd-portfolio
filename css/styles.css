@@ -1718,6 +1718,11 @@ body.nav-overlay-active .nav-backdrop {
   background: rgba(200,168,75,0.15);
   border: 1px solid rgba(200,168,75,0.3);
 }
+.status-badge--paused {
+  color: var(--color-stone-400, #a8a29e);
+  background: rgba(168,162,158,0.12);
+  border: 1px solid rgba(168,162,158,0.25);
+}
 
 /* --- Cluster member list (panel) --- */
 .cluster-member-list {

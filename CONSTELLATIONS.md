@@ -36,10 +36,11 @@
 - Members: oddessentials-splash, odd-portfolio, oddessentials-platform (in-progress), odd-demonstration
 - Panel shows cluster member list with links
 
-### Dead Rock Cluster (paused, non-interactive)
+### Dead Rock Cluster (paused, click-to-view)
 - 6 dim grey sprites (opacity 0.20), no halo, no pulse
 - Members: odd-hive-mind, oddessentials-mcp, odd-repo-mapper, odd-docs, odd-dep-updater, odd-consultant
-- Not in nav, not clickable, no reticle, no constellation lines
+- Clickable: opens panel with "Archived" badge and live GitHub links for each member
+- Not in nav, no reticle, no constellation lines
 - Exempt from zone highlight scaling/opacity boost
 
 ### Coney Island (star with related repos)

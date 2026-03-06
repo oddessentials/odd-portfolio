@@ -260,16 +260,14 @@ export function createStarNodes(PROJECTS) {
       };
 
       // Hit-area sprite for raycasting (transparent, at cluster center)
-      if (project.status !== 'paused') {
-        const hitTex = createStarTexture('#000000', 32);
-        const hitMat = new THREE.SpriteMaterial({
-          map: hitTex, transparent: true, opacity: 0.001, depthWrite: false
-        });
-        const hitSprite = new THREE.Sprite(hitMat);
-        hitSprite.scale.set(0.15, 0.15, 0.15);
-        hitSprite.userData = { project, isHitArea: true };
-        group.add(hitSprite);
-      }
+      const hitTex = createStarTexture('#000000', 32);
+      const hitMat = new THREE.SpriteMaterial({
+        map: hitTex, transparent: true, opacity: 0.001, depthWrite: false
+      });
+      const hitSprite = new THREE.Sprite(hitMat);
+      hitSprite.scale.set(0.15, 0.15, 0.15);
+      hitSprite.userData = { project, isHitArea: true };
+      group.add(hitSprite);
 
       starGroup.add(group);
       starNodes.push(group);

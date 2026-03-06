@@ -48,6 +48,11 @@ function renderClusterMemberList(members, accentColor) {
       badge.className = 'status-badge status-badge--in-progress';
       badge.textContent = 'In Progress';
       item.appendChild(badge);
+    } else if (member.status === 'paused') {
+      const badge = document.createElement('span');
+      badge.className = 'status-badge status-badge--paused';
+      badge.textContent = 'Archived';
+      item.appendChild(badge);
     }
     if (member.url) {
       const link = document.createElement('a');
@@ -108,6 +113,11 @@ function showProjectPanel(project, trigger) {
     const badge = document.createElement('span');
     badge.className = 'status-badge status-badge--in-progress';
     badge.textContent = 'In Progress';
+    descZone.appendChild(badge);
+  } else if (project.status === 'paused') {
+    const badge = document.createElement('span');
+    badge.className = 'status-badge status-badge--paused';
+    badge.textContent = 'Archived';
     descZone.appendChild(badge);
   }
 
