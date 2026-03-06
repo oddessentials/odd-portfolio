@@ -327,8 +327,8 @@ function initScene() {
     }
 
     if (hitObj && hitObj.userData.project.status !== 'paused') {
-      // For cluster hit-area sprites, use the parent group as the hovered node
-      const hoverTarget = hitObj.userData.isHitArea ? hitObj.parent : hitObj;
+      // For cluster children (hit-area or sub-point sprites), use the parent group
+      const hoverTarget = (hitObj.userData.isHitArea || hitObj.userData.isSubPoint) ? hitObj.parent : hitObj;
       if (hoveredStar !== hoverTarget) {
         if (hoveredStar) onStarExit(hoveredStar);
         hoveredStar = hoverTarget;
