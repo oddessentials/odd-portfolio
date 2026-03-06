@@ -591,7 +591,7 @@ body.nav-overlay-active .nav-backdrop {
 .frame__gauge--left {
   width: var(--frame-gauge-size-left);
   height: var(--frame-gauge-size-left);
-  left: calc(var(--frame-border-width) - var(--frame-gauge-size-left) / 2 + 4px);
+  left: calc(var(--frame-border-width) - var(--frame-gauge-size-left) / 2 - 2px);
   top: 35%;
   transform: translateY(-50%);
 }
