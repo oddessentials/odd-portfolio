@@ -47,7 +47,9 @@ function playRevealSequence() {
   gsap.set('.frame__corner--br', { x: cornerOffset, y: cornerOffset });
   gsap.set('.frame__edge--top, .frame__edge--bottom', { scaleX: 0 });
   gsap.set('.frame__edge--left, .frame__edge--right', { scaleY: 0 });
-  gsap.set(gauges, { scale: 0, opacity: 0 });
+  gsap.set(gauges, { scale: 0, opacity: 0,
+    '--gauge-zone0-glow': 0, '--gauge-zone1-glow': 0, '--gauge-zone2-glow': 0,
+    '--dome-x': 0, '--dome-y': 0 });
   gsap.set(runeBand, { opacity: 0 });
   gsap.set(headerBand, { opacity: 0, y: -10 });
   gsap.set(scanLines, { opacity: 0, x: 10 });
@@ -206,14 +208,14 @@ function playRevealSequence() {
   tl.fromTo('.frame__gauge--left', {
     '--needle-angle': '-135deg'
   }, {
-    '--needle-angle': '15deg',
+    '--needle-angle': '0deg',
     duration: 0.8,
     ease: 'elastic.out(1, 0.4)'
   }, 1.6);
   tl.fromTo('.frame__gauge--right', {
     '--needle-angle': '135deg'
   }, {
-    '--needle-angle': '30deg',
+    '--needle-angle': '0deg',
     duration: 0.8,
     ease: 'elastic.out(1, 0.4)'
   }, 1.8);
