@@ -94,7 +94,7 @@ const fragmentShader = /* glsl */`
 
 function loadTextures() {
   const loader = new THREE.TextureLoader();
-  loader.load('assets/sidebar-glyphs-left.png', (tex) => {
+  loader.load('assets/sidebar-glyphs-left.webp', (tex) => {
     tex.minFilter = THREE.LinearFilter;
     tex.magFilter = THREE.LinearFilter;
     tex.generateMipmaps = false;
@@ -104,7 +104,7 @@ function loadTextures() {
   }, undefined, (err) => {
     console.warn('[Arcane Console] Failed to load left sidebar texture:', err);
   });
-  loader.load('assets/sidebar-glyphs-right.png', (tex) => {
+  loader.load('assets/sidebar-glyphs-right.webp', (tex) => {
     tex.minFilter = THREE.LinearFilter;
     tex.magFilter = THREE.LinearFilter;
     tex.generateMipmaps = false;

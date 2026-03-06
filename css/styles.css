@@ -1211,7 +1211,7 @@ body.nav-overlay-active .nav-backdrop {
       rgba(20, 13, 5, 0.92) 0%,
       rgba(13, 11, 9, 0.94) 100%
     ),
-    url('../assets/map-of-system.png') center / 100% 100% no-repeat;
+    url('../assets/map-of-system.webp') center / 100% 100% no-repeat;
   border: 2px solid var(--color-brass-mid);
   border-radius: 8px;
   box-shadow:
