@@ -50,7 +50,9 @@ When a zone activates on scroll, SVG lines connect all projects in that zone's p
 | Nebula rotation     | WebGL group                   | 0° → 30°                         | 30° → 60°                         | 60° → 90°                          | 0°                                          |
 | Gauge needles       | Brass frame                   | L: -10° / R: 55°                 | L: -50° / R: 95°                  | L: -90° / R: 135°                  | L: 30° / R: 15°                             |
 
-# Authoritative Data (NEW)
+# NEW DATA THAT MUST BE WEAVED IN
+
+## Authoritative Data (NEW)
 
 Applications
 
@@ -100,6 +102,12 @@ DockerHub - https://hub.docker.com/u/oddessentials
 VS Marketplace - https://marketplace.visualstudio.com/publishers/OddEssentials
 Codecov - https://app.codecov.io/github/oddessentials
 Medium - https://medium.com/@pete.palles
+
+## Additional Requirements
+
+1. Constellation line coloring when selected: keep the constellation lines theme-colored when selected, but make them prettier (maybe an animation, or a gradient, shadow, lighting, or something)
+2. Constellation line watermmark when not selected: when a line isn't in focus, show a faint dashed line that get replaced when in focus or something similar
+3. Constellation lines on intro animation: flash/rotate through the constellation lines
 
 ## Creative Direction (Strongly Encouraged):
 
