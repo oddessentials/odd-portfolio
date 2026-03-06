@@ -405,17 +405,17 @@ body.nav-overlay-active .nav-backdrop {
 
 .frame-tool--mr {
   top: 50%;
-  right: var(--frame-corner-size);
-  width: 130px;
-  height: 130px;
+  right: calc(var(--frame-corner-size) - 25px);
+  width: 180px;
+  height: 180px;
   transform: translateY(-50%) rotate(5deg);
 }
 
 .frame-tool--ml {
   top: 50%;
-  left: var(--frame-corner-size);
-  width: 130px;
-  height: 130px;
+  left: calc(var(--frame-corner-size) - 25px);
+  width: 180px;
+  height: 180px;
   transform: translateY(-50%) rotate(-6deg);
 }
 
