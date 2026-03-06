@@ -529,9 +529,9 @@ body.nav-overlay-active .nav-backdrop {
 .frame__gauge {
   /* Zone colors — must match CONSTELLATION_ZONES[].hex in js/data.js */
   --gauge-rest: #0D0B09;
-  --gauge-zone0: #6B40A1;
-  --gauge-zone1: #B8870A;
-  --gauge-zone2: #1A9E8F;
+  --gauge-zone0: #38B000;
+  --gauge-zone1: #F4A62A;
+  --gauge-zone2: #7B2CBF;
 
   /* Glow intensity per zone segment (0–1, driven by JS) */
   --gauge-zone0-glow: 0;
@@ -584,9 +584,9 @@ body.nav-overlay-active .nav-backdrop {
     conic-gradient(
       from 315deg,
       transparent 0deg 90.5deg,
-      rgba(107, 64, 161, var(--gauge-zone0-glow)) 89.5deg 180.5deg,
-      rgba(184, 135, 10, var(--gauge-zone1-glow)) 179.5deg 270.5deg,
-      rgba(26, 158, 143, var(--gauge-zone2-glow)) 269.5deg 360deg
+      rgba(56, 176, 0, var(--gauge-zone0-glow)) 89.5deg 180.5deg,
+      rgba(244, 166, 42, var(--gauge-zone1-glow)) 179.5deg 270.5deg,
+      rgba(123, 44, 191, var(--gauge-zone2-glow)) 269.5deg 360deg
     ),
     /* Zone-colored face gradient (CW: rest → zone0 → zone1 → zone2) */
     /* 1deg overlap at each boundary eliminates anti-aliasing white seam */
@@ -613,9 +613,9 @@ body.nav-overlay-active .nav-backdrop {
     conic-gradient(
       from 315deg,
       transparent 0deg 90.5deg,
-      rgba(26, 158, 143, var(--gauge-zone2-glow)) 89.5deg 180.5deg,
-      rgba(184, 135, 10, var(--gauge-zone1-glow)) 179.5deg 270.5deg,
-      rgba(107, 64, 161, var(--gauge-zone0-glow)) 269.5deg 360deg
+      rgba(123, 44, 191, var(--gauge-zone2-glow)) 89.5deg 180.5deg,
+      rgba(244, 166, 42, var(--gauge-zone1-glow)) 179.5deg 270.5deg,
+      rgba(56, 176, 0, var(--gauge-zone0-glow)) 269.5deg 360deg
     ),
     /* Zone-colored face gradient (CCW: rest → zone2 → zone1 → zone0) */
     /* 1deg overlap at each boundary eliminates anti-aliasing white seam */

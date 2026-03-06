@@ -19,8 +19,8 @@
 
 **Purpose**: Branch verification and pre-implementation snapshot
 
-- [ ] T001 Verify branch `011-constellation-color-system` is checked out and clean with `git status`
-- [ ] T002 Read current values in `js/data.js` to confirm all 11 PROJECTS entries and 3 CONSTELLATION_ZONES entries exist with accentColor, starSize, hex, hexBright, hexWatermark, and nebulaHueRgb fields
+- [x] T001 Verify branch `011-constellation-color-system` is checked out and clean with `git status`
+- [x] T002 Read current values in `js/data.js` to confirm all 11 PROJECTS entries and 3 CONSTELLATION_ZONES entries exist with accentColor, starSize, hex, hexBright, hexWatermark, and nebulaHueRgb fields
 
 **Checkpoint**: Branch ready, current data structure confirmed
 
@@ -34,17 +34,17 @@
 
 ### Implementation for User Story 1
 
-- [ ] T003 [P] [US1] Update `odd-ai-reviewers` accentColor from `#9B6BD4` to `#9FE060` in `js/data.js`
-- [ ] T004 [US1] Update `odd-fintech` accentColor from `#D4A832` to `#E63946` in `js/data.js`
-- [ ] T005 [US1] Update `coney-island` accentColor from `#F97316` to `#F68A2B` in `js/data.js`
-- [ ] T006 [US1] Update `odd-map` accentColor from `#C9941F` to `#F4A62A` in `js/data.js`
-- [ ] T007 [US1] Update `ado-git-repo-insights` accentColor from `#7B8EC9` to `#38B000` in `js/data.js`
-- [ ] T008 [US1] Update `odd-self-hosted-ci` accentColor from `#6B5BAF` to `#2EC4B6` in `js/data.js`
-- [ ] T009 [US1] Update `repo-standards` accentColor from `#3AB5A5` to `#7B2CBF` in `js/data.js`
-- [ ] T010 [US1] Update `socialmedia-syndicator` accentColor from `#E8B85A` to `#F0E442` in `js/data.js`
-- [ ] T011 [US1] Update `ado-git-repo-seeder` accentColor from `#8E7BC8` to `#3B5BDB` in `js/data.js`
-- [ ] T012 [US1] Update `experiments-cluster` accentColor from `#2CC4B2` to `#5A189A` in `js/data.js`
-- [ ] T013 [US1] Verify `dead-rock-cluster` accentColor remains `#6B7280` (unchanged) in `js/data.js`
+- [x] T003 [P] [US1] Update `odd-ai-reviewers` accentColor from `#9B6BD4` to `#9FE060` in `js/data.js`
+- [x] T004 [US1] Update `odd-fintech` accentColor from `#D4A832` to `#E63946` in `js/data.js`
+- [x] T005 [US1] Update `coney-island` accentColor from `#F97316` to `#F68A2B` in `js/data.js`
+- [x] T006 [US1] Update `odd-map` accentColor from `#C9941F` to `#F4A62A` in `js/data.js`
+- [x] T007 [US1] Update `ado-git-repo-insights` accentColor from `#7B8EC9` to `#38B000` in `js/data.js`
+- [x] T008 [US1] Update `odd-self-hosted-ci` accentColor from `#6B5BAF` to `#2EC4B6` in `js/data.js`
+- [x] T009 [US1] Update `repo-standards` accentColor from `#3AB5A5` to `#7B2CBF` in `js/data.js`
+- [x] T010 [US1] Update `socialmedia-syndicator` accentColor from `#E8B85A` to `#F0E442` in `js/data.js`
+- [x] T011 [US1] Update `ado-git-repo-seeder` accentColor from `#8E7BC8` to `#3B5BDB` in `js/data.js`
+- [x] T012 [US1] Update `experiments-cluster` accentColor from `#2CC4B2` to `#5A189A` in `js/data.js`
+- [x] T013 [US1] Verify `dead-rock-cluster` accentColor remains `#6B7280` (unchanged) in `js/data.js`
 
 **Checkpoint**: All 11 stars show correct system colors. Dead-rock stays gray. Panel accents auto-propagate (US5 satisfied).
 
@@ -58,18 +58,18 @@
 
 ### Implementation for User Story 2
 
-- [ ] T014 [P] [US2] Update Zone 0 (DevOps & Engineering) hex from `#6B40A1` to `#38B000` in `js/data.js` CONSTELLATION_ZONES
-- [ ] T015 [US2] Update Zone 0 hexBright from `#9B6BD4` to `#9FE060` in `js/data.js` CONSTELLATION_ZONES
-- [ ] T016 [US2] Update Zone 0 hexWatermark from `#8B7099` to `#5A8A50` in `js/data.js` CONSTELLATION_ZONES
-- [ ] T017 [US2] Update Zone 0 nebulaHueRgb from `[0.42, 0.25, 0.63]` to `[0.22, 0.69, 0.00]` in `js/data.js` CONSTELLATION_ZONES
-- [ ] T018 [US2] Update Zone 1 (Applications & Products) hex from `#B8870A` to `#F4A62A` in `js/data.js` CONSTELLATION_ZONES
-- [ ] T019 [US2] Update Zone 1 hexBright from `#E8B73A` to `#F0E442` in `js/data.js` CONSTELLATION_ZONES
-- [ ] T020 [US2] Update Zone 1 hexWatermark from `#A89B78` to `#A89B60` in `js/data.js` CONSTELLATION_ZONES
-- [ ] T021 [US2] Update Zone 1 nebulaHueRgb from `[0.72, 0.53, 0.04]` to `[0.96, 0.65, 0.16]` in `js/data.js` CONSTELLATION_ZONES
-- [ ] T022 [US2] Update Zone 2 (Community & Web) hex from `#1A9E8F` to `#7B2CBF` in `js/data.js` CONSTELLATION_ZONES
-- [ ] T023 [US2] Update Zone 2 hexBright from `#4ACEBF` to `#9B4DDF` in `js/data.js` CONSTELLATION_ZONES
-- [ ] T024 [US2] Update Zone 2 hexWatermark from `#6B9B95` to `#6B5A80` in `js/data.js` CONSTELLATION_ZONES
-- [ ] T025 [US2] Update Zone 2 nebulaHueRgb from `[0.1, 0.62, 0.56]` to `[0.48, 0.17, 0.75]` in `js/data.js` CONSTELLATION_ZONES
+- [x] T014 [P] [US2] Update Zone 0 (DevOps & Engineering) hex from `#6B40A1` to `#38B000` in `js/data.js` CONSTELLATION_ZONES
+- [x] T015 [US2] Update Zone 0 hexBright from `#9B6BD4` to `#9FE060` in `js/data.js` CONSTELLATION_ZONES
+- [x] T016 [US2] Update Zone 0 hexWatermark from `#8B7099` to `#5A8A50` in `js/data.js` CONSTELLATION_ZONES
+- [x] T017 [US2] Update Zone 0 nebulaHueRgb from `[0.42, 0.25, 0.63]` to `[0.22, 0.69, 0.00]` in `js/data.js` CONSTELLATION_ZONES
+- [x] T018 [US2] Update Zone 1 (Applications & Products) hex from `#B8870A` to `#F4A62A` in `js/data.js` CONSTELLATION_ZONES
+- [x] T019 [US2] Update Zone 1 hexBright from `#E8B73A` to `#F0E442` in `js/data.js` CONSTELLATION_ZONES
+- [x] T020 [US2] Update Zone 1 hexWatermark from `#A89B78` to `#A89B60` in `js/data.js` CONSTELLATION_ZONES
+- [x] T021 [US2] Update Zone 1 nebulaHueRgb from `[0.72, 0.53, 0.04]` to `[0.96, 0.65, 0.16]` in `js/data.js` CONSTELLATION_ZONES
+- [x] T022 [US2] Update Zone 2 (Community & Web) hex from `#1A9E8F` to `#7B2CBF` in `js/data.js` CONSTELLATION_ZONES
+- [x] T023 [US2] Update Zone 2 hexBright from `#4ACEBF` to `#9B4DDF` in `js/data.js` CONSTELLATION_ZONES
+- [x] T024 [US2] Update Zone 2 hexWatermark from `#6B9B95` to `#6B5A80` in `js/data.js` CONSTELLATION_ZONES
+- [x] T025 [US2] Update Zone 2 nebulaHueRgb from `[0.1, 0.62, 0.56]` to `[0.48, 0.17, 0.75]` in `js/data.js` CONSTELLATION_ZONES
 
 **Checkpoint**: All 3 zones show harmonized nebula tint and constellation line colors matching their dominant system palette.
 
@@ -83,7 +83,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Verify `repo-standards` appears in all 3 CONSTELLATION_ZONES[].projectIds arrays in `js/data.js` (no code change — confirm existing bridge membership is preserved)
+- [x] T026 [P] [US3] Verify `repo-standards` appears in all 3 CONSTELLATION_ZONES[].projectIds arrays in `js/data.js` (no code change — confirm existing bridge membership is preserved)
 
 **Checkpoint**: repo-standards highlights in all 3 zones with correct purple color.
 
@@ -97,17 +97,17 @@
 
 ### Implementation for User Story 4
 
-- [ ] T027 [P] [US4] Update `odd-ai-reviewers` starSize from `1.4` to `2.33` in `js/data.js`
-- [ ] T028 [US4] Update `odd-fintech` starSize from `1.4` to `2.33` in `js/data.js`
-- [ ] T029 [US4] Update `coney-island` starSize from `1.0` to `1.44` in `js/data.js`
-- [ ] T030 [US4] Update `odd-map` starSize from `1.15` to `1.44` in `js/data.js`
-- [ ] T031 [US4] Update `ado-git-repo-insights` starSize from `1.15` to `1.00` in `js/data.js`
-- [ ] T032 [US4] Update `odd-self-hosted-ci` starSize from `1.0` to `1.00` in `js/data.js`
-- [ ] T033 [US4] Update `repo-standards` starSize from `1.0` to `1.00` in `js/data.js`
-- [ ] T034 [US4] Update `socialmedia-syndicator` starSize from `1.0` to `0.89` in `js/data.js`
-- [ ] T035 [US4] Update `ado-git-repo-seeder` starSize from `1.0` to `0.89` in `js/data.js`
-- [ ] T036 [US4] Update `experiments-cluster` starSize from `0.6` to `0.55` in `js/data.js`
-- [ ] T037 [US4] Update `dead-rock-cluster` starSize from `0.4` to `0.55` in `js/data.js`
+- [x] T027 [P] [US4] Update `odd-ai-reviewers` starSize from `1.4` to `2.33` in `js/data.js`
+- [x] T028 [US4] Update `odd-fintech` starSize from `1.4` to `2.33` in `js/data.js`
+- [x] T029 [US4] Update `coney-island` starSize from `1.0` to `1.44` in `js/data.js`
+- [x] T030 [US4] Update `odd-map` starSize from `1.15` to `1.44` in `js/data.js`
+- [x] T031 [US4] Update `ado-git-repo-insights` starSize from `1.15` to `1.00` in `js/data.js`
+- [x] T032 [US4] Update `odd-self-hosted-ci` starSize from `1.0` to `1.00` in `js/data.js`
+- [x] T033 [US4] Update `repo-standards` starSize from `1.0` to `1.00` in `js/data.js`
+- [x] T034 [US4] Update `socialmedia-syndicator` starSize from `1.0` to `0.89` in `js/data.js`
+- [x] T035 [US4] Update `ado-git-repo-seeder` starSize from `1.0` to `0.89` in `js/data.js`
+- [x] T036 [US4] Update `experiments-cluster` starSize from `0.6` to `0.55` in `js/data.js`
+- [x] T037 [US4] Update `dead-rock-cluster` starSize from `0.4` to `0.55` in `js/data.js`
 
 **Checkpoint**: Star sizes visually match the 5-tier Fibonacci hierarchy. Anchor stars are clearly the largest.
 
@@ -121,7 +121,7 @@
 
 ### Implementation for User Story 5
 
-- [ ] T038 [US5] Verify panel.js `renderClusterMemberList` (line 40) reads `project.accentColor` for cluster member name styling in `js/panel.js` (no code change — confirm existing data flow). Verify experiments-cluster sub-member names use #5A189A and coney-island related repo names use #F68A2B.
+- [x] T038 [US5] Verify panel.js `renderClusterMemberList` (line 40) reads `project.accentColor` for cluster member name styling in `js/panel.js` (no code change — confirm existing data flow). Verify experiments-cluster sub-member names use #5A189A and coney-island related repo names use #F68A2B.
 
 **Checkpoint**: All cluster member names in panels match their parent star's accent color.
 
@@ -131,7 +131,7 @@
 
 **Purpose**: Twinkle clamp, visual verification, accessibility checks
 
-- [ ] T039 [P] Reduce chromatic twinkle saturation/lightness boost in `js/scene.js` (~line 274): change `Math.min(1, twinkleHSL.s + 0.7)` to `Math.min(0.95, twinkleHSL.s + 0.5)` and `Math.min(1, twinkleHSL.l + 0.2)` to `Math.min(0.9, twinkleHSL.l + 0.15)`
+- [x] T039 [P] Reduce chromatic twinkle saturation/lightness boost in `js/scene.js` (~line 274): change `Math.min(1, twinkleHSL.s + 0.7)` to `Math.min(0.95, twinkleHSL.s + 0.5)` and `Math.min(1, twinkleHSL.l + 0.2)` to `Math.min(0.9, twinkleHSL.l + 0.15)`
 - [ ] T040 Visual verification: load `index.html` in Chrome, verify all 10 active stars show correct colors per quickstart.md Step 5. Also verify nebula particle tinting looks correct around stars with large color changes (odd-ai-reviewers, experiments-cluster). Check `renderer.info.render.calls` in console — confirm draw calls remain under 30.
 - [ ] T041 Visual verification: scroll through all 3 zones, confirm nebula tint and constellation line colors harmonize per quickstart.md Step 5
 - [ ] T042 Visual verification: confirm repo-standards highlights in all 3 zones with purple #7B2CBF

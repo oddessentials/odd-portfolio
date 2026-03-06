@@ -1,5 +1,25 @@
 // js/panel.js — Project panel overlay management (extracted from interactions.js)
 
+import { CONSTELLATION_ZONES } from './data.js';
+
+// ---------------------------------------------------------------------------
+// WCAG AA contrast helper — SC-005: use zone hexBright when accent fails 4.5:1
+// ---------------------------------------------------------------------------
+const PANEL_BG_LUMINANCE = 0.0034; // #0D0B09 relative luminance
+function _srgbToLinear(c) { return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+function _relativeLuminance(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  return 0.2126 * _srgbToLinear(r) + 0.7152 * _srgbToLinear(g) + 0.0722 * _srgbToLinear(b);
+}
+function getTextSafeColor(hex, projectId) {
+  const ratio = (_relativeLuminance(hex) + 0.05) / (PANEL_BG_LUMINANCE + 0.05);
+  if (ratio >= 4.5) return hex;
+  const zone = CONSTELLATION_ZONES.find(z => z.projectIds.includes(projectId));
+  return zone ? zone.hexBright : hex;
+}
+
 // ---------------------------------------------------------------------------
 // Module state
 // ---------------------------------------------------------------------------
@@ -127,7 +147,7 @@ function showProjectPanel(project, trigger) {
     logoZone.innerHTML = '';
     const mediaZone = overlayEl.querySelector('.overlay__media-zone');
     mediaZone.innerHTML = '';
-    mediaZone.appendChild(renderClusterMemberList(project.clusterMembers, project.accentColor));
+    mediaZone.appendChild(renderClusterMemberList(project.clusterMembers, getTextSafeColor(project.accentColor, project.id)));
 
     // Links footer
     const linksFooter = overlayEl.querySelector('.overlay__links');

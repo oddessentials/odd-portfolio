@@ -271,7 +271,7 @@ function initScene() {
       // Boost saturation for vivid flash
       twinkleColor.setRGB(origR, origG, origB);
       twinkleColor.getHSL(twinkleHSL);
-      twinkleColor.setHSL(twinkleHSL.h, Math.min(1, twinkleHSL.s + 0.7), Math.min(1, twinkleHSL.l + 0.2));
+      twinkleColor.setHSL(twinkleHSL.h, Math.min(0.95, twinkleHSL.s + 0.5), Math.min(0.9, twinkleHSL.l + 0.15));
       colors.setXYZ(idx, twinkleColor.r, twinkleColor.g, twinkleColor.b);
       colors.needsUpdate = true;
       activeTwinkle = { layerIdx, idx, origR, origG, origB, startTime: elapsed };
