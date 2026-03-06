@@ -1,6 +1,5 @@
 // js/scroll-zones.js — Scroll-driven exploration (extracted from animations.js)
 import { CONSTELLATION_ZONES } from './data.js';
-import { setScrollProgress } from './glyph-compositor.js';
 
 const gsap = window.gsap;
 const ScrollTrigger = window.ScrollTrigger;
@@ -216,8 +215,6 @@ function handleScrollProgress(progress) {
     nebulaGroup.rotation.y = progress * Math.PI * 0.5;
   }
 
-  // T047: Feed scroll progress to sidebar construction line offset
-  setScrollProgress(progress);
 }
 
 // ---------------------------------------------------------------------------

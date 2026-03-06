@@ -28,7 +28,6 @@ export const fragmentShader = /* glsl */`
   uniform float uTexelSize;
   uniform vec2 uHoverUV;
   uniform float uRevealProgress;
-  uniform float uScrollProgress;
   uniform float uTierLevel;
   uniform float uIsRightPanel;
 
@@ -185,12 +184,9 @@ export const fragmentShader = /* glsl */`
     // --- Procedural construction lines (T033, FR-021) ---
     float phi = 1.618033988749895;
 
-    // Scroll-driven offset for construction lines only (not glyph tiles)
-    float scrollOffset = (uTierLevel < 2.0) ? uScrollProgress * 0.3 : 0.0;
-
     // Phi-grid: horizontal + vertical lines
     float gridLine = 0.0;
-    float phiY1 = mod((vUv.y + scrollOffset) * phi * 3.0, 1.0);
+    float phiY1 = mod(vUv.y * phi * 3.0, 1.0);
     gridLine += smoothstep(0.01, 0.0, abs(phiY1 - 0.5));
     float phiX1 = mod(vUv.x * phi * 2.0, 1.0);
     gridLine += smoothstep(0.01, 0.0, abs(phiX1 - 0.5));
@@ -210,16 +206,16 @@ export const fragmentShader = /* glsl */`
     // Diagonal construction lines at 45 degrees (Tier 1 only)
     float diagLine = 0.0;
     if (uTierLevel < 2.0) {
-      float diag1 = mod((vUv.x + vUv.y + scrollOffset) * 5.0, 1.0);
+      float diag1 = mod((vUv.x + vUv.y) * 5.0, 1.0);
       diagLine += smoothstep(0.008, 0.0, abs(diag1 - 0.5));
-      float diag2 = mod((vUv.x - vUv.y + scrollOffset) * 5.0, 1.0);
+      float diag2 = mod((vUv.x - vUv.y) * 5.0, 1.0);
       diagLine += smoothstep(0.008, 0.0, abs(diag2 - 0.5));
     }
 
     // Grid tick marks at phi subdivisions (Tier 1 & 2 only)
     float tickLine = 0.0;
     if (uTierLevel < 3.0) {
-      float phiY2 = mod((vUv.y + scrollOffset) * phi * phi * 5.0, 1.0);
+      float phiY2 = mod(vUv.y * phi * phi * 5.0, 1.0);
       float phiX2 = mod(vUv.x * phi * phi * 5.0, 1.0);
       float nearVertGrid = smoothstep(0.03, 0.0, abs(phiX1 - 0.5));
       tickLine += smoothstep(0.006, 0.0, abs(phiY2 - 0.5)) * nearVertGrid;
@@ -329,18 +325,8 @@ function clearHover() {
 }
 
 // ---------------------------------------------------------------------------
-// setScrollProgress — called by scroll-zones.js per frame (no CustomEvent)
-// ---------------------------------------------------------------------------
-function setScrollProgress(progress) {
-  if (!leftMaterial || !rightMaterial) return;
-  if (prefersReducedMotion()) return;
-  leftMaterial.uniforms.uScrollProgress.value = progress;
-  rightMaterial.uniforms.uScrollProgress.value = progress;
-}
-
-// ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
 function getNavRect() { return navRect; }
 
-export { init, setHoveredProject, clearHover, setScrollProgress, getNavRect };
+export { init, setHoveredProject, clearHover, getNavRect };

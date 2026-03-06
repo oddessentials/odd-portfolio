@@ -32,7 +32,6 @@ const fragmentShader = /* glsl */`
   uniform float uScanProgress;
   uniform vec2 uHoverUV;
   uniform float uRevealProgress;
-  uniform float uScrollProgress;
   uniform float uTierLevel;
   uniform float uOpacity;
 
@@ -48,11 +47,6 @@ const fragmentShader = /* glsl */`
       gl_FragColor = vec4(0.0);
       return;
     }
-
-    // Scroll parallax on the texture (subtle shift)
-    float scrollOffset = (uTierLevel < 2.0) ? uScrollProgress * 0.03 : 0.0;
-    uv.y += scrollOffset;
-    uv = clamp(uv, 0.0, 1.0);
 
     // Sample manuscript texture
     vec4 texColor = texture2D(uTexture, uv);
@@ -132,7 +126,6 @@ function createMaterial() {
       uScanProgress: { value: 0.0 },
       uHoverUV: { value: new THREE.Vector2(-1, -1) },
       uRevealProgress: { value: 0.0 },
-      uScrollProgress: { value: 0.0 },
       uTierLevel: { value: 1.0 },
       uOpacity: { value: 0.55 }
     },

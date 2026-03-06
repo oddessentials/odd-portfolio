@@ -364,6 +364,61 @@ body.nav-overlay-active .nav-backdrop {
     inset 0 -1px 0 rgba(200, 168, 75, 0.2);
 }
 
+/* --- 6.1b Frame tool ornaments --- */
+.frame-tool {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  opacity: 0.12;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.frame-tool--tl {
+  top: 30%;
+  left: var(--frame-corner-size);
+  transform: translateY(-50%) rotate(12deg);
+}
+
+.frame-tool--tr {
+  top: 25%;
+  right: var(--frame-corner-size);
+  width: 120px;
+  height: 120px;
+  transform: translateY(-50%) rotate(-20deg);
+}
+
+.frame-tool--bl {
+  bottom: 25%;
+  left: var(--frame-corner-size);
+  width: 110px;
+  height: 110px;
+  transform: translateY(50%) rotate(8deg);
+}
+
+.frame-tool--br {
+  bottom: 30%;
+  right: var(--frame-corner-size);
+  transform: translateY(50%) rotate(-10deg);
+}
+
+.frame-tool--mr {
+  top: 50%;
+  right: var(--frame-corner-size);
+  width: 130px;
+  height: 130px;
+  transform: translateY(-50%) rotate(5deg);
+}
+
+.frame-tool--ml {
+  top: 50%;
+  left: var(--frame-corner-size);
+  width: 130px;
+  height: 130px;
+  transform: translateY(-50%) rotate(-6deg);
+}
+
 /* --- 6.2 Frame edges --- */
 .frame__edge {
   position: absolute;
@@ -742,6 +797,18 @@ body.nav-overlay-active .nav-backdrop {
     var(--color-brass-mid) 80%,
     transparent
   );
+}
+
+.nav-compass {
+  margin-top: auto;
+  align-self: center;
+  width: 90px;
+  height: 90px;
+  opacity: 0.2;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  padding-top: var(--space-md);
+  transform: rotate(-15deg);
 }
 
 #constellation-nav ul {
@@ -1144,7 +1211,7 @@ body.nav-overlay-active .nav-backdrop {
       rgba(20, 13, 5, 0.92) 0%,
       rgba(13, 11, 9, 0.94) 100%
     ),
-    url('../design-assets/bronze-tools/map-of-system.png') center / 100% 100% no-repeat;
+    url('../assets/map-of-system.png') center / 100% 100% no-repeat;
   border: 2px solid var(--color-brass-mid);
   border-radius: 8px;
   box-shadow:
@@ -1454,7 +1521,12 @@ body.nav-overlay-active .nav-backdrop {
   }
 
   /* Frame decorations — thinner on mobile */
-  .frame__gauge {
+  .frame__gauge,
+  .frame-tool {
+    display: none;
+  }
+
+  .nav-compass {
     display: none;
   }
 

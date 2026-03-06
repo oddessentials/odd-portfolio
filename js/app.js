@@ -119,6 +119,37 @@ function handleHighContrast() {
 }
 
 // ---------------------------------------------------------------------------
+// initBronzeToolFlash — pulse frame tools on zone-change / terminal-scan
+// ---------------------------------------------------------------------------
+function initBronzeToolFlash() {
+  if (!gsap) return;
+  const tools = document.querySelectorAll('.frame-tool');
+  const compass = document.querySelectorAll('.nav-compass');
+  const targets = [...tools, ...compass];
+  if (!targets.length) return;
+
+  function flash() {
+    targets.forEach(el => {
+      const baseOpacity = el.classList.contains('nav-compass') ? 0.2 : 0.12;
+      gsap.killTweensOf(el, 'opacity,filter');
+      if (prefersReducedMotion.matches) {
+        gsap.set(el, { opacity: 0.35, filter: 'brightness(1.8) drop-shadow(0 0 12px rgba(200,168,75,0.5))' });
+        gsap.delayedCall(0.1, () => gsap.set(el, { opacity: baseOpacity, filter: 'none' }));
+      } else {
+        gsap.fromTo(el,
+          { opacity: baseOpacity, filter: 'brightness(1) drop-shadow(0 0 0 rgba(200,168,75,0))' },
+          { opacity: 0.35, filter: 'brightness(1.8) drop-shadow(0 0 12px rgba(200,168,75,0.5))',
+            duration: 0.4, ease: 'power2.out',
+            yoyo: true, repeat: 1 });
+      }
+    });
+  }
+
+  document.addEventListener('zone-change', flash);
+  document.addEventListener('terminal-scan-complete', flash);
+}
+
+// ---------------------------------------------------------------------------
 // initOddBot — rotation state machine for the Odd Bot element (T040)
 // ---------------------------------------------------------------------------
 function initOddBot() {
@@ -241,6 +272,9 @@ if (sceneReady) {
 
   // Initialize Odd Bot rotation state machine (T040)
   initOddBot();
+
+  // Bronze tool flash on zone change / terminal scan
+  initBronzeToolFlash();
 
   // Wire scroll zones to fire after reveal completes (FR-012)
   // MUST be registered BEFORE handleReducedMotion() — it dispatches
