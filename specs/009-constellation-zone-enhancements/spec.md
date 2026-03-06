@@ -138,7 +138,7 @@ All existing portfolio interactions, animations, verbiage, and accessibility fea
 
 #### Data Model & Zone Structure
 
-- **FR-001**: System MUST support a variable number of project entries (not limited to 7), each with: id, name, shortDesc, tagline, category, accentColor, starSize, position, logoUrl, mediaType, mediaUrl, screenshots, links, glyphName, glyphRotation, glyphType, glyphAtlasIndex, constellation, and new fields: `status` (active | in-progress | paused), `isCluster` (boolean), `clusterMembers` (array of member objects, each with name, description, url, and status).
+- **FR-001**: System MUST support a variable number of project entries (not limited to 7), each with: id, name, shortDesc, tagline, category, accentColor, starSize, position, logoUrl, mediaType, mediaUrl, screenshots, links, constellation, and new fields: `status` (active | in-progress | paused), `isCluster` (boolean), `clusterMembers` (array of member objects, each with name, description, url, and status). Legacy glyph fields (glyphName, glyphRotation, glyphType, glyphAtlasIndex) are removed per R-001 dead code audit.
 - **FR-002**: System MUST define exactly 3 constellation zones with two designated cross-zone bridges: Zone 0 "DevOps & Engineering" (5 members: odd-ai-reviewers, ado-git-repo-insights, ado-git-repo-seeder, repo-standards, odd-self-hosted-ci), Zone 1 "Applications & Products" (4 members: odd-ai-reviewers as bridge, odd-map, odd-fintech, socialmedia-syndicator), Zone 2 "Community & Web" (4 members: repo-standards as bridge, Coney Island cluster, experiments cluster, dead rock cluster non-interactive).
 - **FR-003**: System MUST include `ado-git-repo-seeder` as a new individual interactive star in Zone 0 with panel data: tagline "Azure DevOps activity simulator", description "Node.js tool to seed realistic, multi-user Pull Request activity in Azure DevOps", category "devops", link to oddessentials.com and GitHub, accent color derived as a hue relative to its DevOps zone siblings.
 - **FR-004**: System MUST include `socialmedia-syndicator` as a new individual interactive star in Zone 1 with status "in-progress", panel data: tagline "Admin-approved social media posts", description "Facebook & X Social Media post creator with admin approval", category "application", link to oddessentials.com and GitHub, accent color derived as a hue relative to its Applications zone siblings.
@@ -181,7 +181,7 @@ All existing portfolio interactions, animations, verbiage, and accessibility fea
 
 #### Social & Presence Links
 
-- **FR-029**: System MUST display a social/presence links section in the status panel, below the existing status readout, containing inline SVG icon links to: LinkedIn, Facebook, X/Twitter, GitHub organization, NPM, PyPI, Docker Hub, VS Marketplace, Codecov, Medium.
+- **FR-029**: System MUST display a social/presence links section in the status panel, below the existing status readout, containing inline SVG icon links to: LinkedIn, Facebook, X/Twitter, GitHub organization, NPM, PyPI, Docker Hub, VS Marketplace, Codecov, Medium, Gravatar (11 platforms total).
 - **FR-030**: Each social link MUST open in a new tab with `rel="noopener noreferrer"` and MUST have an accessible label (aria-label with platform name).
 - **FR-031**: Social links MUST be reachable via keyboard navigation and MUST have focus indicators meeting WCAG 2.1 requirements.
 - **FR-032**: On mobile, social links MUST be accessible through the hamburger navigation or an equivalent mobile-appropriate location.
@@ -195,8 +195,6 @@ All existing portfolio interactions, animations, verbiage, and accessibility fea
 - **FR-037**: All existing project panel content for the original 7 projects MUST remain identical — same titles, taglines, logos, media, links.
 - **FR-038**: The existing star idle pulse, nebula hue shift, gauge needle animation, command line text, phase indicator, reticle hover, bronze tool flash, Odd Bot rotation, and scroll-to-explore affordance MUST all continue to function identically (with updated zone membership data).
 - **FR-039**: Existing touch guard behavior on mobile (first tap expands tagline, second tap opens panel) MUST be preserved for all nav entries including new ones.
-
-#### Constitution Amendment
 
 #### Bridge & Cluster Consistency
 
@@ -212,7 +210,7 @@ All existing portfolio interactions, animations, verbiage, and accessibility fea
 
 ### Key Entities
 
-- **Project**: An individual repository represented as an interactive star in the starfield. Has complete panel data, a nav entry, and belongs to exactly one zone. Attributes: id, name, tagline, category, status, accent color, star size, 3D position, media, links.
+- **Project**: An individual repository represented as an interactive star in the starfield. Has complete panel data, a nav entry, and belongs to one or more zones (bridge stars appear in two zones). Attributes: id, name, tagline, category, status, accent color, star size, 3D position, media, links.
 - **Cluster**: A visual grouping of related repositories represented as a single visual element in the starfield. May or may not be interactive. Attributes: id, name, isCluster flag, cluster members array, accent color, 3D position, zone membership.
 - **Cluster Member**: A repository within a cluster. Has: name, description, status, primary URL. Not individually represented as a star.
 - **Constellation Zone**: A scroll-driven grouping of projects/clusters that activates together. Has: name, scroll range, member IDs, nebula hue, status text. Exactly 3 zones. Two designated bridge projects (odd-ai-reviewers, repo-standards) appear in multiple zones.

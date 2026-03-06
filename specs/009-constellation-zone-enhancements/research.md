@@ -160,7 +160,7 @@ The risk: when transitioning from Zone 0 to Zone 1, the current code would:
 - Since only one zone is active at a time, this simplifies to checking if the star is in the active zone — which is what the current code already does
 - The real fix is ensuring `gsap.killTweensOf(sprite.scale)` doesn't interrupt an in-progress scale-up by immediately starting a scale-down. Since zone transitions are discrete (not overlapping), the bridge star will go: highlighted in Z0 → highlighted in Z1 with no gap
 
-**Validation**: The current code already handles this correctly for the existing bridge stars (odd-ai-reviewers is in both Zone 0 and Zone 1). The key risk is during the transition *between* zones where `newZoneIndex` changes — but since this is a single discrete change (not an overlap), the star gets re-evaluated for the new zone immediately. No flicker occurs because the star IS in the new zone.
+**Validation (UPDATED per team review)**: The current code does NOT cause a full flicker for bridge stars — `isInZone` is true for both zones so the target values are identical. However, `gsap.killTweensOf(sprite.scale)` will kill any in-progress tween and start a new one to the same target, causing a brief tween restart stutter. Fix: add a guard that skips the kill+re-tween when the bridge star is already at (or near) the highlighted state: `if (isInZone && sprite.material.opacity >= 0.95) return;`. Alternatively, use `gsap.to` with `overwrite: 'auto'`.
 
 **Additional safeguard**: Add a `bridgeZones` computed property to bridge star userData so the scroll handler can quickly check bridge membership without iterating all zones.
 
@@ -179,11 +179,11 @@ The risk: when transitioning from Zone 0 to Zone 1, the current code would:
 - For constellation lines: lines connect to the cluster group's center position (same as individual stars)
 - For reveal sequence: cluster groups stagger in with individual stars
 
-**Draw call impact**:
-- Experiments cluster: 4 sprites + 1 halo = 5 sprites (but using shared material → batched by Three.js if same texture)
-- Dead rock cluster: 6 sprites (shared material)
-- Net new draw calls: ~2-4 (depends on material batching)
-- Total steady-state: ~13 existing + ~4 new = ~17 (well under 30 budget)
+**Draw call impact** (CORRECTED per team review):
+- Three.js does NOT batch Sprites with unique SpriteMaterials — each unique material is a separate draw call
+- WITHOUT shared materials: 2 new individual stars + 4 experiment sprites + 1 halo + 6 dead rock sprites = +13 draw calls → ~26 total (under 30 but tight)
+- WITH shared materials (RECOMMENDED): share one SpriteMaterial across 4 experiment sub-points (1 draw call), share one across 6 dead rock sub-points (1 draw call), halo is separate (1 draw call) → +5 draw calls → ~18 total (comfortable headroom)
+- Implementation: `createStarNodes()` must create ONE shared texture+material per cluster type, reused by all sub-point sprites
 
 **Alternatives considered**:
 - Single sprite with custom cluster texture → Rejected: loses the "grouping of points" visual; harder to animate individual sub-points

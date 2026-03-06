@@ -92,7 +92,7 @@ css/styles.css           # MODIFY: Social links styles, in-progress badge, clust
 .specify/memory/constitution.md  # MODIFY: Principle I amendment (v1.4.0)
 ```
 
-**Structure Decision**: No new files needed. All changes fit within existing module boundaries. The constellation-lines.js module will grow the most (~100 lines for watermark + filters + intro) but will remain well under the 400-line constitution limit.
+**Structure Decision**: No new files needed. All changes fit within existing module boundaries. LINE BUDGET WARNING: constellation-lines.js grows from 218 to ~393-398 lines (TIGHT against 400 limit — use loops for SVG defs, merge line arrays for tick). animations.js is at 399-400 lines and will breach 400 when intro showcase is wired — extract handleScrollDuringReveal() to app.js or wire showcase from app.js via custom event.
 
 ## Complexity Tracking
 

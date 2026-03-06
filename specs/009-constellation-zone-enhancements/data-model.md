@@ -123,8 +123,7 @@ External platform presence link.
 ### Clusters (2)
 
 ```javascript
-// Zone 1 — Applications & Products (NOTE: moved to Zone 2 per owner directive)
-// Actually Zone 2 — Community & Web
+// Zone 2 — Community & Web
 {
   id: "experiments-cluster",
   name: "Experiments",
