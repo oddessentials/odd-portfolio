@@ -1,5 +1,6 @@
 // js/scroll-zones.js — Scroll-driven exploration (extracted from animations.js)
 import { CONSTELLATION_ZONES } from './data.js';
+import { init as gaugeInit, setActiveZoneIndex as setGaugeZone, animateNeedles, animateGlow } from './gauge.js';
 
 const gsap = window.gsap;
 const ScrollTrigger = window.ScrollTrigger;
@@ -23,18 +24,6 @@ let nebulaLayers = null;
 let nebulaGroup = null;
 let getCurrentTier = null;
 
-// Gauge needle elements (cached in init)
-let gaugeLeft = null;
-let gaugeRight = null;
-
-// Needle angle stops per zone (left sweeps CCW, right sweeps CW)
-const NEEDLE_ANGLES = {
-  rest:  { left: '15deg',   right: '30deg' },
-  0:     { left: '55deg',   right: '-10deg' },
-  1:     { left: '95deg',   right: '-50deg' },
-  2:     { left: '135deg',  right: '-90deg' }
-};
-
 // ---------------------------------------------------------------------------
 // init — store scene references and bootstrap scroll zones
 // ---------------------------------------------------------------------------
@@ -43,8 +32,7 @@ function init({ starNodes: sn, nebulaLayers: nl, nebulaGroup: ng, getCurrentTier
   nebulaLayers = nl;
   nebulaGroup = ng;
   getCurrentTier = gt;
-  gaugeLeft = document.querySelector('.frame__gauge--left');
-  gaugeRight = document.querySelector('.frame__gauge--right');
+  gaugeInit(gt);           // T012-T015: gauge animations, dome parallax, reduced-motion
   initScrollZones();
 }
 
@@ -115,6 +103,9 @@ function handleScrollProgress(progress) {
 
   if (newZoneIndex !== activeZoneIndex) {
     activeZoneIndex = newZoneIndex;
+
+    // Sync gauge module with current zone index
+    setGaugeZone(activeZoneIndex);
 
     // Dispatch zone-change event (T012)
     document.dispatchEvent(new CustomEvent('zone-change', {
@@ -199,6 +190,9 @@ function handleScrollProgress(progress) {
       if (cachedCmdText) cachedCmdText.textContent = zone.statusText;
       if (cachedPhaseIndicator) cachedPhaseIndicator.textContent = zone.name.toUpperCase();
 
+      // T005 + T013: Animate zone glow custom properties
+      animateGlow(activeZoneIndex, useInstant);
+
       // Spring gauge needles to zone angle
       animateNeedles(activeZoneIndex, useInstant);
     } else {
@@ -257,6 +251,9 @@ function handleScrollProgress(progress) {
       if (cachedCmdText) cachedCmdText.textContent = 'Force multipliers for small businesses...';
       if (cachedPhaseIndicator) cachedPhaseIndicator.textContent = 'phi LOCKED';
 
+      // T005: Reset all glow properties on zone exit
+      animateGlow(-1, useInstant);
+
       // Spring gauge needles back to rest
       animateNeedles(-1, useInstant);
     }
@@ -267,25 +264,6 @@ function handleScrollProgress(progress) {
     nebulaGroup.rotation.y = progress * Math.PI * 0.5;
   }
 
-}
-
-// ---------------------------------------------------------------------------
-// animateNeedles — spring gauge needles to zone-specific angles
-// ---------------------------------------------------------------------------
-function animateNeedles(zoneIndex, instant) {
-  if (!gaugeLeft || !gaugeRight) return;
-  const angles = zoneIndex >= 0 ? NEEDLE_ANGLES[zoneIndex] : NEEDLE_ANGLES.rest;
-  if (!angles) return;
-
-  if (instant) {
-    gsap.set(gaugeLeft, { '--needle-angle': angles.left });
-    gsap.set(gaugeRight, { '--needle-angle': angles.right });
-  } else {
-    gsap.killTweensOf(gaugeLeft, '--needle-angle');
-    gsap.killTweensOf(gaugeRight, '--needle-angle');
-    gsap.to(gaugeLeft, { '--needle-angle': angles.left, duration: 0.8, ease: 'elastic.out(1, 0.4)' });
-    gsap.to(gaugeRight, { '--needle-angle': angles.right, duration: 0.8, ease: 'elastic.out(1, 0.4)' });
-  }
 }
 
 // ---------------------------------------------------------------------------

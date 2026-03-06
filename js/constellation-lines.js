@@ -22,10 +22,10 @@ let showcaseTl = null; // Intro showcase timeline reference (T037)
 const _wPos1 = new THREE.Vector3();
 const _wPos2 = new THREE.Vector3();
 
-// Zone visual constants (derived from nebulaHueRgb)
-const ZONE_HEX = ['#6B40A1', '#B8870A', '#1A9E8F'];
-const ZONE_HEX_BRIGHT = ['#9B6BD4', '#E8B73A', '#4ACEBF'];
-const ZONE_HEX_WATERMARK = ['#8B7099', '#A89B78', '#6B9B95'];
+// Zone visual constants (derived from CONSTELLATION_ZONES)
+const ZONE_HEX = CONSTELLATION_ZONES.map(z => z.hex);
+const ZONE_HEX_BRIGHT = CONSTELLATION_ZONES.map(z => z.hexBright);
+const ZONE_HEX_WATERMARK = CONSTELLATION_ZONES.map(z => z.hexWatermark);
 
 // createSVGDefs — filters + gradients per zone (T028)
 function createSVGDefs() {
