@@ -109,6 +109,12 @@ function playRevealSequence() {
       }, cmd.delay);
     });
 
+    // Fade out the viewport map on mobile
+    const viewportMapMobile = document.querySelector('.viewport-map');
+    if (viewportMapMobile) {
+      tl.to(viewportMapMobile, { opacity: 0, duration: 0.6, ease: 'power2.in' }, 1.0);
+    }
+
     // Nebula bloom
     if (nebulaLayers) {
       nebulaLayers.forEach((layer, i) => {
@@ -241,6 +247,12 @@ function playRevealSequence() {
   tl.call(playTerminalScan, null, 2.8);
 
   // Phase 3 (3800-6500ms): Starfield ignition (no orb glass, just nebula + stars)
+  // Fade out the viewport map as the starfield ignites
+  const viewportMap = document.querySelector('.viewport-map');
+  if (viewportMap) {
+    tl.to(viewportMap, { opacity: 0, duration: 0.8, ease: 'power2.in' }, 3.8);
+  }
+
   // Nebula layers bloom outward
   if (nebulaLayers) {
     nebulaLayers.forEach((layer, i) => {
