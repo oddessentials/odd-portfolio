@@ -168,40 +168,129 @@ export function createNebulaSystem(nebulaGroup, isMobile, dpr, PROJECTS) {
   return nebulaLayers;
 }
 
+// Cluster halo texture — soft glow with no bright center
+function createHaloTexture(hexColor, size) {
+  size = size || 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const center = size / 2;
+  const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
+  gradient.addColorStop(0, hexColor + '40');
+  gradient.addColorStop(0.3, hexColor + '20');
+  gradient.addColorStop(0.6, hexColor + '10');
+  gradient.addColorStop(1, 'transparent');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.needsUpdate = true;
+  return tex;
+}
+
 /**
  * Create the star node sprites for each project.
+ * Clusters (isCluster === true) are created as THREE.Group with sub-point sprites.
  * @param {Array} PROJECTS — project data array
- * @returns {{ starNodes: THREE.Sprite[], starGroup: THREE.Group }}
+ * @returns {{ starNodes: (THREE.Sprite|THREE.Group)[], starGroup: THREE.Group }}
  */
 export function createStarNodes(PROJECTS) {
   const starNodes = [];
   const starGroup = new THREE.Group();
 
   PROJECTS.forEach((project, idx) => {
-    const tex = createStarTexture(project.accentColor, 128);
-    const mat = new THREE.SpriteMaterial({
-      map: tex,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
-    });
-    const sprite = new THREE.Sprite(mat);
-    const scale = project.starSize * 0.25;
-    sprite.scale.set(scale, scale, scale);
-    sprite.position.set(
-      project.position[0],
-      project.position[1],
-      project.position[2]
-    );
-    sprite.userData = {
-      project: project,
-      basePosition: project.position.slice(),
-      baseScale: scale,
-      phaseOffset: Math.random() * Math.PI * 2,
-      index: idx
-    };
-    starGroup.add(sprite);
-    starNodes.push(sprite);
+    if (project.isCluster) {
+      // --- Cluster rendering ---
+      const group = new THREE.Group();
+      group.position.set(project.position[0], project.position[1], project.position[2]);
+      const scale = project.starSize * 0.25;
+
+      if (project.status === 'paused') {
+        // Dead rock cluster: 6 dim grey sub-points, no halo, no pulse
+        const sharedTex = createStarTexture(project.accentColor, 64);
+        const sharedMat = new THREE.SpriteMaterial({
+          map: sharedTex, transparent: true, blending: THREE.AdditiveBlending,
+          depthWrite: false, opacity: 0.20
+        });
+        const offsets = [
+          [0.05, 0.03], [-0.04, 0.06], [0.06, -0.02],
+          [-0.06, -0.04], [0.02, -0.06], [-0.03, 0.05]
+        ];
+        offsets.forEach(([ox, oy]) => {
+          const sp = new THREE.Sprite(sharedMat);
+          sp.scale.set(scale, scale, scale);
+          sp.position.set(ox, oy, 0);
+          sp.userData = { project, isSubPoint: true };
+          group.add(sp);
+        });
+      } else {
+        // Experiments cluster: 4 sub-points + 1 halo
+        const sharedTex = createStarTexture(project.accentColor, 64);
+        const sharedMat = new THREE.SpriteMaterial({
+          map: sharedTex, transparent: true, blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+        const offsets = [[0.06, 0.04], [-0.05, 0.06], [0.04, -0.05], [-0.06, -0.03]];
+        offsets.forEach(([ox, oy]) => {
+          const sp = new THREE.Sprite(sharedMat);
+          sp.scale.set(scale, scale, scale);
+          sp.position.set(ox, oy, 0);
+          sp.userData = { project, isSubPoint: true };
+          group.add(sp);
+        });
+        // Halo sprite
+        const haloTex = createHaloTexture(project.accentColor, 128);
+        const haloMat = new THREE.SpriteMaterial({
+          map: haloTex, transparent: true, blending: THREE.AdditiveBlending,
+          depthWrite: false, opacity: 0.08
+        });
+        const halo = new THREE.Sprite(haloMat);
+        const haloScale = 0.3;
+        halo.scale.set(haloScale, haloScale, haloScale);
+        halo.userData = { isHalo: true };
+        group.add(halo);
+      }
+
+      group.userData = {
+        project,
+        basePosition: project.position.slice(),
+        baseScale: scale,
+        phaseOffset: Math.random() * Math.PI * 2,
+        index: idx
+      };
+
+      // Hit-area sprite for raycasting (transparent, at cluster center)
+      const hitTex = createStarTexture('#000000', 32);
+      const hitMat = new THREE.SpriteMaterial({
+        map: hitTex, transparent: true, opacity: 0.001, depthWrite: false
+      });
+      const hitSprite = new THREE.Sprite(hitMat);
+      hitSprite.scale.set(0.15, 0.15, 0.15);
+      hitSprite.userData = { project, isHitArea: true };
+      group.add(hitSprite);
+
+      starGroup.add(group);
+      starNodes.push(group);
+    } else {
+      // --- Individual star ---
+      const tex = createStarTexture(project.accentColor, 128);
+      const mat = new THREE.SpriteMaterial({
+        map: tex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+      });
+      const sprite = new THREE.Sprite(mat);
+      const scale = project.starSize * 0.25;
+      sprite.scale.set(scale, scale, scale);
+      sprite.position.set(project.position[0], project.position[1], project.position[2]);
+      sprite.userData = {
+        project,
+        basePosition: project.position.slice(),
+        baseScale: scale,
+        phaseOffset: Math.random() * Math.PI * 2,
+        index: idx
+      };
+      starGroup.add(sprite);
+      starNodes.push(sprite);
+    }
   });
 
   return { starNodes, starGroup };

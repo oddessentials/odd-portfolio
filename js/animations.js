@@ -64,11 +64,17 @@ function playRevealSequence() {
       layer.scale.set(0.3, 0.3, 0.3);
     });
   }
-  // Stars hidden
+  // Stars/clusters hidden
   if (starNodes) {
-    starNodes.forEach(sprite => {
-      sprite.scale.set(0, 0, 0);
-      sprite.material.opacity = 0;
+    starNodes.forEach(node => {
+      node.scale.set(0, 0, 0);
+      if (node.material) {
+        node.material.opacity = 0;
+      } else if (node.children) {
+        node.children.forEach(child => {
+          if (child.material) child.material.opacity = 0;
+        });
+      }
     });
   }
   // Camera starts further back
@@ -131,19 +137,29 @@ function playRevealSequence() {
       });
     }
 
-    // Stars stagger in
+    // Stars stagger in (cluster-aware)
     if (starNodes && starNodes.length > 0) {
-      const shuffledStars = gsap.utils.shuffle([...starNodes]);
-      shuffledStars.forEach((sprite, i) => {
-        const baseScale = sprite.userData.baseScale;
-        tl.to(sprite.scale, {
-          x: baseScale, y: baseScale, z: baseScale,
-          duration: 0.3,
-          ease: 'back.out(2.5)'
-        }, 2.0 + i * 0.1);
-        tl.to(sprite.material, {
-          opacity: 1, duration: 0.2, ease: 'power2.out'
-        }, 2.0 + i * 0.1);
+      const nonDead = starNodes.filter(n => n.userData.project.status !== 'paused');
+      const deadNodes = starNodes.filter(n => n.userData.project.status === 'paused');
+      const shuffled = gsap.utils.shuffle([...nonDead]);
+      const ordered = [...shuffled, ...deadNodes];
+      ordered.forEach((node, i) => {
+        const t = 2.0 + i * 0.08;
+        if (node.material) {
+          const bs = node.userData.baseScale;
+          tl.to(node.scale, { x: bs, y: bs, z: bs, duration: 0.3, ease: 'back.out(2.5)' }, t);
+          tl.to(node.material, { opacity: 1, duration: 0.2, ease: 'power2.out' }, t);
+        } else if (node.children) {
+          const isPaused = node.userData.project.status === 'paused';
+          const bs = node.userData.baseScale;
+          tl.to(node.scale, { x: 1, y: 1, z: 1, duration: isPaused ? 0.3 : 0.3, ease: isPaused ? 'power2.out' : 'back.out(1.8)' }, t);
+          node.children.forEach(child => {
+            if (child.material && child.userData && child.userData.isSubPoint) {
+              const targetOp = isPaused ? 0.20 : 1;
+              tl.to(child.material, { opacity: targetOp, duration: 0.2, ease: 'power2.out' }, t);
+            }
+          });
+        }
       });
     }
 
@@ -188,16 +204,16 @@ function playRevealSequence() {
 
   // Phase 2 (1600-3800ms): Console powers up
   tl.fromTo('.frame__gauge--left', {
-    '--needle-angle': '135deg'
+    '--needle-angle': '-135deg'
   }, {
-    '--needle-angle': '30deg',
+    '--needle-angle': '15deg',
     duration: 0.8,
     ease: 'elastic.out(1, 0.4)'
   }, 1.6);
   tl.fromTo('.frame__gauge--right', {
-    '--needle-angle': '-135deg'
+    '--needle-angle': '135deg'
   }, {
-    '--needle-angle': '15deg',
+    '--needle-angle': '30deg',
     duration: 0.8,
     ease: 'elastic.out(1, 0.4)'
   }, 1.8);
@@ -269,19 +285,28 @@ function playRevealSequence() {
     });
   }
 
-  // Stars stagger in
+  // Stars stagger in (cluster-aware, 0.10s stagger per T027a)
   if (starNodes && starNodes.length > 0) {
-    const shuffledStars = gsap.utils.shuffle([...starNodes]);
-    shuffledStars.forEach((sprite, i) => {
-      const baseScale = sprite.userData.baseScale;
-      tl.to(sprite.scale, {
-        x: baseScale, y: baseScale, z: baseScale,
-        duration: 0.4,
-        ease: 'back.out(2.5)'
-      }, 4.8 + i * 0.15);
-      tl.to(sprite.material, {
-        opacity: 1, duration: 0.3, ease: 'power2.out'
-      }, 4.8 + i * 0.15);
+    const nonDead = starNodes.filter(n => n.userData.project.status !== 'paused');
+    const deadNodes = starNodes.filter(n => n.userData.project.status === 'paused');
+    const shuffled = gsap.utils.shuffle([...nonDead]);
+    const ordered = [...shuffled, ...deadNodes];
+    ordered.forEach((node, i) => {
+      const t = 4.8 + i * 0.10;
+      if (node.material) {
+        const bs = node.userData.baseScale;
+        tl.to(node.scale, { x: bs, y: bs, z: bs, duration: 0.4, ease: 'back.out(2.5)' }, t);
+        tl.to(node.material, { opacity: 1, duration: 0.3, ease: 'power2.out' }, t);
+      } else if (node.children) {
+        const isPaused = node.userData.project.status === 'paused';
+        tl.to(node.scale, { x: 1, y: 1, z: 1, duration: isPaused ? 0.3 : 0.3, ease: isPaused ? 'power2.out' : 'back.out(1.8)' }, t);
+        node.children.forEach(child => {
+          if (child.material && child.userData && child.userData.isSubPoint) {
+            const targetOp = isPaused ? 0.20 : 1;
+            tl.to(child.material, { opacity: targetOp, duration: 0.2, ease: 'power2.out' }, t);
+          }
+        });
+      }
     });
   }
 
@@ -370,30 +395,4 @@ function initSkipIntro(masterTimeline) {
   });
 }
 
-// ---------------------------------------------------------------------------
-// handleScrollDuringReveal — skip reveal if user scrolls
-// Body overflow is hidden during reveal so scroll events won't fire,
-// but wheel events can still skip the reveal animation.
-// ---------------------------------------------------------------------------
-function handleScrollDuringReveal(masterTimeline) {
-  if (!masterTimeline) return;
-
-  function onWheel() {
-    if (masterTimeline.isActive()) {
-      masterTimeline.progress(1);
-    }
-    window.removeEventListener('wheel', onWheel);
-  }
-
-  window.addEventListener('wheel', onWheel, { passive: true });
-
-  const prevOnComplete = masterTimeline.eventCallback('onComplete');
-  masterTimeline.eventCallback('onComplete', () => {
-    window.removeEventListener('wheel', onWheel);
-    if (typeof prevOnComplete === 'function') {
-      prevOnComplete();
-    }
-  });
-}
-
-export { playRevealSequence, initSkipIntro, handleScrollDuringReveal };
+export { playRevealSequence, initSkipIntro };

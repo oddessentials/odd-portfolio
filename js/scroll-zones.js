@@ -29,10 +29,10 @@ let gaugeRight = null;
 
 // Needle angle stops per zone (left sweeps CCW, right sweeps CW)
 const NEEDLE_ANGLES = {
-  rest:  { left: '30deg',   right: '15deg' },
-  0:     { left: '-10deg',  right: '55deg' },
-  1:     { left: '-50deg',  right: '95deg' },
-  2:     { left: '-90deg',  right: '135deg' }
+  rest:  { left: '15deg',   right: '30deg' },
+  0:     { left: '55deg',   right: '-10deg' },
+  1:     { left: '95deg',   right: '-50deg' },
+  2:     { left: '135deg',  right: '-90deg' }
 };
 
 // ---------------------------------------------------------------------------
@@ -141,27 +141,57 @@ function handleScrollProgress(progress) {
 
       // Scale active zone stars to 1.3x, reset others to 1.0x
       // T019: Dim non-highlighted stars to 0.5 opacity
-      starNodes.forEach(sprite => {
-        const base = sprite.userData.baseScale;
-        const isInZone = zone.projectIds.includes(sprite.userData.project.id);
+      starNodes.forEach(node => {
+        const project = node.userData.project;
+        const base = node.userData.baseScale;
+        const isInZone = zone.projectIds.includes(project.id);
+
+        // Dead rock cluster: always dim, never highlight
+        if (project.status === 'paused') return;
+
         const targetScale = isInZone ? base * 1.3 : base;
         const targetOpacity = isInZone ? 1.0 : 0.5;
-        // Skip scale animation if reticle has hover lock
-        if (sprite.userData.hoverLock) {
-          // Only animate opacity, not scale
-        } else if (!reduced) {
-          gsap.killTweensOf(sprite.scale);
-          if (useInstant) {
-            gsap.set(sprite.scale, { x: targetScale, y: targetScale, z: targetScale });
-          } else {
-            gsap.to(sprite.scale, { x: targetScale, y: targetScale, z: targetScale, duration: 0.3, ease: 'power2.out' });
+
+        // Bridge star guard: skip tween restart if already at highlighted state
+        if (node.material) {
+          // Individual star sprite
+          if (isInZone && node.material.opacity >= 0.95 && !node.userData.hoverLock) {
+            // Already highlighted — skip kill+re-tween to prevent stutter
+          } else if (node.userData.hoverLock) {
+            // Reticle has hover lock — only animate opacity
+          } else if (!reduced) {
+            gsap.killTweensOf(node.scale);
+            if (useInstant) {
+              gsap.set(node.scale, { x: targetScale, y: targetScale, z: targetScale });
+            } else {
+              gsap.to(node.scale, { x: targetScale, y: targetScale, z: targetScale, duration: 0.3, ease: 'power2.out', overwrite: 'auto' });
+            }
           }
-        }
-        gsap.killTweensOf(sprite.material);
-        if (useInstant) {
-          sprite.material.opacity = targetOpacity;
-        } else {
-          gsap.to(sprite.material, { opacity: targetOpacity, duration: 0.3, ease: 'power2.out' });
+          gsap.killTweensOf(node.material);
+          if (useInstant) {
+            node.material.opacity = targetOpacity;
+          } else {
+            gsap.to(node.material, { opacity: targetOpacity, duration: 0.3, ease: 'power2.out', overwrite: 'auto' });
+          }
+        } else if (node.children) {
+          // Cluster group — animate children's opacity and group scale
+          if (!node.userData.hoverLock && !reduced) {
+            gsap.killTweensOf(node.scale);
+            if (useInstant) {
+              gsap.set(node.scale, { x: targetScale / base, y: targetScale / base, z: targetScale / base });
+            } else {
+              gsap.to(node.scale, { x: targetScale / base, y: targetScale / base, z: targetScale / base, duration: 0.3, ease: 'power2.out', overwrite: 'auto' });
+            }
+          }
+          node.children.forEach(child => {
+            if (child.material && child.userData && child.userData.isSubPoint) {
+              if (useInstant) {
+                child.material.opacity = targetOpacity;
+              } else {
+                gsap.to(child.material, { opacity: targetOpacity, duration: 0.3, ease: 'power2.out', overwrite: 'auto' });
+              }
+            }
+          });
         }
       });
 
@@ -183,22 +213,44 @@ function handleScrollProgress(progress) {
         }
       });
 
-      starNodes.forEach(sprite => {
-        const base = sprite.userData.baseScale;
-        if (!sprite.userData.hoverLock) {
-          gsap.killTweensOf(sprite.scale);
-          if (useInstant) {
-            gsap.set(sprite.scale, { x: base, y: base, z: base });
-          } else {
-            gsap.to(sprite.scale, { x: base, y: base, z: base, duration: 0.3, ease: 'power2.out' });
+      starNodes.forEach(node => {
+        if (node.userData.project && node.userData.project.status === 'paused') return;
+        const base = node.userData.baseScale;
+        if (node.material) {
+          // Individual star
+          if (!node.userData.hoverLock) {
+            gsap.killTweensOf(node.scale);
+            if (useInstant) {
+              gsap.set(node.scale, { x: base, y: base, z: base });
+            } else {
+              gsap.to(node.scale, { x: base, y: base, z: base, duration: 0.3, ease: 'power2.out' });
+            }
           }
-        }
-        // T019: Restore full opacity when no zone active
-        gsap.killTweensOf(sprite.material);
-        if (useInstant) {
-          sprite.material.opacity = 1.0;
-        } else {
-          gsap.to(sprite.material, { opacity: 1.0, duration: 0.3, ease: 'power2.out' });
+          gsap.killTweensOf(node.material);
+          if (useInstant) {
+            node.material.opacity = 1.0;
+          } else {
+            gsap.to(node.material, { opacity: 1.0, duration: 0.3, ease: 'power2.out' });
+          }
+        } else if (node.children) {
+          // Cluster group — reset
+          if (!node.userData.hoverLock) {
+            gsap.killTweensOf(node.scale);
+            if (useInstant) {
+              gsap.set(node.scale, { x: 1, y: 1, z: 1 });
+            } else {
+              gsap.to(node.scale, { x: 1, y: 1, z: 1, duration: 0.3, ease: 'power2.out' });
+            }
+          }
+          node.children.forEach(child => {
+            if (child.material && child.userData && child.userData.isSubPoint) {
+              if (useInstant) {
+                child.material.opacity = 1.0;
+              } else {
+                gsap.to(child.material, { opacity: 1.0, duration: 0.3, ease: 'power2.out' });
+              }
+            }
+          });
         }
       });
 

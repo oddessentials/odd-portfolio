@@ -23,6 +23,7 @@ const raycaster = new THREE.Raycaster();
 raycaster.params.Sprite = { threshold: 0.15 };
 const mouse = new THREE.Vector2(-9999, -9999);
 let hoveredStar = null;
+let hoveredPaused = null;
 let isMobile = false;
 let xScale = 1.0;
 let yScale = 1.0;
@@ -137,7 +138,7 @@ function initScene() {
       -(e.clientY / window.innerHeight) * 2 + 1
     );
     raycaster.setFromCamera(clickMouse, camera);
-    const hits = raycaster.intersectObjects(starNodes);
+    const hits = raycaster.intersectObjects(starNodes, true);
     const target = hits.length > 0 ? hits[0].object : null;
     if (target && target.userData.project) {
       document.dispatchEvent(new CustomEvent('star-click', {
@@ -158,15 +159,15 @@ function initScene() {
 
   hitzone.addEventListener('touchend', (e) => {
     raycaster.setFromCamera(mouse, camera);
-    const hits = raycaster.intersectObjects(starNodes);
-    if (hits.length > 0) {
-      const hitStar = hits[0].object;
-      const project = hitStar.userData.project;
-      if (project) {
+    const hits = raycaster.intersectObjects(starNodes, true);
+    for (let i = 0; i < hits.length; i++) {
+      const obj = hits[i].object;
+      if (obj.userData && obj.userData.project) {
         document.dispatchEvent(new CustomEvent('star-click', {
-          detail: project,
+          detail: obj.userData.project,
           bubbles: true
         }));
+        break;
       }
     }
     mouse.set(-9999, -9999);
@@ -186,9 +187,9 @@ function initScene() {
     const currentAspect = w / h;
     xScale = Math.min(1, currentAspect / designAspect);
     yScale = Math.max(0.8, 1 - (1 - xScale) * 0.3);
-    starNodes.forEach(sprite => {
-      sprite.position.x = sprite.userData.basePosition[0] * xScale;
-      sprite.position.y = sprite.userData.basePosition[1] * yScale;
+    starNodes.forEach(node => {
+      node.position.x = node.userData.basePosition[0] * xScale;
+      node.position.y = node.userData.basePosition[1] * yScale;
     });
     const newScale = h * newDpr * 0.5;
     nebulaLayers.forEach(layer => {
@@ -234,12 +235,23 @@ function initScene() {
       });
     }
 
-    // Star idle pulse
-    starNodes.forEach((sprite) => {
-      const ud = sprite.userData;
-      if (!prefersReducedMotion()) {
+    // Star idle pulse (skip clusters that lack .material, skip paused)
+    starNodes.forEach((node) => {
+      const ud = node.userData;
+      if (prefersReducedMotion()) return;
+      if (ud.project && ud.project.status === 'paused') return;
+      if (node.material) {
+        // Individual star sprite
         const pulse = 0.7 + 0.3 * Math.sin(elapsed * 1.2 + ud.phaseOffset);
-        sprite.material.opacity = pulse;
+        node.material.opacity = pulse;
+      } else if (node.isGroup || node.children) {
+        // Cluster group — pulse sub-point children (not halo, not hit-area)
+        const pulse = 0.7 + 0.3 * Math.sin(elapsed * 1.2 + ud.phaseOffset);
+        node.children.forEach(child => {
+          if (child.userData && child.userData.isSubPoint && child.material) {
+            child.material.opacity = pulse;
+          }
+        });
       }
     });
 
@@ -302,22 +314,66 @@ function initScene() {
       dustMotes.geometry.attributes.position.needsUpdate = true;
     }
 
-    // Raycasting — per frame
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(starNodes);
-
-    if (intersects.length > 0) {
-      const hit = intersects[0].object;
-      if (hoveredStar !== hit) {
-        if (hoveredStar) onStarExit(hoveredStar);
-        hoveredStar = hit;
-        onStarEnter(hit);
+    // Subtle hover glow for paused (dead-rock) cluster
+    function fadePausedHover(node, enter) {
+      const gsap = window.gsap;
+      if (!gsap || !node) return;
+      const children = node.children || [node];
+      children.forEach(c => {
+        if (!c.material || c.userData.isHitArea) return;
+        gsap.killTweensOf(c.material);
+        gsap.to(c.material, { opacity: enter ? 0.35 : 0.20, duration: 0.3, ease: 'power2.out' });
+      });
+      // Subtle scale for group clusters
+      if (node.isGroup) {
+        gsap.killTweensOf(node.scale);
+        gsap.to(node.scale, { x: enter ? 1.08 : 1, y: enter ? 1.08 : 1, z: enter ? 1.08 : 1, duration: 0.3, ease: 'power2.out' });
       }
-      hitzone.style.cursor = 'pointer';
+    }
+
+    // Raycasting — per frame (recursive to catch cluster hit-area sprites)
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(starNodes, true);
+    // Find first hit with a project reference
+    let hitObj = null;
+    for (let i = 0; i < intersects.length; i++) {
+      const obj = intersects[i].object;
+      if (obj.userData && obj.userData.project) {
+        hitObj = obj;
+        break;
+      }
+    }
+
+    if (hitObj) {
+      // For cluster children (hit-area or sub-point sprites), use the parent group
+      const hoverTarget = (hitObj.userData.isHitArea || hitObj.userData.isSubPoint) ? hitObj.parent : hitObj;
+      const isPaused = hoverTarget.userData.project && hoverTarget.userData.project.status === 'paused';
+      if (isPaused) {
+        // Dead rock: show pointer cursor + subtle glow, but no reticle
+        if (hoveredStar && hoveredStar !== hoverTarget) { onStarExit(hoveredStar); hoveredStar = null; }
+        if (hoveredPaused !== hoverTarget) {
+          if (hoveredPaused) fadePausedHover(hoveredPaused, false);
+          hoveredPaused = hoverTarget;
+          fadePausedHover(hoverTarget, true);
+        }
+        hitzone.style.cursor = 'pointer';
+      } else if (hoveredStar !== hoverTarget) {
+        if (hoveredStar) onStarExit(hoveredStar);
+        if (hoveredPaused) { fadePausedHover(hoveredPaused, false); hoveredPaused = null; }
+        hoveredStar = hoverTarget;
+        onStarEnter(hoverTarget);
+        hitzone.style.cursor = 'pointer';
+      } else {
+        hitzone.style.cursor = 'pointer';
+      }
     } else {
       if (hoveredStar) {
         onStarExit(hoveredStar);
         hoveredStar = null;
+      }
+      if (hoveredPaused) {
+        fadePausedHover(hoveredPaused, false);
+        hoveredPaused = null;
       }
       hitzone.style.cursor = isLogoFollowing() ? 'none' : 'crosshair';
     }

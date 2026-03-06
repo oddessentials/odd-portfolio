@@ -91,8 +91,8 @@ function createLabel() {
 // ---------------------------------------------------------------------------
 // Helper: get star screen position
 // ---------------------------------------------------------------------------
-function getStarScreen(sprite) {
-  sprite.getWorldPosition(_worldPos);
+function getStarScreen(node) {
+  node.getWorldPosition(_worldPos);
   return project3DtoScreen(_worldPos, camera, renderer.domElement);
 }
 
@@ -113,14 +113,16 @@ function applyPosition() {
 // ---------------------------------------------------------------------------
 // T024: onStarEnter — activate reticle on star hover
 // ---------------------------------------------------------------------------
-function onStarEnter(sprite) {
+function onStarEnter(node) {
   if (isMobileFlag || !svgEl) return;
+  // Dead rock cluster should not trigger reticle
+  if (node.userData && node.userData.project && node.userData.project.status === 'paused') return;
 
   const gsap = window.gsap;
-  const newScreen = getStarScreen(sprite);
+  const newScreen = getStarScreen(node);
 
-  // T025: Star-to-star transition
-  if (currentStar && currentStar !== sprite) {
+  // Star-to-star transition
+  if (currentStar && currentStar !== node) {
     if (gsap) {
       gsap.killTweensOf(reticlePos);
       if (prefersReducedMotion()) {
@@ -146,81 +148,73 @@ function onStarEnter(sprite) {
       applyPosition();
     }
   } else if (!currentStar) {
-    // First star engagement — snap into position
     reticlePos.x = newScreen.x;
     reticlePos.y = newScreen.y;
     applyPosition();
   }
 
-  currentStar = sprite;
+  currentStar = node;
 
-  // Fade in reticle
   svgEl.style.opacity = '1';
 
-  // Update label text
-  if (labelEl && sprite.userData.project) {
-    labelEl.textContent = sprite.userData.project.name;
+  if (labelEl && node.userData.project) {
+    labelEl.textContent = node.userData.project.name;
     labelEl.style.opacity = '1';
   }
 
-  // T030 + T020: Hover scale animation with reduced-motion check
+  // Hover scale animation (handles both Sprite and Group)
   if (gsap) {
-    const ud = sprite.userData;
-    gsap.killTweensOf(sprite.scale);
+    const ud = node.userData;
     ud.hoverLock = true;
-    if (prefersReducedMotion()) {
-      const targetScale = ud.baseScale * 1.2;
-      gsap.set(sprite.scale, { x: targetScale, y: targetScale, z: targetScale });
-    } else {
-      const targetScale = ud.baseScale * 1.6;
-      gsap.to(sprite.scale, {
-        x: targetScale,
-        y: targetScale,
-        z: targetScale,
-        duration: 0.2,
-        ease: 'back.out(3)'
-      });
+    if (node.material) {
+      // Individual star sprite
+      gsap.killTweensOf(node.scale);
+      if (prefersReducedMotion()) {
+        const targetScale = ud.baseScale * 1.2;
+        gsap.set(node.scale, { x: targetScale, y: targetScale, z: targetScale });
+      } else {
+        const targetScale = ud.baseScale * 1.6;
+        gsap.to(node.scale, { x: targetScale, y: targetScale, z: targetScale, duration: 0.2, ease: 'back.out(3)' });
+      }
+    } else if (node.children) {
+      // Cluster group — scale the group
+      gsap.killTweensOf(node.scale);
+      if (prefersReducedMotion()) {
+        gsap.set(node.scale, { x: 1.2, y: 1.2, z: 1.2 });
+      } else {
+        gsap.to(node.scale, { x: 1.4, y: 1.4, z: 1.4, duration: 0.2, ease: 'back.out(3)' });
+      }
     }
   }
 
-  // T029: Dispatch reticle-activate for logo-follow handoff
   document.dispatchEvent(new CustomEvent('reticle-activate'));
 }
 
 // ---------------------------------------------------------------------------
 // T026: onStarExit — deactivate reticle on star leave
 // ---------------------------------------------------------------------------
-function onStarExit(sprite) {
+function onStarExit(node) {
   if (isMobileFlag || !svgEl) return;
 
   const gsap = window.gsap;
 
-  // T030: Hover scale reset (absorbed from scene.js handleStarExit)
-  if (gsap && sprite) {
-    const ud = sprite.userData;
-    gsap.killTweensOf(sprite.scale);
+  // Hover scale reset (handles both Sprite and Group)
+  if (gsap && node) {
+    const ud = node.userData;
     ud.hoverLock = false;
-    gsap.to(sprite.scale, {
-      x: ud.baseScale,
-      y: ud.baseScale,
-      z: ud.baseScale,
-      duration: 0.2,
-      ease: 'power2.out'
-    });
+    if (node.material) {
+      gsap.killTweensOf(node.scale);
+      gsap.to(node.scale, { x: ud.baseScale, y: ud.baseScale, z: ud.baseScale, duration: 0.2, ease: 'power2.out' });
+    } else if (node.children) {
+      gsap.killTweensOf(node.scale);
+      gsap.to(node.scale, { x: 1, y: 1, z: 1, duration: 0.2, ease: 'power2.out' });
+    }
   }
 
-  // Only fade out if this is the current tracked star and no transition is happening
-  if (sprite === currentStar && !transitioning) {
-    // Fade out reticle
+  if (node === currentStar && !transitioning) {
     svgEl.style.opacity = '0';
-
-    if (labelEl) {
-      labelEl.style.opacity = '0';
-    }
-
+    if (labelEl) labelEl.style.opacity = '0';
     currentStar = null;
-
-    // T029: Dispatch reticle-deactivate for logo-follow handoff
     document.dispatchEvent(new CustomEvent('reticle-deactivate'));
   }
 }
