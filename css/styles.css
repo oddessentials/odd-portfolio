@@ -583,18 +583,19 @@ body.nav-overlay-active .nav-backdrop {
     /* Glow overlay — active segment pulses via JS-driven custom properties */
     conic-gradient(
       from 315deg,
-      transparent 0deg 90deg,
-      rgba(107, 64, 161, var(--gauge-zone0-glow)) 90deg 180deg,
-      rgba(184, 135, 10, var(--gauge-zone1-glow)) 180deg 270deg,
-      rgba(26, 158, 143, var(--gauge-zone2-glow)) 270deg 360deg
+      transparent 0deg 90.5deg,
+      rgba(107, 64, 161, var(--gauge-zone0-glow)) 89.5deg 180.5deg,
+      rgba(184, 135, 10, var(--gauge-zone1-glow)) 179.5deg 270.5deg,
+      rgba(26, 158, 143, var(--gauge-zone2-glow)) 269.5deg 360deg
     ),
     /* Zone-colored face gradient (CW: rest → zone0 → zone1 → zone2) */
+    /* 1deg overlap at each boundary eliminates anti-aliasing white seam */
     conic-gradient(
       from 315deg,
-      var(--gauge-rest) 0deg 90deg,
-      var(--gauge-zone0) 90deg 180deg,
-      var(--gauge-zone1) 180deg 270deg,
-      var(--gauge-zone2) 270deg 360deg
+      var(--gauge-rest) 0deg 90.5deg,
+      var(--gauge-zone0) 89.5deg 180.5deg,
+      var(--gauge-zone1) 179.5deg 270.5deg,
+      var(--gauge-zone2) 269.5deg 360deg
     );
 }
 
@@ -611,18 +612,19 @@ body.nav-overlay-active .nav-backdrop {
     /* Glow overlay — mirrored active segment pulses */
     conic-gradient(
       from 315deg,
-      transparent 0deg 90deg,
-      rgba(26, 158, 143, var(--gauge-zone2-glow)) 90deg 180deg,
-      rgba(184, 135, 10, var(--gauge-zone1-glow)) 180deg 270deg,
-      rgba(107, 64, 161, var(--gauge-zone0-glow)) 270deg 360deg
+      transparent 0deg 90.5deg,
+      rgba(26, 158, 143, var(--gauge-zone2-glow)) 89.5deg 180.5deg,
+      rgba(184, 135, 10, var(--gauge-zone1-glow)) 179.5deg 270.5deg,
+      rgba(107, 64, 161, var(--gauge-zone0-glow)) 269.5deg 360deg
     ),
     /* Zone-colored face gradient (CCW: rest → zone2 → zone1 → zone0) */
+    /* 1deg overlap at each boundary eliminates anti-aliasing white seam */
     conic-gradient(
       from 315deg,
-      var(--gauge-rest) 0deg 90deg,
-      var(--gauge-zone2) 90deg 180deg,
-      var(--gauge-zone1) 180deg 270deg,
-      var(--gauge-zone0) 270deg 360deg
+      var(--gauge-rest) 0deg 90.5deg,
+      var(--gauge-zone2) 89.5deg 180.5deg,
+      var(--gauge-zone1) 179.5deg 270.5deg,
+      var(--gauge-zone0) 269.5deg 360deg
     );
 }
 
