@@ -40,8 +40,8 @@
   --frame-border-width: 18px;
   --frame-bracket-ratio: 2.5;
   --frame-corner-size: calc(var(--frame-border-width) * var(--frame-bracket-ratio));
-  --frame-gauge-size-left: calc(var(--frame-border-width) * 2.8);
-  --frame-gauge-size-right: calc(var(--frame-border-width) * 2.0);
+  --frame-gauge-size-left: calc(var(--frame-border-width) * 2.0);
+  --frame-gauge-size-right: calc(var(--frame-border-width) * 3.6);
   --hud-panel-width: 220px;
   --cmd-line-height: 48px;
 
@@ -599,8 +599,8 @@ body.nav-overlay-active .nav-backdrop {
 .frame__gauge--right {
   width: var(--frame-gauge-size-right);
   height: var(--frame-gauge-size-right);
-  right: calc(var(--frame-border-width) - var(--frame-gauge-size-right) / 2);
-  top: 60%;
+  right: calc(var(--frame-border-width) - var(--frame-gauge-size-right) / 2 + 14px);
+  top: 80%;
   transform: translateY(-50%);
 }
 

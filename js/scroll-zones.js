@@ -29,10 +29,10 @@ let gaugeRight = null;
 
 // Needle angle stops per zone (left sweeps CCW, right sweeps CW)
 const NEEDLE_ANGLES = {
-  rest:  { left: '30deg',   right: '15deg' },
-  0:     { left: '-10deg',  right: '55deg' },
-  1:     { left: '-50deg',  right: '95deg' },
-  2:     { left: '-90deg',  right: '135deg' }
+  rest:  { left: '15deg',   right: '30deg' },
+  0:     { left: '55deg',   right: '-10deg' },
+  1:     { left: '95deg',   right: '-50deg' },
+  2:     { left: '135deg',  right: '-90deg' }
 };
 
 // ---------------------------------------------------------------------------
