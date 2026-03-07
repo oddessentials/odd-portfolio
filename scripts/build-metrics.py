@@ -10,6 +10,7 @@ Requires: gh CLI (authenticated), Python 3.x
 """
 
 import json
+import math
 import subprocess
 import sys
 import re
@@ -44,11 +45,20 @@ REPO_MANIFEST = [
 # Fixed score boundaries for planet tier classification.
 # A repo's tier changes only when its own score crosses a boundary.
 TIER_THRESHOLDS = [
-    (200,  0.55, "dwarf"),
-    (400,  0.89, "minor"),
-    (700,  1.00, "standard"),
-    (1000, 1.44, "major"),
-    (None, 2.33, "giant"),   # 1000+
+    (280,  0.55, "dwarf"),
+    (480,  0.89, "minor"),
+    (780,  1.00, "standard"),
+    (1100, 1.44, "major"),
+    (None, 2.33, "giant"),   # 1100+
+]
+
+# Test file patterns for counting (matched against full path).
+# Covers JS/TS (*.test.*, *.spec.*, __tests__/), Python (test_*), Go (*_test.go).
+TEST_FILE_PATTERNS = [
+    re.compile(r'\.(?:test|spec)\.[^.]+$'),
+    re.compile(r'(?:^|/)test_[^/]+$'),
+    re.compile(r'_test\.[^.]+$'),
+    re.compile(r'(?:^|/)(?:__tests__|tests)/[^/]+\.[^.]+$'),
 ]
 
 MIN_RATE_LIMIT = 100
@@ -175,6 +185,41 @@ def get_commit_dates(repo, branch):
     return oldest_commit_date, latest_commit_date
 
 
+def get_language_bytes(repo):
+    """Get total source code bytes via GitHub Languages API."""
+    data = gh_json("api", f"repos/{repo}/languages", fallback={})
+    if not data or not isinstance(data, dict):
+        return 0
+    return sum(data.values())
+
+
+def get_test_file_count(repo, branch):
+    """Count unique test files via Git Trees API (recursive).
+
+    Returns int, or None if the tree was truncated (undercount risk).
+    """
+    data = gh_json(
+        "api", f"repos/{repo}/git/trees/{branch}?recursive=1",
+        fallback=None
+    )
+    if data is None:
+        return 0
+    if data.get("truncated"):
+        print(f"    WARNING: Git tree truncated for {repo}, test count may be low")
+        return None
+    tree = data.get("tree", [])
+    matched = set()
+    for entry in tree:
+        if entry.get("type") != "blob":
+            continue
+        path = entry.get("path", "")
+        for pattern in TEST_FILE_PATTERNS:
+            if pattern.search(path):
+                matched.add(path)
+                break
+    return len(matched)
+
+
 def collect_repo_metrics(repo_slug, branch):
     """Collect metrics for a single repo. Returns dict or None on failure."""
     owner, name = repo_slug.split("/")
@@ -207,6 +252,11 @@ def collect_repo_metrics(repo_slug, branch):
         "--jq", '[.[] | {tag_name, published_at, name}]',
         fallback=[]
     )
+
+    # Code volume and test file count
+    total_code_bytes = get_language_bytes(repo_slug)
+    loc_estimate = total_code_bytes // 50 if total_code_bytes else 0
+    test_file_count = get_test_file_count(repo_slug, branch)
 
     # Commit dates for repo lifetime
     oldest_commit_date, latest_commit_date = get_commit_dates(repo_slug, branch)
@@ -258,21 +308,34 @@ def collect_repo_metrics(repo_slug, branch):
         "visibility": meta.get("visibility", "UNKNOWN"),
         "latest_release": latest_release,
         "dev_duration_days": dev_duration_days,
+        "total_code_bytes": total_code_bytes,
+        "loc_estimate": loc_estimate,
+        "test_file_count": test_file_count,
     }
 
 
 def calculate_activity_score(m):
-    """Weighted composite score for planet tier classification."""
+    """Weighted composite score for planet tier classification.
+
+    LOC uses log10 of loc_estimate (bytes/50) for better spread across repos.
+    Test count uses sqrt for a graduated curve that rewards breadth without capping early.
+    """
     lifetime = m.get("repo_lifetime_days")
     if lifetime is None:
         lifetime = m.get("dev_duration_days", 0)
+    loc_est = m.get("loc_estimate") or 0
+    loc_factor = min(math.log10(max(loc_est, 1)) * 15, 100)
+    test_count = m.get("test_file_count") or 0
+    test_factor = min(math.sqrt(test_count) * 10, 100)
     return (
         m["commit_count"] * 1.0 +
         m["pr_count"] * 2.0 +
         m["issue_count"] * 1.5 +
         m["release_count"] * 5.0 +
         m["contributor_count"] * 10.0 +
-        min(lifetime * 0.67, 20)
+        min(lifetime * 0.67, 20) +
+        loc_factor +
+        test_factor
     )
 
 

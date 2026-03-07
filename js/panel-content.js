@@ -110,7 +110,18 @@ const METRIC_DEFS = [
   ['Releases',      'icon-tag',    'release_count'],
   ['Contributors',  'icon-users',  'contributor_count'],
   ['Lifetime',      'icon-clock',  'repo_lifetime_days'],
+  ['Lines of code', 'icon-code',   'loc_estimate'],
+  ['Tests',         'icon-test',   'test_file_count'],
 ];
+
+function formatMetricValue(key, val) {
+  if (val == null) return '\u2014';
+  if (key === 'repo_lifetime_days') return val + 'd';
+  if (key === 'loc_estimate') {
+    return val >= 1000 ? (val / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : String(val);
+  }
+  return String(val);
+}
 
 export function buildMetricsBar(metrics, staleness, generatedAt) {
   if (!metrics || staleness === 'suppress') return null;
@@ -118,16 +129,15 @@ export function buildMetricsBar(metrics, staleness, generatedAt) {
   const dl = el('dl', 'overlay__metrics');
 
   for (const [label, icon, key] of METRIC_DEFS) {
+    const val = metrics[key];
+    if (key === 'test_file_count' && !val) continue;
     const div = el('div', 'overlay__metric');
     const dt = el('dt', 'sr-only');
     dt.textContent = label;
     const dd = el('dd');
     dd.innerHTML = '<svg class="overlay__metric-icon" aria-hidden="true" focusable="false">'
       + '<use href="#' + icon + '"/></svg>';
-    const val = metrics[key];
-    dd.appendChild(document.createTextNode(
-      key === 'repo_lifetime_days' && val != null ? val + 'd' : (val != null ? String(val) : '—')
-    ));
+    dd.appendChild(document.createTextNode(formatMetricValue(key, val)));
     div.appendChild(dt);
     div.appendChild(dd);
     dl.appendChild(div);

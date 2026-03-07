@@ -660,8 +660,7 @@ body.nav-overlay-active .nav-backdrop {
   width: var(--frame-gauge-size-left);
   height: var(--frame-gauge-size-left);
   left: calc(var(--frame-border-width) - var(--frame-gauge-size-left) / 2 + 20px);
-  top: 41%;
-  transform: translateY(-50%);
+  bottom: calc(var(--cmd-line-height) + var(--frame-border-width));
 }
 
 .frame__gauge--right {
@@ -1862,7 +1861,7 @@ body.nav-overlay-active .nav-backdrop {
   /* 014: Mobile modal content */
   .overlay__metrics {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     gap: 8px;
   }
   .overlay__metrics-stale { grid-column: 1 / -1; }
