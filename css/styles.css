@@ -40,7 +40,7 @@
   --frame-border-width: 18px;
   --frame-bracket-ratio: 2.5;
   --frame-corner-size: calc(var(--frame-border-width) * var(--frame-bracket-ratio));
-  --frame-gauge-size-left: calc(var(--frame-border-width) * 3.6);
+  --frame-gauge-size-left: calc(var(--frame-border-width) * 4.2);
   --frame-gauge-size-right: calc(var(--frame-border-width) * 7.2);
   --hud-panel-width: 220px;
   --cmd-line-height: 48px;
@@ -659,7 +659,7 @@ body.nav-overlay-active .nav-backdrop {
 .frame__gauge--left {
   width: var(--frame-gauge-size-left);
   height: var(--frame-gauge-size-left);
-  left: calc(var(--frame-border-width) - var(--frame-gauge-size-left) / 2 + 12px);
+  left: calc(var(--frame-border-width) - var(--frame-gauge-size-left) / 2 + 20px);
   top: 41%;
   transform: translateY(-50%);
 }
@@ -696,6 +696,35 @@ body.nav-overlay-active .nav-backdrop {
   stroke: #8B6914;
   stroke-width: 1;
 }
+
+/* Mounting bolts — brass rivets where gauge meets frame border */
+.gauge__bolt {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #e8d090, var(--color-brass-light) 40%, var(--color-brass-mid) 70%, var(--color-brass-dark));
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.5),
+    0 1px 3px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.frame__gauge--left .gauge__bolt {
+  width: 7px;
+  height: 7px;
+  left: 1px;
+}
+.frame__gauge--left .gauge__bolt--upper { top: 25%; }
+.frame__gauge--left .gauge__bolt--lower { top: 65%; }
+
+.frame__gauge--right .gauge__bolt {
+  width: 11px;
+  height: 11px;
+  right: 4px;
+}
+.frame__gauge--right .gauge__bolt--upper { top: 25%; }
+.frame__gauge--right .gauge__bolt--lower { top: 65%; }
 
 /* --- 6.4 Greek key meander band --- */
 /* Classic meander: 24px × 24px square tile, 6 cols × 6 rows (4px grid).
