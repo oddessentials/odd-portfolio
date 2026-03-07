@@ -1283,6 +1283,7 @@ body.nav-overlay-active .nav-backdrop {
   inset: 0;
   z-index: calc(var(--z-hud) - 1);
   cursor: crosshair;
+  touch-action: pan-y;
 }
 
 #orb-hitzone:focus-visible {
@@ -1362,7 +1363,8 @@ body.nav-overlay-active .nav-backdrop {
   width: 90%;
   max-width: 720px;
   max-height: 85vh;
-  overflow-y: auto;
+  display: grid;
+  grid-template-rows: auto 1fr;
   background:
     linear-gradient(
       180deg,
@@ -1396,10 +1398,15 @@ body.nav-overlay-active .nav-backdrop {
   );
 }
 
+.overlay__header {
+  position: relative;
+  padding: var(--space-sm);
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
 .overlay__close {
-  position: absolute;
-  top: var(--space-sm);
-  right: var(--space-sm);
   width: 44px;
   height: 44px;
   min-width: 44px;
@@ -1423,6 +1430,8 @@ body.nav-overlay-active .nav-backdrop {
 
 .overlay__content {
   padding: var(--space-lg) var(--space-lg) var(--space-xl);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .overlay__logo-zone {
@@ -1840,6 +1849,13 @@ body.nav-overlay-active .nav-backdrop {
     max-height: 100vh;
     border-radius: 0;
     border-width: 1px;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  @supports (max-height: 100dvh) {
+    .overlay__frame {
+      max-height: 100dvh;
+    }
   }
 
   .overlay__content {

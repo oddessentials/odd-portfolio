@@ -2,6 +2,7 @@
 
 import { CONSTELLATION_ZONES } from './data.js';
 import { buildBadges, buildSynopsis, buildCapabilities, buildTechStack, buildMetricsBar, buildAiModels, getMetricsStaleness, CATEGORY_ICONS, extractYouTubeId, escapeHtml } from './panel-content.js';
+import { initSwipeGesture } from './panel-swipe.js';
 
 // ---------------------------------------------------------------------------
 // WCAG AA contrast helper — SC-005: use zone hexBright when accent fails 4.5:1
@@ -26,12 +27,17 @@ function getTextSafeColor(hex, projectId) {
 // ---------------------------------------------------------------------------
 let triggerElement = null;
 let overlayEl = null;
+let overlayHeaderEl = null;
+let overlayContentEl = null;
 let closeBtn = null;
 let backdropEl = null;
 let focusableEls = [];
 
 /** Callback invoked before the panel opens (e.g. close hamburger nav) */
 let _beforeOpen = null;
+
+/** Saved scroll position for iOS-safe scroll lock */
+let _savedScrollTop = 0;
 
 /** Repo metrics data (passed via DI from app.js) */
 let _repoMetrics = { repos: {} };
@@ -148,7 +154,11 @@ function showProjectPanel(project, trigger) {
     if (window.ScrollTrigger) {
       window.ScrollTrigger.getAll().forEach(st => st.disable());
     }
-    document.body.style.overflow = 'hidden';
+    _savedScrollTop = window.scrollY;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = -_savedScrollTop + 'px';
     document.dispatchEvent(new CustomEvent('panel-open', { detail: { project } }));
     requestAnimationFrame(() => {
       closeBtn.focus();
@@ -314,7 +324,11 @@ function showProjectPanel(project, trigger) {
   if (window.ScrollTrigger) {
     window.ScrollTrigger.getAll().forEach(st => st.disable());
   }
-  document.body.style.overflow = 'hidden';
+  _savedScrollTop = window.scrollY;
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
+  document.body.style.top = -_savedScrollTop + 'px';
 
   document.dispatchEvent(new CustomEvent('panel-open', { detail: { project } }));
 
@@ -342,10 +356,15 @@ function closeProjectPanel() {
 
   overlayEl.setAttribute('hidden', '');
 
+  document.documentElement.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
+  document.body.style.top = '';
+  window.scrollTo(0, _savedScrollTop);
+
   if (window.ScrollTrigger) {
     window.ScrollTrigger.getAll().forEach(st => st.enable());
   }
-  document.body.style.overflow = '';
 
   document.dispatchEvent(new CustomEvent('panel-close'));
 
@@ -397,6 +416,8 @@ function initPanel({ beforeOpen, repoMetrics } = {}) {
   overlayEl = document.getElementById('project-overlay');
   if (!overlayEl) return;
 
+  overlayHeaderEl = overlayEl.querySelector('.overlay__header');
+  overlayContentEl = overlayEl.querySelector('.overlay__content');
   closeBtn = overlayEl.querySelector('.overlay__close');
   backdropEl = overlayEl.querySelector('.overlay__backdrop');
   _beforeOpen = beforeOpen || null;
@@ -405,8 +426,14 @@ function initPanel({ beforeOpen, repoMetrics } = {}) {
   // Close button click
   closeBtn.addEventListener('click', closeProjectPanel);
 
-  // Backdrop click
-  backdropEl.addEventListener('click', closeProjectPanel);
+  // Backdrop click — guard against bubbled clicks from modal content
+  backdropEl.addEventListener('click', (e) => {
+    if (e.target !== backdropEl) return;
+    closeProjectPanel();
+  });
+
+  // Swipe-to-dismiss on modal header
+  initSwipeGesture(overlayHeaderEl, overlayContentEl, closeProjectPanel);
 }
 
 // Exports
