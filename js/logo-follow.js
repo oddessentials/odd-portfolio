@@ -71,7 +71,7 @@ function initLogoFollow() {
       reticleDebounceTimer = null;
     } else {
       paused = false;
-      fadeLogoIn(gsap);
+      if (logoFollowing) fadeLogoIn(gsap);
     }
   });
 
@@ -127,6 +127,7 @@ function initLogoFollow() {
       engageLogo(e.clientX, e.clientY);
       return;
     }
+    if (paused) return;
     if (!logoQuickToX || !logoQuickToY) return;
     logoQuickToX(e.clientX - logoW);
     logoQuickToY(e.clientY);
