@@ -6,6 +6,7 @@ import { init as initLogoFollow, resetOnResize as logoResetOnResize, isFollowing
 import { init as initReticle, tick as reticleTick, onStarEnter, onStarExit } from './reticle.js';
 import { init as initParallax, tick as parallaxTick } from './parallax.js';
 import { tick as sidebarHieroglyphsTick, render as sidebarHieroglyphsRender } from './sidebar-hieroglyphs.js';
+import { init as initRings, tick as ringsTick } from './rings.js';
 
 // Module-level references (exported at bottom)
 let scene, camera, renderer, orbGroup, starNodes, nebulaLayers;
@@ -132,6 +133,9 @@ function initScene() {
   starNodes = starResult.starNodes;
   starGroup = starResult.starGroup;
   orbGroup.add(starGroup);
+
+  // Initialize Saturn-type rings on featured stars
+  initRings({ starNodes, starGroup });
 
   dustMotes = createDustSystem(isMobile, xScale);
   orbGroup.add(dustMotes);
@@ -280,6 +284,8 @@ function initScene() {
       }
     });
 
+    // Saturn-type ring animation
+    ringsTick(elapsed);
 
     // Chromatic twinkle — rare vivid flash on a nebula particle (T017)
     if (!prefersReducedMotion() && elapsed - lastTwinkleTime > TWINKLE_INTERVAL) {
@@ -430,4 +436,4 @@ function initScene() {
 }
 
 // --- Exports ---
-export { initScene, scene, camera, renderer, starNodes, nebulaLayers, nebulaGroup, project3DtoScreen };
+export { initScene, scene, camera, renderer, starNodes, starGroup, nebulaLayers, nebulaGroup, project3DtoScreen };
