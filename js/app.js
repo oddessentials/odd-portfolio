@@ -1,5 +1,6 @@
 // js/app.js — Main entry point
-import { initScene, scene, camera, renderer, starNodes, nebulaLayers, nebulaGroup } from './scene.js';
+import { initScene, scene, camera, renderer, starNodes, starGroup, nebulaLayers, nebulaGroup } from './scene.js';
+import { getRings } from './rings.js';
 import { initInteractions, setInitialFocus } from './interactions.js';
 import { playTerminalScan } from './terminal.js';
 import {
@@ -90,6 +91,12 @@ function handleReducedMotion() {
     const mats = getMaterials();
     if (mats.leftMaterial) mats.leftMaterial.uniforms.uRevealProgress.value = 1.0;
     if (mats.rightMaterial) mats.rightMaterial.uniforms.uRevealProgress.value = 1.0;
+
+    // Show rings at final state under reduced motion
+    getRings().forEach(ring => {
+      ring.material.uniforms.uOpacity.value = 0.4;
+      ring.userData._targetOpacity = 0.4;
+    });
 
     if (ScrollTrigger) {
       ScrollTrigger.getAll().forEach(st => st.kill());

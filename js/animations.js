@@ -3,6 +3,7 @@ import { camera, starNodes, nebulaLayers } from './scene.js';
 import { setInitialFocus } from './interactions.js';
 import { playTerminalScan } from './terminal.js';
 import { getMaterials } from './sidebar-hieroglyphs.js';
+import { getRings } from './rings.js';
 
 const gsap = window.gsap;
 const isMobileView = () => window.innerWidth < 768;
@@ -311,6 +312,19 @@ function playRevealSequence() {
       }
     });
   }
+
+  // Ring fade-in — staggered after parent star appears
+  const ringMeshes = getRings();
+  ringMeshes.forEach(ring => {
+    ring.material.uniforms.uOpacity.value = 0;
+    ring.userData._targetOpacity = 0;
+    const starIdx = ring.userData.parentStar.userData.index;
+    const parentT = 4.8 + starIdx * 0.10;
+    tl.to(ring.userData, {
+      _targetOpacity: 0.4, duration: 0.5, ease: 'power2.out',
+      onUpdate() { ring.material.uniforms.uOpacity.value = ring.userData._targetOpacity; }
+    }, parentT + 0.15);
+  });
 
   // Camera zoom in
   if (camera) {
