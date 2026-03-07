@@ -647,7 +647,7 @@ body.nav-overlay-active .nav-backdrop {
   top: 50%;
   left: 50%;
   width: 3px;
-  height: 35%;
+  height: calc(35% - 6px);
   background: linear-gradient(to top, var(--color-brass-light), #ff6b35);
   transform-origin: bottom center;
   transform: translate(-50%, -100%) rotate(var(--needle-angle));
