@@ -56,6 +56,22 @@ function project3DtoScreen(position3D, cam, domElement) {
   };
 }
 
+// Subtle hover glow for paused (dead-rock) cluster
+function fadePausedHover(node, enter) {
+  const gsap = window.gsap;
+  if (!gsap || !node) return;
+  const children = node.children || [node];
+  children.forEach(c => {
+    if (!c.material || c.userData.isHitArea) return;
+    gsap.killTweensOf(c.material);
+    gsap.to(c.material, { opacity: enter ? 0.35 : 0.20, duration: 0.3, ease: 'power2.out' });
+  });
+  if (node.isGroup) {
+    gsap.killTweensOf(node.scale);
+    gsap.to(node.scale, { x: enter ? 1.08 : 1, y: enter ? 1.08 : 1, z: enter ? 1.08 : 1, duration: 0.3, ease: 'power2.out' });
+  }
+}
+
 // --- initScene — main entry point ---
 function initScene() {
   isMobile = window.innerWidth < 768;
@@ -174,13 +190,16 @@ function initScene() {
   });
 
   // --- Resize handler ---
+  let resizeDebounceTimer;
   function onResize() {
     const w = window.innerWidth;
     const h = window.innerHeight;
-    isMobile = w < 768;
+
+    // Immediate: renderer + camera must update without delay
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    const newDpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio, 1.5);
+    const candidateMobile = w < 768;
+    const newDpr = candidateMobile ? 1.0 : Math.min(window.devicePixelRatio, 1.5);
     renderer.setPixelRatio(newDpr);
     renderer.setSize(w, h);
 
@@ -198,6 +217,12 @@ function initScene() {
     });
 
     logoResetOnResize();
+
+    // Debounced: breakpoint-crossing logic (mobile flag + downstream effects)
+    clearTimeout(resizeDebounceTimer);
+    resizeDebounceTimer = setTimeout(() => {
+      isMobile = candidateMobile;
+    }, 150);
   }
   window.addEventListener('resize', onResize);
 
@@ -314,23 +339,6 @@ function initScene() {
       dustMotes.geometry.attributes.position.needsUpdate = true;
     }
 
-    // Subtle hover glow for paused (dead-rock) cluster
-    function fadePausedHover(node, enter) {
-      const gsap = window.gsap;
-      if (!gsap || !node) return;
-      const children = node.children || [node];
-      children.forEach(c => {
-        if (!c.material || c.userData.isHitArea) return;
-        gsap.killTweensOf(c.material);
-        gsap.to(c.material, { opacity: enter ? 0.35 : 0.20, duration: 0.3, ease: 'power2.out' });
-      });
-      // Subtle scale for group clusters
-      if (node.isGroup) {
-        gsap.killTweensOf(node.scale);
-        gsap.to(node.scale, { x: enter ? 1.08 : 1, y: enter ? 1.08 : 1, z: enter ? 1.08 : 1, duration: 0.3, ease: 'power2.out' });
-      }
-    }
-
     // Raycasting — per frame (recursive to catch cluster hit-area sprites)
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(starNodes, true);
@@ -407,7 +415,7 @@ function initScene() {
   });
 
   // Initialize logo follow after scene is ready
-  initLogoFollow({ isMobile });
+  initLogoFollow();
 
   // Initialize parallax depth layers (Phase 7)
   initParallax({ nebulaLayers, nebulaGroup });

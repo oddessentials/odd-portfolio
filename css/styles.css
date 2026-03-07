@@ -1677,8 +1677,33 @@ body.nav-overlay-active .nav-backdrop {
   }
 
   /* Frame decorations — thinner on mobile */
-  .frame__gauge,
+  .frame__gauge--left,
   .frame-tool {
+    display: none;
+  }
+
+  /* T015: Mobile gauge positioning — bottom-right fixed */
+  .frame__gauge--right {
+    position: fixed;
+    bottom: calc(var(--cmd-line-height, 32px) + 8px + env(safe-area-inset-bottom, 0px));
+    right: calc(8px + env(safe-area-inset-right, 0px));
+    max-width: 72px;
+    max-height: 72px;
+    width: 72px;
+    height: 72px;
+    z-index: 40;
+  }
+
+  /* T016: Hide bracket and bolts on mobile */
+  .frame__gauge--right .gauge__bracket {
+    display: none;
+  }
+  .frame__gauge--right .gauge__bolt {
+    display: none;
+  }
+
+  /* T017: Hide gauge when hamburger nav is open */
+  #app-shell:has(#hamburger-btn.is-open) .frame__gauge--right {
     display: none;
   }
 
@@ -1710,6 +1735,11 @@ body.nav-overlay-active .nav-backdrop {
     padding: var(--space-sm) var(--space-lg);
     font-size: var(--text-base);
   }
+}
+
+/* T018: Hide gauge when panel is open (any viewport) */
+.frame__gauge--right.gauge--panel-hidden {
+  display: none;
 }
 
 /* Tablet+ reset: ensure sidebars visible after mobile nav */
