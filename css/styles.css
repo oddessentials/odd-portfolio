@@ -63,6 +63,18 @@
   --z-overlay-backdrop: 90;
   --z-overlay: 100;
   --z-skip-link: 9999;
+  --z-splash: 150;
+
+  /* Splash gate palette */
+  --splash-bg-center: #1a1510;
+  --splash-bg-edge: #0d0b09;
+  --splash-text-color: #4A3520;
+  --splash-text-title: #3B2A14;
+  --splash-seal-wax: #8B1A1A;
+  --splash-seal-wax-dark: #4A0A0A;
+  --splash-seal-logo: rgba(200, 168, 75, 0.6);
+  --splash-seal-size: clamp(56px, 6vw, 72px);
+  --splash-glow-opacity: 0.2;
 
   /* Typography */
   --font-display: 'Cinzel', Georgia, serif;
@@ -2212,5 +2224,329 @@ body.nav-overlay-active .nav-backdrop {
     margin-top: auto;
     padding: 12px var(--space-md);
     border-top: 1px solid var(--color-brass-dark);
+  }
+}
+
+/* ============================================================
+   SPLASH GATE — Parchment Door Entry
+   T005-T008, T012-T015, T021, T027
+   ============================================================ */
+
+/* --- Gate overlay & body lock --- */
+.splash-gate {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-splash);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0D0B09;
+  perspective: 1200px;
+}
+
+body.splash-active {
+  overflow: hidden;
+}
+
+body.splash-active #app-shell {
+  pointer-events: none;
+}
+
+/* --- Backdrop (T006) --- */
+.splash-gate__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      120deg,
+      rgba(60, 40, 20, 0.02) 0px,
+      transparent 1px,
+      transparent 3px
+    ),
+    radial-gradient(
+      ellipse at 50% 50%,
+      var(--splash-bg-center) 0%,
+      var(--splash-bg-edge) 50%,
+      #04050f 100%
+    );
+}
+
+/* --- Chromatic glow (T015) --- */
+.splash-gate__glow {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: var(--splash-glow-opacity);
+  animation: chromatic-shift 8s linear infinite;
+}
+
+.splash-gate__glow::before {
+  content: '';
+  position: absolute;
+  inset: 15%;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow:
+    0 0 40px 8px rgba(94, 207, 255, 0.3),
+    0 0 60px 16px rgba(122, 255, 178, 0.15),
+    0 0 80px 24px rgba(200, 168, 75, 0.1);
+}
+
+@keyframes chromatic-shift {
+  from { filter: hue-rotate(0deg); }
+  to   { filter: hue-rotate(360deg); }
+}
+
+/* --- Door container & image (T006) --- */
+.splash-gate__door-container {
+  position: relative;
+  z-index: 2;
+  max-height: 92vh;
+  aspect-ratio: 768 / 1152;
+}
+
+.splash-gate__door-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* --- Parchment text (T014) --- */
+.splash-gate__parchment-text {
+  position: absolute;
+  top: 18%;
+  left: 22%;
+  right: 18%;
+  bottom: 28%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8%;
+}
+
+.splash-gate__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: clamp(18px, 3.5vw, 28px);
+  color: var(--splash-text-title);
+  margin-bottom: 0.75em;
+  text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
+  letter-spacing: 0.08em;
+}
+
+.splash-gate__body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: clamp(14px, 2.8vw, 18px);
+  color: var(--splash-text-color);
+  margin-bottom: 1.25em;
+  line-height: 1.6;
+  text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
+}
+
+.splash-gate__instruction {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(12px, 1.8vw, 16px);
+  color: #5C3A1E;
+  margin-top: auto;
+  text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
+}
+
+/* --- Wax seal button (T012) --- */
+.splash-gate__seal {
+  border: none;
+  padding: 0;
+  background: radial-gradient(
+    circle at 40% 38%,
+    #C43030 0%, #8B1A1A 35%, #6B1515 65%, #4A0A0A 100%
+  );
+  cursor: pointer;
+  width: var(--splash-seal-size);
+  height: var(--splash-seal-size);
+  border-radius: 50%;
+  position: absolute;
+  bottom: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  box-shadow:
+    inset 2px 2px 4px rgba(255, 200, 200, 0.2),
+    inset -1px -1px 3px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 0 3px #6B1515,
+    0 0 0 5px #4A0A0A;
+  animation: seal-breathe 2.5s ease-in-out infinite;
+}
+
+.splash-gate__seal-logo {
+  width: 58%;
+  height: 58%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  fill: #4A0A0A;
+  filter: drop-shadow(0 1px 0 rgba(255, 200, 200, 0.15));
+  pointer-events: none;
+}
+
+/* --- Seal interactive states (T013) --- */
+@keyframes seal-breathe {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50%      { transform: translateX(-50%) scale(1.04); }
+}
+
+.splash-gate__seal:hover {
+  transform: translateX(-50%) scale(1.08);
+  box-shadow:
+    inset 2px 2px 4px rgba(255, 200, 200, 0.2),
+    inset -1px -1px 3px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 0 3px #6B1515,
+    0 0 0 5px #4A0A0A,
+    0 0 20px rgba(200, 168, 75, 0.25);
+  animation: none;
+}
+
+.splash-gate__seal:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.splash-gate__seal:focus-visible {
+  outline: 3px solid #ffd700;
+  outline-offset: 4px;
+  box-shadow:
+    inset 2px 2px 4px rgba(255, 200, 200, 0.2),
+    inset -1px -1px 3px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 0 3px #6B1515,
+    0 0 0 5px #4A0A0A,
+    0 0 0 8px rgba(0, 0, 0, 0.6);
+}
+
+/* --- Loading state (T027) --- */
+.splash-gate__loading {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.splash-gate__loading-ring {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(200, 168, 75, 0.4);
+  animation: loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes loading-pulse {
+  0%, 100% { transform: scale(0.95); }
+  50%      { transform: scale(1.05); }
+}
+
+.splash-gate__loading-text {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-primary);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* --- Image fallback (T021) --- */
+.splash-gate--img-failed .splash-gate__parchment-text {
+  color: #e8d5a3;
+}
+
+.splash-gate--img-failed .splash-gate__title {
+  color: #e8d5a3;
+}
+
+.splash-gate--img-failed .splash-gate__body {
+  color: #cdb892;
+}
+
+.splash-gate--img-failed .splash-gate__instruction {
+  color: #a08858;
+}
+
+/* --- Responsive: Mobile (<768px) (T007) --- */
+@media (max-width: 767px) {
+  .splash-gate__door-container {
+    width: 100%;
+    max-height: 100dvh;
+  }
+
+  .splash-gate__door-img {
+    object-fit: cover;
+  }
+
+  .splash-gate__seal {
+    width: 56px;
+    height: 56px;
+  }
+
+  .splash-gate__parchment-text {
+    left: 15%;
+    right: 15%;
+  }
+}
+
+/* --- Responsive: Tablet (768–1199px) --- */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .splash-gate__door-container {
+    max-height: 90vh;
+    aspect-ratio: 768 / 1152;
+  }
+
+  .splash-gate__seal {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+/* --- Responsive: Ultrawide (2560+) --- */
+@media (min-width: 2560px) {
+  .splash-gate__seal {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+/* --- Accessibility (T008) --- */
+@media (prefers-reduced-motion: reduce) {
+  .splash-gate__seal {
+    animation: none !important;
+  }
+
+  .splash-gate__glow {
+    animation: none !important;
+    filter: none;
+  }
+
+  .splash-gate {
+    transition: opacity 200ms ease !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .splash-gate__title,
+  .splash-gate__body,
+  .splash-gate__instruction {
+    color: #1a1008;
+  }
+
+  .splash-gate__seal {
+    outline: 2px solid #000;
   }
 }

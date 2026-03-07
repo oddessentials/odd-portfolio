@@ -79,9 +79,15 @@ cut.
   animations that delay content access.
 - Star and cluster positions are **data-driven from the project
   array**. No constellation-grouping algorithm.
-- **Excluded from POC scope:** audio, 2D fallback rendering system,
-  responsive breakpoints below 1200px, real-time external data
-  fetching, CMS integration, routing beyond a project overlay.
+- **Excluded from POC scope:** 2D fallback rendering system,
+  real-time external data fetching, CMS integration, routing beyond
+  a project overlay.
+  (Amendment: 017-parchment-door-splash, owner-approved 2026-03-07.
+  Audio: single UI sound effect permitted — user-gesture-triggered only,
+  <100KB, royalty-free, must play synchronously with animation or be
+  removed. No background music, no ambient loops.
+  Responsive breakpoints below 1200px: mobile/tablet support expanded
+  by features 013, 015, 017.)
 - Minimum viable viewport: 1200px wide. Below that, display a
   centered "This experience is best viewed on a wider screen" message.
 
@@ -480,4 +486,4 @@ preferences.
 - **Project inventory:** `portfolio-basic-list.md`
 - **Design assets:** `design-assets/`
 
-**Version**: 1.6.0 | **Ratified**: 2026-03-04 | **Last Amended**: 2026-03-07
+**Version**: 1.7.0 | **Ratified**: 2026-03-04 | **Last Amended**: 2026-03-07
