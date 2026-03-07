@@ -2,6 +2,7 @@
 import { PROJECTS } from './data.js';
 import { init as initPanel, showProjectPanel, closeProjectPanel, handleFocusTrap } from './panel.js';
 import { setHoveredProject, clearHover, getNavRect } from './glyph-compositor.js';
+import { isFinePointer } from './pointer-utils.js';
 
 // ---------------------------------------------------------------------------
 // Hamburger menu state
@@ -206,7 +207,7 @@ function initNavHoverEffects(navButtons) {
   if (!gsap) return;
 
   // Only attach on hover-capable devices
-  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  if (!isFinePointer()) return;
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 

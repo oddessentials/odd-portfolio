@@ -352,6 +352,13 @@ if (sceneReady) {
     if (ScrollTrigger) ScrollTrigger.getAll().forEach(st => st.enable());
   });
 
+  // T018: Hide right gauge when panel is open
+  const gaugeRight = document.querySelector('.frame__gauge--right');
+  if (gaugeRight) {
+    document.addEventListener('panel-open', () => gaugeRight.classList.add('gauge--panel-hidden'));
+    document.addEventListener('panel-close', () => gaugeRight.classList.remove('gauge--panel-hidden'));
+  }
+
   // Hide static fallback since WebGL is active
   const fallback = document.getElementById('orb-fallback');
   if (fallback) fallback.style.display = 'none';

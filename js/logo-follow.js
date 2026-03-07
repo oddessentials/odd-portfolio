@@ -1,4 +1,5 @@
 // js/logo-follow.js — Logo follow-cursor system (T009, T010)
+import { isFinePointer, pointerMQL } from './pointer-utils.js';
 
 // ---------------------------------------------------------------------------
 // Module state
@@ -11,9 +12,6 @@ let logoFollowing = false;
 let logoReturning = false;
 let logoPrevX = 0;
 let logoPrevY = 0;
-
-// Receives isMobile from caller via init()
-let _isMobile = false;
 
 // ---------------------------------------------------------------------------
 // logoReturnHome — animate logo back to header band
@@ -114,47 +112,53 @@ function initLogoFollow() {
     hitzone.style.cursor = 'none';
   }
 
-  // --- Desktop: mouse events ---
-  if (!_isMobile) {
+  // --- Named mouse handlers (for add/removeEventListener) ---
+  function onMouseEnter(e) {
+    if (logoReturning || paused) return;
+    engageLogo(e.clientX, e.clientY);
+  }
+
+  function onMouseMove(e) {
+    if (!logoFollowing) {
+      if (logoReturning || paused) return;
+      engageLogo(e.clientX, e.clientY);
+      return;
+    }
+    if (!logoQuickToX || !logoQuickToY) return;
+    logoQuickToX(e.clientX - logoW);
+    logoQuickToY(e.clientY);
+    updateRotation(e.clientX, e.clientY);
+  }
+
+  function onMouseLeave() {
+    if (!logoFollowing) return;
+    hitzone.style.cursor = 'crosshair';
+    logoReturnHome(gsap);
+  }
+
+  function onDocMouseLeave() {
+    if (!logoFollowing) return;
+    hitzone.style.cursor = 'crosshair';
+    logoReturnHome(gsap);
+  }
+
+  function initQuickTo() {
     logoQuickToX = gsap.quickTo(logoEl, 'left', { duration: 0.3, ease: 'power2.out' });
     logoQuickToY = gsap.quickTo(logoEl, 'top', { duration: 0.3, ease: 'power2.out' });
     logoQuickToRot = gsap.quickTo(logoEl, 'rotation', { duration: 0.25, ease: 'power2.out' });
-
-    hitzone.addEventListener('mouseenter', (e) => {
-      if (logoReturning || paused) return; // Don't re-engage during return animation or reticle pause
-      engageLogo(e.clientX, e.clientY);
-    });
-
-    hitzone.addEventListener('mousemove', (e) => {
-      // Fallback re-engagement: mouseenter may not fire reliably
-      // after mouse exits and re-enters the browser viewport.
-      if (!logoFollowing) {
-        if (logoReturning || paused) return; // Don't re-engage during return animation or reticle pause
-        engageLogo(e.clientX, e.clientY);
-        return;
-      }
-      if (!logoQuickToX || !logoQuickToY) return;
-      logoQuickToX(e.clientX - logoW);
-      logoQuickToY(e.clientY);
-      updateRotation(e.clientX, e.clientY);
-    });
-
-    hitzone.addEventListener('mouseleave', () => {
-      if (!logoFollowing) return;
-      hitzone.style.cursor = 'crosshair';
-      logoReturnHome(gsap);
-    });
-
-    // Document-level viewport exit detection (US1 FR-005)
-    document.addEventListener('mouseleave', () => {
-      if (!logoFollowing) return;
-      hitzone.style.cursor = 'crosshair';
-      logoReturnHome(gsap);
-    });
   }
 
-  // --- Touch: snap logo to touch point, return on release ---
-  hitzone.addEventListener('touchstart', (e) => {
+  // --- Desktop: mouse events (fine pointer only) ---
+  if (isFinePointer()) {
+    initQuickTo();
+    hitzone.addEventListener('mouseenter', onMouseEnter);
+    hitzone.addEventListener('mousemove', onMouseMove);
+    hitzone.addEventListener('mouseleave', onMouseLeave);
+    document.addEventListener('mouseleave', onDocMouseLeave);
+  }
+
+  // --- Named touch handlers (for add/removeEventListener) ---
+  function onTouchStart(e) {
     if (e.touches.length === 0) return;
     const t = e.touches[0];
     gsap.killTweensOf(logoEl);
@@ -164,20 +168,52 @@ function initLogoFollow() {
     logoEl.style.left = (t.clientX - logoW) + 'px';
     logoEl.style.top = t.clientY + 'px';
     logoEl.classList.add('logo--following');
-  }, { passive: true });
+  }
 
-  hitzone.addEventListener('touchmove', (e) => {
+  function onTouchMove(e) {
     if (!logoFollowing || e.touches.length === 0) return;
     const t = e.touches[0];
     logoEl.style.left = (t.clientX - logoW) + 'px';
     logoEl.style.top = t.clientY + 'px';
     updateRotation(t.clientX, t.clientY);
-  }, { passive: true });
+  }
 
-  hitzone.addEventListener('touchend', () => {
+  function onTouchEnd() {
     if (!logoFollowing) return;
     logoReturnHome(gsap);
-  }, { passive: true });
+  }
+
+  // --- Touch: disabled on coarse-pointer devices ---
+  if (isFinePointer()) {
+    hitzone.addEventListener('touchstart', onTouchStart, { passive: true });
+    hitzone.addEventListener('touchmove', onTouchMove, { passive: true });
+    hitzone.addEventListener('touchend', onTouchEnd, { passive: true });
+  }
+
+  // --- Dynamic pointer capability change ---
+  pointerMQL.addEventListener('change', (e) => {
+    if (!e.matches) {
+      // Switched to coarse — disable logo follow
+      logoReturnHome(gsap);
+      hitzone.removeEventListener('mouseenter', onMouseEnter);
+      hitzone.removeEventListener('mousemove', onMouseMove);
+      hitzone.removeEventListener('mouseleave', onMouseLeave);
+      document.removeEventListener('mouseleave', onDocMouseLeave);
+      hitzone.removeEventListener('touchstart', onTouchStart);
+      hitzone.removeEventListener('touchmove', onTouchMove);
+      hitzone.removeEventListener('touchend', onTouchEnd);
+    } else {
+      // Switched to fine — enable logo follow
+      initQuickTo();
+      hitzone.addEventListener('mouseenter', onMouseEnter);
+      hitzone.addEventListener('mousemove', onMouseMove);
+      hitzone.addEventListener('mouseleave', onMouseLeave);
+      document.addEventListener('mouseleave', onDocMouseLeave);
+      hitzone.addEventListener('touchstart', onTouchStart, { passive: true });
+      hitzone.addEventListener('touchmove', onTouchMove, { passive: true });
+      hitzone.addEventListener('touchend', onTouchEnd, { passive: true });
+    }
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -186,10 +222,8 @@ function initLogoFollow() {
 
 /**
  * Initialize logo follow system.
- * @param {{ isMobile: boolean }} opts
  */
-export function init({ isMobile }) {
-  _isMobile = isMobile;
+export function init() {
   initLogoFollow();
 }
 

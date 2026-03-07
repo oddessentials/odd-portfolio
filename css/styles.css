@@ -133,6 +133,9 @@ body.scroll-enabled {
 body.nav-overlay-active {
   overflow: hidden;
 }
+body.nav-overlay-active .constellation-lines {
+  display: none !important;
+}
 
 /* Scroll-driver spacer (behind fixed #app-shell) */
 #scroll-driver {
@@ -1677,8 +1680,33 @@ body.nav-overlay-active .nav-backdrop {
   }
 
   /* Frame decorations — thinner on mobile */
-  .frame__gauge,
+  .frame__gauge--left,
   .frame-tool {
+    display: none;
+  }
+
+  /* T015: Mobile gauge positioning — bottom-right fixed */
+  .frame__gauge--right {
+    position: fixed;
+    bottom: calc(var(--cmd-line-height, 32px) + 8px + env(safe-area-inset-bottom, 0px));
+    right: calc(8px + env(safe-area-inset-right, 0px));
+    max-width: 72px;
+    max-height: 72px;
+    width: 72px;
+    height: 72px;
+    z-index: 40;
+  }
+
+  /* T016: Hide bracket and bolts on mobile */
+  .frame__gauge--right .gauge__bracket {
+    display: none;
+  }
+  .frame__gauge--right .gauge__bolt {
+    display: none;
+  }
+
+  /* T017: Hide gauge when hamburger nav is open */
+  #app-shell:has(#hamburger-btn.is-open) .frame__gauge--right {
     display: none;
   }
 
@@ -1712,6 +1740,11 @@ body.nav-overlay-active .nav-backdrop {
   }
 }
 
+/* T018: Hide gauge when panel is open (any viewport) */
+.frame__gauge--right.gauge--panel-hidden {
+  display: none;
+}
+
 /* Tablet+ reset: ensure sidebars visible after mobile nav */
 @media (min-width: 768px) {
   #constellation-nav {
@@ -1728,6 +1761,54 @@ body.nav-overlay-active .nav-backdrop {
 @media (min-width: 768px) and (max-width: 1199px) {
   #app-shell {
     grid-template-columns: clamp(140px, 15vw, 180px) 1fr clamp(140px, 15vw, 180px);
+  }
+
+  /* Scale bronze tools ~35% to match frame border reduction (18px -> 12px) */
+  .frame-tool {
+    width: 90px;
+    height: 90px;
+  }
+  .frame-tool--tr {
+    width: 78px;
+    height: 78px;
+  }
+  .frame-tool--bl {
+    width: 72px;
+    height: 72px;
+  }
+  .frame-tool--mr,
+  .frame-tool--ml {
+    width: 115px;
+    height: 115px;
+    left: auto;
+    right: auto;
+  }
+  .frame-tool--ml {
+    left: 0;
+  }
+  .frame-tool--mr {
+    right: 0;
+  }
+  .frame-tool--ml2 {
+    width: 110px;
+    height: 112px;
+    left: 0;
+  }
+}
+
+/* Short viewport: drop left filler early, then spread plaques apart */
+@media (max-height: 1080px) {
+  .frame-tool--tl,
+  .frame-tool--bl {
+    display: none;
+  }
+}
+@media (max-height: 850px) {
+  .frame-tool--ml {
+    top: 44%;
+  }
+  .frame-tool--ml2 {
+    top: 72%;
   }
 }
 
