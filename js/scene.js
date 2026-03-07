@@ -73,7 +73,7 @@ function fadePausedHover(node, enter) {
 }
 
 // --- initScene — main entry point ---
-function initScene() {
+function initScene({ repoMetrics } = {}) {
   isMobile = window.innerWidth < 768;
 
   if (!detectWebGL()) {
@@ -128,7 +128,7 @@ function initScene() {
   orbGroup.add(nebulaGroup);
   nebulaLayers = createNebulaSystem(nebulaGroup, isMobile, dpr, PROJECTS);
 
-  const starResult = createStarNodes(PROJECTS);
+  const starResult = createStarNodes(PROJECTS, repoMetrics);
   starNodes = starResult.starNodes;
   starGroup = starResult.starGroup;
   orbGroup.add(starGroup);

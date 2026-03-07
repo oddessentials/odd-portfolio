@@ -194,16 +194,22 @@ function createHaloTexture(hexColor, size) {
  * @param {Array} PROJECTS — project data array
  * @returns {{ starNodes: (THREE.Sprite|THREE.Group)[], starGroup: THREE.Group }}
  */
-export function createStarNodes(PROJECTS) {
+export function createStarNodes(PROJECTS, repoMetrics) {
   const starNodes = [];
   const starGroup = new THREE.Group();
 
   PROJECTS.forEach((project, idx) => {
+    // Compute effective star size: override > metrics > legacy
+    const metricsEntry = repoMetrics?.repos?.[project.repoKey];
+    const effectiveStarSize = project.starSizeOverride
+      ?? metricsEntry?.calculated_star_size
+      ?? project.starSize;
+
     if (project.isCluster) {
       // --- Cluster rendering ---
       const group = new THREE.Group();
       group.position.set(project.position[0], project.position[1], project.position[2]);
-      const scale = project.starSize * 0.25;
+      const scale = effectiveStarSize * 0.25;
 
       if (project.status === 'paused') {
         // Dead rock cluster: 6 dim grey sub-points, no halo, no pulse
@@ -278,7 +284,7 @@ export function createStarNodes(PROJECTS) {
         map: tex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
       });
       const sprite = new THREE.Sprite(mat);
-      const scale = project.starSize * 0.25;
+      const scale = effectiveStarSize * 0.25;
       sprite.scale.set(scale, scale, scale);
       sprite.position.set(project.position[0], project.position[1], project.position[2]);
       sprite.userData = {

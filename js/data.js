@@ -3,6 +3,8 @@
 export const PROJECTS = [
   {
     id: "odd-ai-reviewers",
+    repoKey: "odd-ai-reviewers",
+    starSizeOverride: null,
     name: "odd-ai-reviewers",
     shortDesc: "AI code review pipeline",
     tagline: "Extensible AI code review pipeline with multi-agent analysis",
@@ -34,6 +36,8 @@ export const PROJECTS = [
   },
   {
     id: "ado-git-repo-insights",
+    repoKey: "ado-git-repo-insights",
+    starSizeOverride: null,
     name: "ado-git-repo-insights",
     shortDesc: "Azure DevOps PR metrics",
     tagline:
@@ -79,6 +83,8 @@ export const PROJECTS = [
   },
   {
     id: "ado-git-repo-seeder",
+    repoKey: "ado-git-repo-seeder",
+    starSizeOverride: null,
     name: "ado-git-repo-seeder",
     shortDesc: "Azure DevOps test data",
     tagline:
@@ -106,6 +112,8 @@ export const PROJECTS = [
   },
   {
     id: "repo-standards",
+    repoKey: "repo-standards",
+    starSizeOverride: null,
     name: "repo-standards",
     shortDesc: "Repo quality standards",
     tagline:
@@ -137,6 +145,8 @@ export const PROJECTS = [
   },
   {
     id: "odd-self-hosted-ci",
+    repoKey: "odd-self-hosted-ci-runtime",
+    starSizeOverride: null,
     name: "odd-self-hosted-ci",
     shortDesc: "Self-hosted CI runtime",
     tagline:
@@ -173,6 +183,8 @@ export const PROJECTS = [
   },
   {
     id: "odd-map",
+    repoKey: "odd-map",
+    starSizeOverride: null,
     name: "odd-map",
     shortDesc: "Interactive office locator",
     tagline:
@@ -204,6 +216,8 @@ export const PROJECTS = [
   },
   {
     id: "odd-fintech",
+    repoKey: "odd-fintech",
+    starSizeOverride: null,
     name: "odd-fintech",
     shortDesc: "Financial intelligence dashboard",
     tagline:
@@ -230,6 +244,8 @@ export const PROJECTS = [
   },
   {
     id: "socialmedia-syndicator",
+    repoKey: "socialmedia-syndicator",
+    starSizeOverride: null,
     name: "socialmedia-syndicator",
     shortDesc: "Social media syndication",
     tagline:
@@ -257,6 +273,8 @@ export const PROJECTS = [
   },
   {
     id: "coney-island",
+    repoKey: null,
+    starSizeOverride: null,
     name: "Coney Island Pottsville",
     shortDesc: "Restaurant ecosystem",
     tagline:
@@ -270,18 +288,21 @@ export const PROJECTS = [
         description: "Restaurant website",
         url: "https://github.com/coneyislandpottsville/coney-website",
         status: "active",
+        repoKey: "coney-website",
       },
       {
         name: "yo-coney-bot",
         description: "AI-powered chat agent",
         url: "https://github.com/coneyislandpottsville/yo-coney-bot",
         status: "active",
+        repoKey: "yo-coney-bot",
       },
       {
         name: "yo-coney-mobile",
         description: "Mobile ordering app",
         url: "https://github.com/coneyislandpottsville/yo-coney-mobile",
         status: "active",
+        repoKey: "yo-coney-mobile",
       },
     ],
     constellation: "Hospitality",
@@ -312,6 +333,8 @@ export const PROJECTS = [
   },
   {
     id: "experiments-cluster",
+    repoKey: null,
+    starSizeOverride: null,
     name: "Experiments",
     shortDesc: "Experimental projects",
     tagline: "Experimental and showcase projects exploring new ideas",
@@ -324,24 +347,28 @@ export const PROJECTS = [
         description: "Main website of Odd Essentials, LLC",
         url: "https://github.com/oddessentials/oddessentials-splash",
         status: "active",
+        repoKey: "oddessentials-splash",
       },
       {
         name: "odd-portfolio",
         description: "Curated portfolio of all public Odd Essentials",
         url: "https://github.com/oddessentials/odd-portfolio",
         status: "active",
+        repoKey: "odd-portfolio",
       },
       {
         name: "oddessentials-platform",
         description: "AI software expert open chat",
         url: "https://github.com/oddessentials/oddessentials-platform",
         status: "in-progress",
+        repoKey: "oddessentials-platform",
       },
       {
         name: "odd-demonstration",
         description: "Polyglot microservices demonstration",
         url: "https://github.com/oddessentials/odd-demonstration",
         status: "active",
+        repoKey: "odd-demonstration",
       },
     ],
     constellation: "Experiments",
@@ -362,6 +389,8 @@ export const PROJECTS = [
   },
   {
     id: "dead-rock-cluster",
+    repoKey: null,
+    starSizeOverride: null,
     name: "Reference Archive",
     shortDesc: "Paused reference projects",
     tagline: "Archived and paused reference repositories",
