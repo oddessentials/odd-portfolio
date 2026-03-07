@@ -1,7 +1,7 @@
 // js/rings.js — Saturn-type procedural rings for featured stars
 import * as THREE from 'three';
 
-const RING_STAR_IDS = ['ado-git-repo-insights', 'socialmedia-syndicator'];
+const RING_STAR_IDS = ['socialmedia-syndicator'];
 // Each ring band: [innerScale, outerScale] relative to star baseScale
 const RING_BANDS = [
   [0.65, 0.67],
