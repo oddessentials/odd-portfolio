@@ -1762,6 +1762,54 @@ body.nav-overlay-active .nav-backdrop {
   #app-shell {
     grid-template-columns: clamp(140px, 15vw, 180px) 1fr clamp(140px, 15vw, 180px);
   }
+
+  /* Scale bronze tools ~35% to match frame border reduction (18px -> 12px) */
+  .frame-tool {
+    width: 90px;
+    height: 90px;
+  }
+  .frame-tool--tr {
+    width: 78px;
+    height: 78px;
+  }
+  .frame-tool--bl {
+    width: 72px;
+    height: 72px;
+  }
+  .frame-tool--mr,
+  .frame-tool--ml {
+    width: 115px;
+    height: 115px;
+    left: auto;
+    right: auto;
+  }
+  .frame-tool--ml {
+    left: 0;
+  }
+  .frame-tool--mr {
+    right: 0;
+  }
+  .frame-tool--ml2 {
+    width: 110px;
+    height: 112px;
+    left: 0;
+  }
+}
+
+/* Short viewport: drop left filler early, then spread plaques apart */
+@media (max-height: 1080px) {
+  .frame-tool--tl,
+  .frame-tool--bl {
+    display: none;
+  }
+}
+@media (max-height: 850px) {
+  .frame-tool--ml {
+    top: 44%;
+  }
+  .frame-tool--ml2 {
+    top: 72%;
+  }
 }
 
 /* ------------------------------------------------------------
