@@ -338,7 +338,7 @@ design-assets/           # Source assets (not served in production)
   "category": "string",
   "constellation": "string",
   "accentColor": "string (hex)",
-  "starSize": "number (1.0 | 1.15 | 1.4)",
+  "starSize": "number (2.33 | 1.44 | 1.00 | 0.89 | 0.55)",
   "position": "[x, y, z]",
   "logoUrl": "string | null",
   "mediaType": "'image' | 'video' | 'youtube' | 'screenshots' | null",
@@ -354,6 +354,9 @@ design-assets/           # Source assets (not served in production)
 constellation, accentColor, starSize, position, screenshots fields).
 Full schema in `specs/001-arcane-console-poc/data-model.md`.
 No dynamic data fetching.
+(Amendment: 011-constellation-color-system, owner-approved 2026-03-06.
+starSize enumeration updated from `(1.0 | 1.15 | 1.4)` to Fibonacci
+size ladder `(2.33 | 1.44 | 1.00 | 0.89 | 0.55)`.)
 
 ### Performance Targets
 
@@ -473,4 +476,4 @@ preferences.
 - **Project inventory:** `portfolio-basic-list.md`
 - **Design assets:** `design-assets/`
 
-**Version**: 1.4.0 | **Ratified**: 2026-03-04 | **Last Amended**: 2026-03-06
+**Version**: 1.5.0 | **Ratified**: 2026-03-04 | **Last Amended**: 2026-03-06

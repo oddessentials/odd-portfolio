@@ -40,8 +40,8 @@
   --frame-border-width: 18px;
   --frame-bracket-ratio: 2.5;
   --frame-corner-size: calc(var(--frame-border-width) * var(--frame-bracket-ratio));
-  --frame-gauge-size-left: calc(var(--frame-border-width) * 2.0);
-  --frame-gauge-size-right: calc(var(--frame-border-width) * 3.6);
+  --frame-gauge-size-left: calc(var(--frame-border-width) * 3.6);
+  --frame-gauge-size-right: calc(var(--frame-border-width) * 7.2);
   --hud-panel-width: 220px;
   --cmd-line-height: 48px;
 
@@ -390,7 +390,7 @@ body.nav-overlay-active .nav-backdrop {
 }
 
 .frame-tool--bl {
-  bottom: 25%;
+  bottom: 18%;
   left: var(--frame-corner-size);
   width: 110px;
   height: 110px;
@@ -417,6 +417,14 @@ body.nav-overlay-active .nav-backdrop {
   width: 180px;
   height: 180px;
   transform: translateY(-50%) rotate(-6deg);
+}
+
+.frame-tool--ml2 {
+  top: 64%;
+  left: calc(var(--frame-corner-size) - 20px);
+  width: 170px;
+  height: 173px;
+  transform: translateY(-50%) rotate(4deg);
 }
 
 /* --- 6.2 Frame edges --- */
@@ -529,9 +537,9 @@ body.nav-overlay-active .nav-backdrop {
 .frame__gauge {
   /* Zone colors — must match CONSTELLATION_ZONES[].hex in js/data.js */
   --gauge-rest: #0D0B09;
-  --gauge-zone0: #6B40A1;
-  --gauge-zone1: #B8870A;
-  --gauge-zone2: #1A9E8F;
+  --gauge-zone0: #38B000;
+  --gauge-zone1: #F4A62A;
+  --gauge-zone2: #7B2CBF;
 
   /* Glow intensity per zone segment (0–1, driven by JS) */
   --gauge-zone0-glow: 0;
@@ -584,9 +592,9 @@ body.nav-overlay-active .nav-backdrop {
     conic-gradient(
       from 315deg,
       transparent 0deg 90.5deg,
-      rgba(107, 64, 161, var(--gauge-zone0-glow)) 89.5deg 180.5deg,
-      rgba(184, 135, 10, var(--gauge-zone1-glow)) 179.5deg 270.5deg,
-      rgba(26, 158, 143, var(--gauge-zone2-glow)) 269.5deg 360deg
+      rgba(56, 176, 0, var(--gauge-zone0-glow)) 89.5deg 180.5deg,
+      rgba(244, 166, 42, var(--gauge-zone1-glow)) 179.5deg 270.5deg,
+      rgba(123, 44, 191, var(--gauge-zone2-glow)) 269.5deg 360deg
     ),
     /* Zone-colored face gradient (CW: rest → zone0 → zone1 → zone2) */
     /* 1deg overlap at each boundary eliminates anti-aliasing white seam */
@@ -613,9 +621,9 @@ body.nav-overlay-active .nav-backdrop {
     conic-gradient(
       from 315deg,
       transparent 0deg 90.5deg,
-      rgba(26, 158, 143, var(--gauge-zone2-glow)) 89.5deg 180.5deg,
-      rgba(184, 135, 10, var(--gauge-zone1-glow)) 179.5deg 270.5deg,
-      rgba(107, 64, 161, var(--gauge-zone0-glow)) 269.5deg 360deg
+      rgba(123, 44, 191, var(--gauge-zone2-glow)) 89.5deg 180.5deg,
+      rgba(244, 166, 42, var(--gauge-zone1-glow)) 179.5deg 270.5deg,
+      rgba(56, 176, 0, var(--gauge-zone0-glow)) 269.5deg 360deg
     ),
     /* Zone-colored face gradient (CCW: rest → zone2 → zone1 → zone0) */
     /* 1deg overlap at each boundary eliminates anti-aliasing white seam */
@@ -651,16 +659,16 @@ body.nav-overlay-active .nav-backdrop {
 .frame__gauge--left {
   width: var(--frame-gauge-size-left);
   height: var(--frame-gauge-size-left);
-  left: calc(var(--frame-border-width) - var(--frame-gauge-size-left) / 2 - 2px);
-  top: 35%;
+  left: calc(var(--frame-border-width) - var(--frame-gauge-size-left) / 2 + 12px);
+  top: 41%;
   transform: translateY(-50%);
 }
 
 .frame__gauge--right {
   width: var(--frame-gauge-size-right);
   height: var(--frame-gauge-size-right);
-  right: calc(var(--frame-border-width) - var(--frame-gauge-size-right) / 2 + 14px);
-  top: 80%;
+  right: calc(var(--frame-border-width) - var(--frame-gauge-size-right) / 2 + 44px);
+  top: 83.5%;
   transform: translateY(-50%);
 }
 
