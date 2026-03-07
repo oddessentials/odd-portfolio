@@ -9,41 +9,31 @@ let logoQuickToX = null;
 let logoQuickToY = null;
 let logoQuickToRot = null;
 let logoFollowing = false;
-let logoReturning = false;
 let logoPrevX = 0;
 let logoPrevY = 0;
+let logoOpacityTween = null;
+let logoHasEngaged = false;
+let reticleDebounceTimer = null;
 
 // ---------------------------------------------------------------------------
-// logoReturnHome — animate logo back to header band
+// Opacity fade helpers
 // ---------------------------------------------------------------------------
-function logoReturnHome(gsap) {
-  if (!logoFollowing) return;           // Guard: prevent double-fire
-  logoFollowing = false;
-  logoReturning = true;                 // Block mousemove re-engagement during return
-  const headerBand = document.querySelector('.frame__header-band');
-  if (headerBand) {
-    const homeRect = headerBand.getBoundingClientRect();
-    gsap.to(logoEl, {
-      left: homeRect.left + homeRect.width / 2 - 20,
-      top: homeRect.top + homeRect.height / 2 - 20,
-      rotation: 0,
-      duration: 0.4,
-      ease: 'power2.inOut',
-      onComplete: () => {
-        logoReturning = false;          // Return complete — allow re-engagement
-        logoEl.classList.remove('logo--following');
-        logoEl.style.left = '';
-        logoEl.style.top = '';
-        gsap.set(logoEl, { clearProps: 'transform' });
-      }
-    });
-  } else {
-    logoReturning = false;
-    logoEl.classList.remove('logo--following');
-    logoEl.style.left = '';
-    logoEl.style.top = '';
-    gsap.set(logoEl, { clearProps: 'transform' });
+function fadeLogoOut(gsap) {
+  if (logoOpacityTween) logoOpacityTween.kill();
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    logoEl.style.opacity = '0';
+    return;
   }
+  logoOpacityTween = gsap.to(logoEl, { opacity: 0, duration: 0.2, ease: 'power2.out' });
+}
+
+function fadeLogoIn(gsap) {
+  if (logoOpacityTween) logoOpacityTween.kill();
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    logoEl.style.opacity = '1';
+    return;
+  }
+  logoOpacityTween = gsap.to(logoEl, { opacity: 1, duration: 0.15, ease: 'power2.out' });
 }
 
 // ---------------------------------------------------------------------------
@@ -64,13 +54,25 @@ function initLogoFollow() {
   const hitzone = document.getElementById('orb-hitzone');
   if (!hitzone) return;
 
-  // T029: Reticle handoff — pause logo-follow when reticle is active
+  // Reticle handoff — pause logo-follow when reticle is active (debounced)
   document.addEventListener('reticle-activate', () => {
-    logoReturnHome(gsap);
-    paused = true;
+    if (!logoFollowing) return;           // Only fade if logo is actively following
+    if (reticleDebounceTimer) reticleDebounceTimer.revert();
+    reticleDebounceTimer = gsap.delayedCall(0.08, () => {
+      reticleDebounceTimer = null;        // consumed — so deactivate knows it fired
+      fadeLogoOut(gsap);
+      paused = true;
+    });
   });
   document.addEventListener('reticle-deactivate', () => {
-    paused = false;
+    if (!logoHasEngaged) return;          // Ignore if logo was never engaged
+    if (reticleDebounceTimer) {
+      reticleDebounceTimer.revert();
+      reticleDebounceTimer = null;
+    } else {
+      paused = false;
+      fadeLogoIn(gsap);
+    }
   });
 
   // Logo's upper-right corner tracks the pointer (rocket-ship effect).
@@ -82,7 +84,7 @@ function initLogoFollow() {
   const neutralDeg = -45;
   const RAD2DEG = 180 / Math.PI;
   // Minimum movement distance to update rotation (avoids jitter from tiny deltas)
-  const minDelta = 2;
+  const minDelta = 6;
 
   // Shared rotation helper — computes angle from movement delta
   function updateRotation(cx, cy) {
@@ -101,26 +103,27 @@ function initLogoFollow() {
 
   // Shared engage helper — used by mouseenter and mousemove fallback
   function engageLogo(cx, cy) {
-    gsap.killTweensOf(logoEl);
-    logoReturning = false;              // Cancel any in-progress return
+    if (logoOpacityTween) { logoOpacityTween.kill(); logoOpacityTween = null; }
     logoFollowing = true;
     logoPrevX = cx;
     logoPrevY = cy;
     logoEl.style.left = (cx - logoW) + 'px';
     logoEl.style.top = cy + 'px';
     logoEl.classList.add('logo--following');
+    fadeLogoIn(gsap);
+    logoHasEngaged = true;
     hitzone.style.cursor = 'none';
   }
 
   // --- Named mouse handlers (for add/removeEventListener) ---
   function onMouseEnter(e) {
-    if (logoReturning || paused) return;
+    if (paused) return;
     engageLogo(e.clientX, e.clientY);
   }
 
   function onMouseMove(e) {
     if (!logoFollowing) {
-      if (logoReturning || paused) return;
+      if (paused) return;
       engageLogo(e.clientX, e.clientY);
       return;
     }
@@ -132,14 +135,14 @@ function initLogoFollow() {
 
   function onMouseLeave() {
     if (!logoFollowing) return;
-    hitzone.style.cursor = 'crosshair';
-    logoReturnHome(gsap);
+    fadeLogoOut(gsap);
+    logoFollowing = false;
   }
 
   function onDocMouseLeave() {
     if (!logoFollowing) return;
-    hitzone.style.cursor = 'crosshair';
-    logoReturnHome(gsap);
+    fadeLogoOut(gsap);
+    logoFollowing = false;
   }
 
   function initQuickTo() {
@@ -180,7 +183,8 @@ function initLogoFollow() {
 
   function onTouchEnd() {
     if (!logoFollowing) return;
-    logoReturnHome(gsap);
+    fadeLogoOut(gsap);
+    logoFollowing = false;
   }
 
   // --- Touch: disabled on coarse-pointer devices ---
@@ -194,7 +198,8 @@ function initLogoFollow() {
   pointerMQL.addEventListener('change', (e) => {
     if (!e.matches) {
       // Switched to coarse — disable logo follow
-      logoReturnHome(gsap);
+      fadeLogoOut(gsap);
+      logoFollowing = false;
       hitzone.removeEventListener('mouseenter', onMouseEnter);
       hitzone.removeEventListener('mousemove', onMouseMove);
       hitzone.removeEventListener('mouseleave', onMouseLeave);
@@ -241,11 +246,14 @@ export function resetOnResize() {
   if (!logoEl) return;
   const g = window.gsap;
   if (g) g.killTweensOf(logoEl);
+  if (logoOpacityTween) logoOpacityTween.kill();
+  logoOpacityTween = null;
   logoFollowing = false;
-  logoReturning = false;
+  logoHasEngaged = false;
   logoEl.classList.remove('logo--following');
   logoEl.style.left = '';
   logoEl.style.top = '';
+  logoEl.style.opacity = '';
   if (g) g.set(logoEl, { clearProps: 'transform' });
   // Recreate quickTo instances to purge stale internal start-value caches
   if (g && logoQuickToX) {

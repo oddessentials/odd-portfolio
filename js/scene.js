@@ -6,6 +6,7 @@ import { init as initLogoFollow, resetOnResize as logoResetOnResize, isFollowing
 import { init as initReticle, tick as reticleTick, onStarEnter, onStarExit } from './reticle.js';
 import { init as initParallax, tick as parallaxTick } from './parallax.js';
 import { tick as sidebarHieroglyphsTick, render as sidebarHieroglyphsRender } from './sidebar-hieroglyphs.js';
+import { initTouchGuard } from './touch-guard.js';
 
 // Module-level references (exported at bottom)
 let scene, camera, renderer, orbGroup, starNodes, nebulaLayers;
@@ -164,16 +165,18 @@ function initScene({ repoMetrics } = {}) {
     }
   });
 
-  // Touch event listeners for mobile raycasting
+  // Touch tap disambiguation for coarse-pointer devices
+  let lastTouchX = -9999, lastTouchY = -9999;
   hitzone.addEventListener('touchstart', (e) => {
     if (e.touches.length > 0) {
       const touch = e.touches[0];
-      mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+      lastTouchX = (touch.clientX / window.innerWidth) * 2 - 1;
+      lastTouchY = -(touch.clientY / window.innerHeight) * 2 + 1;
     }
   }, { passive: true });
-
-  hitzone.addEventListener('touchend', (e) => {
+  initTouchGuard(hitzone, () => {
+    mouse.x = lastTouchX;
+    mouse.y = lastTouchY;
     raycaster.setFromCamera(mouse, camera);
     const hits = raycaster.intersectObjects(starNodes, true);
     for (let i = 0; i < hits.length; i++) {
