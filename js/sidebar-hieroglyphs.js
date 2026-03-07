@@ -249,7 +249,6 @@ function render() {
   if (!overlayScene || !overlayCamera || !mainRenderer) return;
   if (window.innerWidth < 768) return;
   const h = window.innerHeight;
-  const dpr = mainRenderer.getPixelRatio();
   mainRenderer.autoClear = false;
   mainRenderer.clearDepth();
 
@@ -263,10 +262,10 @@ function render() {
     if (!plane || !plane.visible || !el) continue;
     const rect = el.getBoundingClientRect();
     mainRenderer.setScissor(
-      rect.left * dpr,
-      (h - rect.bottom) * dpr,
-      rect.width * dpr,
-      rect.height * dpr
+      rect.left,
+      h - rect.bottom,
+      rect.width,
+      rect.height
     );
     mainRenderer.render(overlayScene, overlayCamera);
   }
