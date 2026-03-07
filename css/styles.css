@@ -40,8 +40,8 @@
   --frame-border-width: 18px;
   --frame-bracket-ratio: 2.5;
   --frame-corner-size: calc(var(--frame-border-width) * var(--frame-bracket-ratio));
-  --frame-gauge-size-left: calc(var(--frame-border-width) * 2.0);
-  --frame-gauge-size-right: calc(var(--frame-border-width) * 3.6);
+  --frame-gauge-size-left: calc(var(--frame-border-width) * 3.6);
+  --frame-gauge-size-right: calc(var(--frame-border-width) * 7.2);
   --hud-panel-width: 220px;
   --cmd-line-height: 48px;
 
@@ -659,16 +659,16 @@ body.nav-overlay-active .nav-backdrop {
 .frame__gauge--left {
   width: var(--frame-gauge-size-left);
   height: var(--frame-gauge-size-left);
-  left: calc(var(--frame-border-width) - var(--frame-gauge-size-left) / 2 - 2px);
-  top: 35%;
+  left: calc(var(--frame-border-width) - var(--frame-gauge-size-left) / 2 + 12px);
+  top: 41%;
   transform: translateY(-50%);
 }
 
 .frame__gauge--right {
   width: var(--frame-gauge-size-right);
   height: var(--frame-gauge-size-right);
-  right: calc(var(--frame-border-width) - var(--frame-gauge-size-right) / 2 + 14px);
-  top: 80%;
+  right: calc(var(--frame-border-width) - var(--frame-gauge-size-right) / 2 + 44px);
+  top: 83.5%;
   transform: translateY(-50%);
 }
 
