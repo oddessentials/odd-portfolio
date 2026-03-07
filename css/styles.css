@@ -133,6 +133,9 @@ body.scroll-enabled {
 body.nav-overlay-active {
   overflow: hidden;
 }
+body.nav-overlay-active .constellation-lines {
+  display: none !important;
+}
 
 /* Scroll-driver spacer (behind fixed #app-shell) */
 #scroll-driver {
