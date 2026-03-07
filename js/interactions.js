@@ -48,10 +48,11 @@ function closeHamburgerNav() {
 // ---------------------------------------------------------------------------
 // initInteractions — wire up all event listeners
 // ---------------------------------------------------------------------------
-function initInteractions() {
+function initInteractions({ repoMetrics } = {}) {
   // Initialize panel module, passing hamburger-close as beforeOpen callback
   initPanel({
-    beforeOpen: () => { if (navOpen) closeHamburgerNav(); }
+    beforeOpen: () => { if (navOpen) closeHamburgerNav(); },
+    repoMetrics
   });
 
   const overlayEl = document.getElementById('project-overlay');

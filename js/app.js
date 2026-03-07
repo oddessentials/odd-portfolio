@@ -281,11 +281,20 @@ function playDiscoverabilityAffordance() {
   }
 }
 
+// Fetch repo metrics (committed build artifact) — used for star sizing and modal metrics bar
+let repoMetrics = { repos: {} };
+try {
+  const res = await fetch('assets/repo-metrics.json');
+  if (res.ok) repoMetrics = await res.json();
+} catch (e) {
+  console.warn('Failed to load repo-metrics.json:', e);
+}
+
 // Initialize interactions (panel, keyboard nav, hamburger) — works even without WebGL
-initInteractions();
+initInteractions({ repoMetrics });
 
 // Initialize the 3D scene
-const sceneReady = initScene();
+const sceneReady = initScene({ repoMetrics });
 
 if (sceneReady) {
   // T051: Detect integrated GPU and default to Tier 2 if found

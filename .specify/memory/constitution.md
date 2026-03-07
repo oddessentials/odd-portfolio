@@ -48,10 +48,14 @@ cut.
   cluster support**. Approved fields: `id, name, shortDesc, tagline,
   category, status, isCluster, clusterMembers, constellation,
   accentColor, starSize, position, logoUrl?, mediaType?, mediaUrl?,
-  screenshots?, links[]`. No additional fields without explicit owner
-  approval.
+  screenshots?, links[], repoKey?, starSizeOverride?`. No additional
+  fields without explicit owner approval.
   (Amendment: 009-constellation-zone-enhancements, owner-approved 2026-03-06.
   Removed dead glyph fields: glyphName, glyphRotation, glyphType, glyphAtlasIndex.)
+  (Amendment: 014-modal-enhancement, owner-approved 2026-03-07.
+  Added repoKey, starSizeOverride to PROJECTS. Authored content fields
+  (synopsis, capabilities, techStack, aiModels) live in separate
+  data-content.js, not in the PROJECTS data model.)
 - **Shader feature list is frozen** at the following effects (included
   in scope, not expandable without explicit approval):
   rim glow (Fresnel-based edge), fake refraction UV offset, procedural
@@ -476,4 +480,4 @@ preferences.
 - **Project inventory:** `portfolio-basic-list.md`
 - **Design assets:** `design-assets/`
 
-**Version**: 1.5.0 | **Ratified**: 2026-03-04 | **Last Amended**: 2026-03-06
+**Version**: 1.6.0 | **Ratified**: 2026-03-04 | **Last Amended**: 2026-03-07
