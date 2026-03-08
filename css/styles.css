@@ -2240,8 +2240,8 @@ body.nav-overlay-active .nav-backdrop {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   background: #0D0B09;
-  perspective: 1200px;
 }
 
 body.splash-active {
@@ -2272,16 +2272,17 @@ body.splash-active #app-shell {
 }
 
 /* --- Chromatic glow (T015) --- */
-/* Sized to match the door container so glow aligns with door edges.
+/* Sized to match the arch opening so glow bleeds through the doorway.
    Stays as a sibling (not child) so it doesn't rotate with the door swing. */
 .splash-gate__glow {
   position: absolute;
   z-index: 1;
-  height: 92vh;
-  width: calc(92vh * 768 / 1152);
+  /* Arch opening: ~37% of archway width, ~75% of archway height */
+  height: calc(115vh * 0.75);
+  width: calc(115vh * 1024 / 1250 * 0.37);
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(0.82);
+  transform: translate(-50%, -43%);
   pointer-events: none;
   opacity: var(--splash-glow-opacity);
   animation: chromatic-shift 8s linear infinite;
@@ -2297,12 +2298,28 @@ body.splash-active #app-shell {
   to   { filter: hue-rotate(360deg); }
 }
 
-/* --- Door container & image (T006) --- */
-.splash-gate__door-container {
+/* --- Scene wrapper (contains door + archway) --- */
+.splash-gate__scene {
   position: relative;
   z-index: 2;
-  max-height: 92vh;
+  height: 115vh;
+  aspect-ratio: 1024 / 1250;
+  perspective: 1200px;
+}
+
+/* --- Door container & image (T006) --- */
+/* Positioned within the arch opening area. Door is wider than the opening
+   (2:3 aspect vs narrow Gothic arch) — stone pillars cover the overlap.
+   container-type: size lets parchment text scale with door, not viewport. */
+.splash-gate__door-container {
+  position: absolute;
+  top: 20%;
+  bottom: 5%;
+  left: 19.5%;
   aspect-ratio: 768 / 1152;
+  z-index: 1;
+  transform-origin: left center;
+  container-type: size;
 }
 
 .splash-gate__door-img {
@@ -2312,7 +2329,25 @@ body.splash-active #app-shell {
   display: block;
 }
 
+/* --- Archway frame overlay --- */
+/* Opaque stone with transparent arch opening. Sits on top of door. */
+.splash-gate__archway {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.splash-gate__archway-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
 /* --- Parchment text (T014) --- */
+/* All text sizes use cqi (container query inline) to scale with the door,
+   not the viewport. Prevents text spilling off parchment at any aspect ratio. */
 .splash-gate__parchment-text {
   position: absolute;
   top: 18%;
@@ -2325,13 +2360,14 @@ body.splash-active #app-shell {
   justify-content: center;
   text-align: center;
   padding: 8%;
+  overflow: hidden;
 }
 
 .splash-gate__title {
   font-family: var(--font-display);
   font-weight: 600;
   text-transform: uppercase;
-  font-size: clamp(18px, 3.5vw, 28px);
+  font-size: clamp(14px, 8cqi, 28px);
   color: var(--splash-text-title);
   margin-bottom: 0.75em;
   text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
@@ -2341,17 +2377,24 @@ body.splash-active #app-shell {
 .splash-gate__body {
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: clamp(14px, 2.8vw, 18px);
+  font-size: clamp(11px, 6cqi, 18px);
   color: var(--splash-text-color);
   margin-bottom: 1.25em;
   line-height: 1.6;
   text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
 }
 
+.splash-gate__signature {
+  width: clamp(80px, 45cqi, 180px);
+  height: auto;
+  margin-bottom: 0.5em;
+  opacity: 0.85;
+}
+
 .splash-gate__instruction {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(12px, 1.8vw, 16px);
+  font-size: clamp(10px, 5cqi, 16px);
   color: #5C3A1E;
   margin-top: auto;
   text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
@@ -2481,18 +2524,13 @@ body.splash-active #app-shell {
 
 /* --- Responsive: Mobile (<768px) (T007) --- */
 @media (max-width: 767px) {
-  .splash-gate__door-container {
-    width: 100%;
-    max-height: 100dvh;
+  .splash-gate__scene {
+    height: 115dvh;
   }
 
   .splash-gate__glow {
-    width: 100%;
-    height: 100dvh;
-  }
-
-  .splash-gate__door-img {
-    object-fit: cover;
+    height: calc(115dvh * 0.75);
+    width: calc(115dvh * 1024 / 1250 * 0.37);
   }
 
   .splash-gate__seal {
@@ -2508,16 +2546,6 @@ body.splash-active #app-shell {
 
 /* --- Responsive: Tablet (768–1199px) --- */
 @media (min-width: 768px) and (max-width: 1199px) {
-  .splash-gate__door-container {
-    max-height: 90vh;
-    aspect-ratio: 768 / 1152;
-  }
-
-  .splash-gate__glow {
-    height: 90vh;
-    width: calc(90vh * 768 / 1152);
-  }
-
   .splash-gate__seal {
     width: 64px;
     height: 64px;

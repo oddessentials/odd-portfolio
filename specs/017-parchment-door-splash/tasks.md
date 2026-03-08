@@ -137,7 +137,7 @@
 
 ---
 
-## Phase 8: Polish & Cross-Cutting Concerns
+## Phase 8: Polish & Cross-Cutting Concerns (Original)
 
 **Purpose**: Final integration, edge cases, and quality sweep
 
@@ -154,6 +154,79 @@
 
 ---
 
+## Phase 9: Archway Enhancement — Setup (Asset Preparation)
+
+**Purpose**: Prepare the stone archway asset for production use. Resolves BLOCKER issues identified in team review.
+
+- [x] T044 Convert `design-assets/chamber-door-archway2.png` (2560x1440, RGBA, 2.24MB) to WebP with alpha at quality 70 — output `assets/chamber-archway.webp` 114KB
+- [x] T045 [P] Create PNG fallback — palette-optimized `assets/chamber-archway.png` 418KB
+- [x] T046 [P] Free line budget in `js/splash.js` — collapsed `OE_LOGO_SVG` from 11 lines to 1 line. Module went from 390 → 380 lines (20 lines headroom).
+
+**Checkpoint**: Archway WebP + PNG ready in `assets/`. Line budget freed in splash.js.
+
+---
+
+## Phase 10: Archway Enhancement — Foundational (CSS + DOM Changes)
+
+**Purpose**: Add archway-scene wrapper and archway frame layer to the splash gate DOM and CSS
+
+**CRITICAL**: Phase 9 setup must be complete before starting this phase
+
+### Archway DOM Structure (target)
+
+```
+splash-gate (dialog)
+  |-- backdrop
+  |-- archway-scene (NEW wrapper, relative, centered)
+  |    |-- glow (moved inside archway-scene)
+  |    |-- door-container (unchanged, swings via rotateY)
+  |    |    |-- picture > img (door)
+  |    |    |-- parchment-text
+  |    |    +-- seal button
+  |    +-- archway-frame (NEW, picture > img, z-index 10, pointer-events: none)
+```
+
+- [x] T047 Add archway-scene wrapper DOM construction in `js/splash.js` `buildSplashDOM()` — archwayScene wraps glow + doorContainer + archwayFrame; archway-frame has picture element with WebP/PNG sources, pointer-events none, aria-hidden, onerror fallback
+- [x] T048 Add `.splash-gate__archway-scene` CSS in `css/styles.css` — relative, z-index 2, 100% width, 92vh height, flex align-items flex-end, transform-style flat
+- [x] T049 [P] Add `.splash-gate__archway-frame` and `.splash-gate__archway-img` CSS — absolute inset 0, z-index 10, pointer-events none; img object-fit cover, object-position center bottom
+- [x] T050 Reposition `.splash-gate__door-container` — absolute, z-index 5, bottom 5%, centered, width 27%, aspect-ratio 768/1152
+- [x] T051 Reposition `.splash-gate__glow` — z-index 3, width 29%, height 80%, bottom 5%, centered
+- [x] T052 Update backdrop side-fill — stone-color horizontal gradient (#1e1b17/#2a2520) layered under existing radial gradient
+
+**Checkpoint**: Archway frame visible on desktop. Door appears inside the arch opening. Glow emanates from within the arch. Stone extends horizontally.
+
+---
+
+## Phase 11: Archway Enhancement — Animation & Responsive (US1 Integration)
+
+**Purpose**: Update door-swing animation for new DOM structure and add responsive archway rules
+
+- [x] T053 [US1] Update `playDoorOpen()` — perspective set on archway-scene (with root fallback); scene fade-out added at timeline position 1.6
+- [x] T054 [US1] Set `transform-style: flat` on archway-scene — included in T048 CSS; removed static `perspective: 1200px` from .splash-gate CSS
+- [x] T055 [P] Mobile responsive (<768px) — archway-frame hidden, door-container/glow reverted to full viewport, archway-scene 100dvh
+- [x] T056 [P] Tablet responsive (768-1199px) — archway-scene 90vh, door-container 32%/bottom 4%, glow 33%/78%/bottom 4%
+- [x] T057 [P] Ultrawide responsive (2560px+) — door-container 25%, glow 27%, seal 80px
+
+**Checkpoint**: Door swings correctly within the archway frame. Archway hidden on mobile. Stone extends on ultrawide. Scene fades out cleanly at end of animation.
+
+---
+
+## Phase 12: Archway Enhancement — Polish & Verification
+
+**Purpose**: Visual calibration, cross-browser testing, and constitution compliance
+
+- [ ] T058 Visually calibrate door-in-arch alignment — open site at 1920x1080, 2560x1440, 1024x768, and 3440x1440 viewport sizes; adjust door-container width percentage and glow width percentage until the door sits naturally within the arch opening with thin dark gaps on sides simulating a recessed threshold; document final percentages in a comment in `css/styles.css`
+- [x] T059 [P] Verify `js/splash.js` line count — 396 lines (under 400 limit), PASS
+- [x] T060 [P] Verify page weight — archway WebP 114KB (<250KB), combined first-visit splash 284KB (<400KB), PASS
+- [ ] T061 Cross-viewport integration test — fresh browser at each breakpoint: mobile (375px) sees door-only layout; tablet (768px) sees archway + door; desktop (1440px) sees archway with stone extending; ultrawide (2560px) sees full stone wall. At each: seal breaks, door swings within arch, scene fades, portfolio reveals.
+- [ ] T062 [P] Verify archway does not interfere with existing accessibility — screen reader still announces dialog + text + seal button; keyboard focus trap still works (archway has `pointer-events: none` and `aria-hidden="true"`); reduced-motion still produces instant fade; high-contrast mode still readable
+- [x] T063 [P] Test archway image fallback — onerror handler implemented in T047: `archImg.onerror = () => { archwayFrame.style.display = 'none'; }` hides archway-frame on load failure, reverting to door-only layout
+- [ ] T064 Archway final integration test — fresh browser on desktop: splash appears with stone archway framing the door → parchment text readable through arch opening → seal visible and clickable → break seal → door swings within stone arch → stone arch fades with door → portfolio reveals. Then reload: splash does NOT appear.
+
+**Checkpoint**: Archway enhancement complete. All viewports working. Performance verified. Constitution compliant.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -165,30 +238,41 @@
 - **US3 (Phase 5)**: Depends on US1 completion (needs working splash to add preloading)
 - **US4 (Phase 6)**: Can start after US1 completion (testing responsive behavior)
 - **US5 (Phase 7)**: Depends on T003+T004 (audio asset + constitution amendment); otherwise independent
-- **Polish (Phase 8)**: Depends on all desired user stories being complete
+- **Polish Original (Phase 8)**: Depends on all desired user stories being complete
+- **Archway Setup (Phase 9)**: Depends on `design-assets/chamber-door-archway2.png` being ready (DONE — verified 2560x1440 RGBA)
+- **Archway Foundational (Phase 10)**: Depends on Phase 9 completion
+- **Archway Animation/Responsive (Phase 11)**: Depends on Phase 10 completion
+- **Archway Polish (Phase 12)**: Depends on Phase 11 completion
 
-### User Story Dependencies
+### Archway Enhancement Dependencies (Phases 9-12)
 
-- **US1 (P1)**: Foundation only — no story dependencies. THIS IS THE MVP.
-- **US2 (P1)**: Builds on US1's localStorage utility (T010)
-- **US3 (P2)**: Builds on US1's complete splash lifecycle (needs working init/seal/animation)
-- **US4 (P2)**: Tests US1's responsive CSS — no code dependencies, just verification
-- **US5 (P3)**: Independent code, gated on constitution amendment
+- **T044, T045, T046**: All parallel (asset conversion + line budget are independent)
+- **T047**: Depends on T046 (line budget freed) — core DOM change
+- **T048, T049**: Parallel with each other (different CSS selectors), depend on T047
+- **T050, T051, T052**: Parallel with each other (different CSS selectors), depend on T048
+- **T053**: Depends on T047 (new DOM structure must exist for animation update)
+- **T054**: Parallel with T053 (CSS rule, no JS dependency)
+- **T055, T056, T057**: All parallel (different media query blocks), depend on T050
+- **T058**: Depends on T050+T053 (door positioned + animation working) — visual calibration
+- **T059, T060, T062, T063**: All parallel verification tasks, depend on Phase 11
+- **T061, T064**: Sequential final tests, depend on all Phase 12 tasks
 
-### Within Each User Story
+### Parallel Opportunities (Archway Enhancement)
 
-- CSS tasks can parallel with JS tasks (different files)
-- DOM construction before animation (T011 before T016/T017)
-- Seal CSS (T012/T013) parallel with parchment text CSS (T014)
-- Break animation (T016) before door animation (T017) — sequential dependency
+```
+Phase 9 (all parallel):
+  T044 (WebP conversion) | T045 (PNG fallback) | T046 (line budget)
 
-### Parallel Opportunities
+Phase 10 (sequential then parallel):
+  T047 (DOM construction) → T048 + T049 (CSS, parallel) → T050 + T051 + T052 (CSS, parallel)
 
-- T001, T002, T003, T004 — all Setup tasks can run in parallel
-- T005, T006 sequential; T007, T008 parallel with each other (different CSS sections)
-- T012, T013, T014, T015 — seal CSS, seal states, text CSS, glow CSS all parallel (different CSS selectors)
-- US4 (responsive testing) can partially overlap with US3 (preloading) since they modify different code paths
-- US5 (audio) is fully independent of US3/US4
+Phase 11 (mixed):
+  T053 (animation JS) | T054 (CSS flat, parallel with T053)
+  T055 + T056 + T057 (responsive CSS, all parallel, after T050)
+
+Phase 12 (calibration then parallel verification):
+  T058 (visual calibration) → T059 + T060 + T062 + T063 (all parallel) → T061 + T064 (final tests)
+```
 
 ---
 
@@ -211,6 +295,15 @@
 5. Add US4 → Mobile responsive verification → all viewports
 6. Add US5 → Audio polish (if amendment approved)
 7. Polish → Cross-browser, accessibility, performance verification
+8. **Archway Enhancement** → Stone archway frame for desktop/ultrawide realism
+
+### Archway Enhancement Strategy
+
+1. Phase 9: Asset prep (WebP/PNG conversion + line budget) — all parallel
+2. Phase 10: DOM restructuring + CSS layout — the critical foundation
+3. Phase 11: Animation update + responsive rules — builds on Phase 10
+4. Phase 12: Visual calibration + verification — final polish
+5. **STOP and VALIDATE**: User manually tests at all viewport sizes before commit
 
 ---
 
@@ -223,3 +316,7 @@
 - The `app.js` modifications must stay under 30 new lines
 - Chromatic glow (FR-019) is implemented in US1, not separated — it is core to the visual experience
 - All CSS additions go in a single new section in `css/styles.css` (no new CSS files)
+- Archway enhancement (Phases 9-12) is additive — it does NOT modify any completed user story logic
+- Archway is hidden on mobile (<768px) — mobile users see the existing door-only layout
+- Archway source: `design-assets/chamber-door-archway2.png` (2560x1440, RGBA, verified)
+- Constitution Principle VI exception: archway bundled under existing "splash gate decorative assets" exception

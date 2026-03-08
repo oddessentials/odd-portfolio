@@ -12,17 +12,7 @@ const SPLASH_CONTENT = {
   instruction: 'Break the seal to enter'
 };
 
-const OE_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 298.508 298.508" class="splash-gate__seal-logo" aria-hidden="true">
-  <g transform="rotate(45,220.169,149.254)">
-    <g transform="matrix(0,1,1,0,70.024,29.574)">
-      <circle cx="100" cy="100" r="80.902" fill="none" stroke="currentColor" stroke-width="38.197"/>
-      <rect x="80.902" y="0" width="38.197" height="200" fill="currentColor"/>
-      <rect x="119.098" y="161.803" width="161.803" height="38.197" fill="currentColor"/>
-      <rect x="119.098" y="80.902" width="161.803" height="38.197" fill="currentColor"/>
-      <rect x="119.098" y="0" width="161.803" height="38.197" fill="currentColor"/>
-    </g>
-  </g>
-</svg>`;
+const OE_LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 298.508 298.508" class="splash-gate__seal-logo" aria-hidden="true"><g transform="rotate(45,220.169,149.254)"><g transform="matrix(0,1,1,0,70.024,29.574)"><circle cx="100" cy="100" r="80.902" fill="none" stroke="currentColor" stroke-width="38.197"/><rect x="80.902" y="0" width="38.197" height="200" fill="currentColor"/><rect x="119.098" y="161.803" width="161.803" height="38.197" fill="currentColor"/><rect x="119.098" y="80.902" width="161.803" height="38.197" fill="currentColor"/><rect x="119.098" y="0" width="161.803" height="38.197" fill="currentColor"/></g></g></svg>';
 
 const gsap = window.gsap;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -71,6 +61,9 @@ function buildSplashDOM() {
   const glow = document.createElement('div');
   glow.className = 'splash-gate__glow';
 
+  const scene = document.createElement('div');
+  scene.className = 'splash-gate__scene';
+
   const doorContainer = document.createElement('div');
   doorContainer.className = 'splash-gate__door-container';
 
@@ -88,45 +81,58 @@ function buildSplashDOM() {
   img.width = 768;
   img.height = 1152;
   img.onerror = () => root.classList.add('splash-gate--img-failed');
-  picture.appendChild(source);
-  picture.appendChild(img);
+  picture.append(source, img);
 
-  // Parchment text overlay
   const textBlock = document.createElement('div');
   textBlock.id = 'splash-text';
   textBlock.className = 'splash-gate__parchment-text';
-
   const h1 = document.createElement('h1');
   h1.className = 'splash-gate__title';
   h1.textContent = SPLASH_CONTENT.heading;
-
   const bodyP = document.createElement('p');
   bodyP.className = 'splash-gate__body';
   bodyP.textContent = SPLASH_CONTENT.body;
-
   const instrP = document.createElement('p');
   instrP.className = 'splash-gate__instruction';
   instrP.textContent = SPLASH_CONTENT.instruction;
+  const sigPic = document.createElement('picture');
+  const sigSrc = document.createElement('source');
+  sigSrc.srcset = 'assets/odd-wizard-signature.webp';
+  sigSrc.type = 'image/webp';
+  const sigImg = document.createElement('img');
+  sigImg.src = 'assets/odd-wizard-signature.png';
+  sigImg.alt = 'Odd Essentials';
+  sigImg.className = 'splash-gate__signature';
+  sigImg.width = 256;
+  sigImg.height = 384;
+  sigPic.append(sigSrc, sigImg);
 
-  textBlock.appendChild(h1);
-  textBlock.appendChild(bodyP);
-  textBlock.appendChild(instrP);
+  textBlock.append(h1, bodyP, sigPic, instrP);
 
-  // Seal button with OE logo
   const seal = document.createElement('button');
   seal.className = 'splash-gate__seal';
   seal.setAttribute('aria-label', 'Enter the portfolio');
   seal.type = 'button';
   seal.innerHTML = OE_LOGO_SVG;
 
-  doorContainer.appendChild(picture);
-  doorContainer.appendChild(textBlock);
-  doorContainer.appendChild(seal);
+  // Archway frame overlay (sits on top of door, opening is transparent)
+  const archway = document.createElement('picture');
+  archway.className = 'splash-gate__archway';
+  const archSrc = document.createElement('source');
+  archSrc.srcset = 'assets/chamber-archway.webp';
+  archSrc.type = 'image/webp';
+  const archImg = document.createElement('img');
+  archImg.src = 'assets/chamber-archway.png';
+  archImg.alt = '';
+  archImg.className = 'splash-gate__archway-img';
+  archImg.setAttribute('aria-hidden', 'true');
+  archImg.width = 1024;
+  archImg.height = 1250;
+  archway.append(archSrc, archImg);
 
-  root.appendChild(backdrop);
-  root.appendChild(glow);
-  root.appendChild(doorContainer);
-
+  doorContainer.append(picture, textBlock, seal);
+  scene.append(doorContainer, archway);
+  root.append(backdrop, glow, scene);
   return root;
 }
 
@@ -249,35 +255,32 @@ function playSealBreak(sealEl) {
 // ---------------------------------------------------------------------------
 function playDoorOpen(doorContainer, glowEl) {
   return new Promise((resolve) => {
+    const root = doorContainer.closest('.splash-gate');
     if (reducedMotion.matches) {
-      const root = doorContainer.closest('.splash-gate');
       gsap.to(root, { opacity: 0, duration: 0.2, onComplete: resolve });
       return;
     }
 
-    doorContainer.style.transformOrigin = 'left center';
-    const root = doorContainer.closest('.splash-gate');
-    root.style.perspective = '1200px';
-
     const tl = gsap.timeline({ onComplete: resolve });
 
-    // Beat 1 (0-300ms): slight pull
-    tl.to(doorContainer, { rotateY: -3, duration: 0.3, ease: 'power2.in' }, 0);
+    // Beat 1 (0-300ms): slight inward pull
+    tl.to(doorContainer, { rotateY: 3, duration: 0.3, ease: 'power2.in' }, 0);
     tl.to(glowEl, { opacity: 0.35, duration: 0.3, ease: 'power1.out' }, 0);
 
-    // Beat 2 (300-1200ms): swing open
-    tl.to(doorContainer, { rotateY: -35, duration: 0.9, ease: 'power2.inOut' }, 0.3);
+    // Beat 2 (300-1200ms): swing inward
+    tl.to(doorContainer, { rotateY: 45, duration: 0.9, ease: 'power2.inOut' }, 0.3);
     tl.to(glowEl, { opacity: 0.5, filter: 'blur(20px)', duration: 0.9, ease: 'power1.inOut' }, 0.3);
 
-    // Beat 3 (1200-2000ms): full swing and fade
-    tl.to(doorContainer, { rotateY: -85, duration: 0.8, ease: 'power3.out' }, 1.2);
-    tl.to(doorContainer, { opacity: 0, duration: 0.4, ease: 'power1.in' }, 1.6);
+    // Beat 3 (1200-2000ms): full inward swing
+    tl.to(doorContainer, { rotateY: 85, duration: 0.8, ease: 'power3.out' }, 1.2);
     tl.to(glowEl, {
       opacity: 0.7,
       backgroundColor: 'rgba(184, 146, 68, 0.5)',
-      duration: 0.8,
-      ease: 'power1.out'
+      duration: 0.8, ease: 'power1.out'
     }, 1.2);
+
+    // Beat 4 (2000-2400ms): fade out entire splash
+    tl.to(root, { opacity: 0, duration: 0.4, ease: 'power1.in' }, 2.0);
   });
 }
 
