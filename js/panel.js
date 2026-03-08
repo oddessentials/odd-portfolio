@@ -360,18 +360,24 @@ function closeProjectPanel() {
   document.body.style.position = '';
   document.body.style.width = '';
   document.body.style.top = '';
-  window.scrollTo(0, _savedScrollTop);
 
-  if (window.ScrollTrigger) {
-    window.ScrollTrigger.getAll().forEach(st => st.enable());
-  }
+  // Use rAF to let iOS Safari process style resets before restoring
+  // scroll position — prevents blank screen at deep scroll offsets (zone 3+)
+  requestAnimationFrame(() => {
+    window.scrollTo(0, _savedScrollTop);
 
-  document.dispatchEvent(new CustomEvent('panel-close'));
+    if (window.ScrollTrigger) {
+      window.ScrollTrigger.getAll().forEach(st => st.enable());
+      window.ScrollTrigger.refresh();
+    }
 
-  if (triggerElement && typeof triggerElement.focus === 'function') {
-    triggerElement.focus();
-  }
-  triggerElement = null;
+    document.dispatchEvent(new CustomEvent('panel-close'));
+
+    if (triggerElement && typeof triggerElement.focus === 'function') {
+      triggerElement.focus();
+    }
+    triggerElement = null;
+  });
 }
 
 // ---------------------------------------------------------------------------
