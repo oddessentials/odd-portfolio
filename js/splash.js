@@ -8,8 +8,7 @@ const AUDIO_ENABLED = true;
 
 const SPLASH_CONTENT = {
   heading: 'Welcome, Traveler',
-  body: 'Beyond this door lies a collection of digital artifacts \u2014 tools, applications, and experiments forged by Odd Essentials. Each star in the constellation within represents a project, waiting to be explored.',
-  instruction: 'Click the door to enter'
+  body: 'Beyond this door lies a collection of Odd Essentials.'
 };
 
 const gsap = window.gsap;
@@ -93,9 +92,6 @@ function buildSplashDOM() {
   const bodyP = document.createElement('p');
   bodyP.className = 'splash-gate__body';
   bodyP.textContent = SPLASH_CONTENT.body;
-  const instrP = document.createElement('p');
-  instrP.className = 'splash-gate__instruction';
-  instrP.textContent = SPLASH_CONTENT.instruction;
   const sigPic = document.createElement('picture');
   const sigSrc = document.createElement('source');
   sigSrc.srcset = 'assets/odd-wizard-signature.webp';
@@ -108,7 +104,7 @@ function buildSplashDOM() {
   sigImg.height = 384;
   sigPic.append(sigSrc, sigImg);
 
-  textBlock.append(h1, bodyP, sigPic, instrP);
+  textBlock.append(h1, bodyP, sigPic);
 
   // Archway frame overlay (sits on top of door, opening is transparent)
   const archway = document.createElement('picture');
