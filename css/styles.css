@@ -63,6 +63,14 @@
   --z-overlay-backdrop: 90;
   --z-overlay: 100;
   --z-skip-link: 9999;
+  --z-splash: 150;
+
+  /* Splash gate palette */
+  --splash-bg-center: #1a1510;
+  --splash-bg-edge: #0d0b09;
+  --splash-text-color: #4A3520;
+  --splash-text-title: #3B2A14;
+  --splash-glow-opacity: 0.55;
 
   /* Typography */
   --font-display: 'Cinzel', Georgia, serif;
@@ -2212,5 +2220,286 @@ body.nav-overlay-active .nav-backdrop {
     margin-top: auto;
     padding: 12px var(--space-md);
     border-top: 1px solid var(--color-brass-dark);
+  }
+}
+
+/* ============================================================
+   SPLASH GATE — Parchment Door Entry
+   T005-T008, T012-T015, T021, T027
+   ============================================================ */
+
+/* --- Gate overlay & body lock --- */
+.splash-gate {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-splash);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #0D0B09;
+}
+
+body.splash-active {
+  overflow: hidden;
+}
+
+body.splash-active #app-shell {
+  pointer-events: none;
+}
+
+/* --- Backdrop (T006) --- */
+.splash-gate__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      120deg,
+      rgba(60, 40, 20, 0.02) 0px,
+      transparent 1px,
+      transparent 3px
+    ),
+    radial-gradient(
+      ellipse at 50% 50%,
+      var(--splash-bg-center) 0%,
+      var(--splash-bg-edge) 50%,
+      #04050f 100%
+    );
+}
+
+/* --- Chromatic glow (T015) --- */
+/* Sized to match the arch opening so glow bleeds through the doorway.
+   Stays as a sibling (not child) so it doesn't rotate with the door swing. */
+.splash-gate__glow {
+  position: absolute;
+  z-index: 1;
+  /* Arch opening: ~37% of archway width, ~75% of archway height */
+  height: calc(115vh * 0.75);
+  width: calc(115vh * 1024 / 1250 * 0.37);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -43%);
+  pointer-events: none;
+  opacity: var(--splash-glow-opacity);
+  animation: chromatic-shift 8s linear infinite;
+  box-shadow:
+    0 0 60px 15px rgba(94, 207, 255, 0.4),
+    0 0 90px 30px rgba(122, 255, 178, 0.25),
+    0 0 120px 50px rgba(200, 168, 75, 0.15);
+  border-radius: 4px;
+}
+
+@keyframes chromatic-shift {
+  from { filter: hue-rotate(0deg); }
+  to   { filter: hue-rotate(360deg); }
+}
+
+/* --- Scene wrapper (contains door + archway) --- */
+.splash-gate__scene {
+  position: relative;
+  z-index: 2;
+  height: 115vh;
+  aspect-ratio: 1024 / 1250;
+  perspective: 1200px;
+}
+
+/* --- Inner glow (visible through arch gap above door) --- */
+/* Behind the door (z-index: 0) but inside the scene, so it shows through
+   any transparent area of the archway not covered by the door. */
+.splash-gate__inner-glow {
+  position: absolute;
+  top: 5%;
+  left: 20%;
+  right: 20%;
+  bottom: 20%;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    rgba(184, 146, 68, 0.35) 0%,
+    rgba(94, 207, 255, 0.2) 40%,
+    transparent 70%
+  );
+  animation: chromatic-shift 8s linear infinite;
+  pointer-events: none;
+}
+
+/* --- Door container & image (T006) --- */
+/* Positioned within the arch opening area. Door is wider than the opening
+   (2:3 aspect vs narrow Gothic arch) — stone pillars cover the overlap.
+   container-type: size lets parchment text scale with door, not viewport. */
+.splash-gate__door-container {
+  position: absolute;
+  top: 36%;
+  bottom: 9.5%;
+  left: 31%;
+  right: 30.75%;
+  z-index: 1;
+  transform-origin: left center;
+  container-type: size;
+  cursor: pointer;
+}
+
+.splash-gate__door-container:focus-visible {
+  outline: 3px solid #ffd700;
+  outline-offset: 4px;
+}
+
+.splash-gate__door-img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+}
+
+/* --- Archway frame overlay --- */
+/* Opaque stone with transparent arch opening. Sits on top of door. */
+.splash-gate__archway {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.splash-gate__archway-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* --- Parchment text (T014) --- */
+/* All text sizes use cqi (container query inline) to scale with the door,
+   not the viewport. Prevents text spilling off parchment at any aspect ratio. */
+.splash-gate__parchment-text {
+  position: absolute;
+  top: 15%;
+  left: 27%;
+  right: 25%;
+  bottom: 16%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6%;
+  overflow: hidden;
+}
+
+.splash-gate__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: clamp(12px, 6cqi, 22px);
+  color: var(--splash-text-title);
+  margin-bottom: 0.5em;
+  text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
+  letter-spacing: 0.08em;
+}
+
+.splash-gate__body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: clamp(10px, 4.5cqi, 15px);
+  color: var(--splash-text-color);
+  margin-bottom: 0.75em;
+  line-height: 1.6;
+  text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
+}
+
+.splash-gate__signature {
+  width: clamp(60px, 35cqi, 140px);
+  height: auto;
+  margin-bottom: 0.5em;
+  opacity: 0.85;
+}
+
+.splash-gate__instruction {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(9px, 4cqi, 14px);
+  color: #5C3A1E;
+  margin-top: auto;
+  text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
+}
+
+/* --- Loading state (T027) --- */
+.splash-gate__loading {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.splash-gate__loading-ring {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(200, 168, 75, 0.4);
+  animation: loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes loading-pulse {
+  0%, 100% { transform: scale(0.95); }
+  50%      { transform: scale(1.05); }
+}
+
+.splash-gate__loading-text {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-primary);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* --- Image fallback (T021) --- */
+.splash-gate--img-failed .splash-gate__parchment-text {
+  color: #e8d5a3;
+}
+
+.splash-gate--img-failed .splash-gate__title {
+  color: #e8d5a3;
+}
+
+.splash-gate--img-failed .splash-gate__body {
+  color: #cdb892;
+}
+
+.splash-gate--img-failed .splash-gate__instruction {
+  color: #a08858;
+}
+
+/* --- Responsive: Mobile (<768px) (T007) --- */
+@media (max-width: 767px) {
+  .splash-gate__scene {
+    height: 115dvh;
+  }
+
+  .splash-gate__glow {
+    height: calc(115dvh * 0.75);
+    width: calc(115dvh * 1024 / 1250 * 0.37);
+  }
+}
+
+/* --- Accessibility (T008) --- */
+@media (prefers-reduced-motion: reduce) {
+  .splash-gate__glow {
+    animation: none !important;
+    filter: none;
+  }
+
+  .splash-gate {
+    transition: opacity 200ms ease !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .splash-gate__title,
+  .splash-gate__body,
+  .splash-gate__instruction {
+    color: #1a1008;
   }
 }

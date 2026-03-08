@@ -16,6 +16,7 @@ import {
   initGPUDetection,
   getCurrentTier
 } from './performance.js';
+import { init as initSplash, isReturningVisitor } from './splash.js';
 
 const gsap = window.gsap;
 const ScrollTrigger = window.ScrollTrigger;
@@ -281,20 +282,39 @@ function playDiscoverabilityAffordance() {
   }
 }
 
-// Fetch repo metrics (committed build artifact) — used for star sizing and modal metrics bar
+// ---------------------------------------------------------------------------
+// Splash gate — first-time visitor check and preloader coordination (T020, T025)
+// ---------------------------------------------------------------------------
+const isFirstVisit = !isReturningVisitor();
 let repoMetrics = { repos: {} };
-try {
-  const res = await fetch('assets/repo-metrics.json');
-  if (res.ok) repoMetrics = await res.json();
-} catch (e) {
-  console.warn('Failed to load repo-metrics.json:', e);
+let sceneReady;
+
+if (isFirstVisit) {
+  let resolvePreload;
+  const preloadPromise = new Promise(r => { resolvePreload = r; });
+  const splashDone = initSplash({ preloadPromise });
+
+  try {
+    const res = await fetch('assets/repo-metrics.json');
+    if (res.ok) repoMetrics = await res.json();
+  } catch (e) {
+    console.warn('Failed to load repo-metrics.json:', e);
+  }
+  initInteractions({ repoMetrics });
+  sceneReady = initScene({ repoMetrics });
+  resolvePreload();
+  await splashDone;
+} else {
+  await initSplash();
+  try {
+    const res = await fetch('assets/repo-metrics.json');
+    if (res.ok) repoMetrics = await res.json();
+  } catch (e) {
+    console.warn('Failed to load repo-metrics.json:', e);
+  }
+  initInteractions({ repoMetrics });
+  sceneReady = initScene({ repoMetrics });
 }
-
-// Initialize interactions (panel, keyboard nav, hamburger) — works even without WebGL
-initInteractions({ repoMetrics });
-
-// Initialize the 3D scene
-const sceneReady = initScene({ repoMetrics });
 
 if (sceneReady) {
   // T051: Detect integrated GPU and default to Tier 2 if found
