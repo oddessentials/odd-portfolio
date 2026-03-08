@@ -2261,10 +2261,11 @@ body.splash-active #app-shell {
     ),
     radial-gradient(
       ellipse at 50% 50%,
-      var(--splash-bg-center) 0%,
-      var(--splash-bg-edge) 50%,
-      #04050f 100%
-    );
+      rgba(26, 21, 16, 0.7) 0%,
+      rgba(13, 11, 9, 0.5) 50%,
+      rgba(4, 5, 15, 0.4) 100%
+    ),
+    url('../assets/stone-wall-tile.webp') repeat center / 512px 768px;
 }
 
 /* --- Chromatic glow (T015) --- */
@@ -2301,6 +2302,7 @@ body.splash-active #app-shell {
   height: 115vh;
   aspect-ratio: 1024 / 1250;
   perspective: 1200px;
+  background: linear-gradient(to right, transparent 0px, #1a1510 100px, #1a1510 calc(100% - 100px), transparent 100%);
 }
 
 /* --- Inner glow (visible through arch gap above door) --- */
@@ -2379,9 +2381,10 @@ body.splash-active #app-shell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   text-align: center;
   padding: 6%;
+  padding-top: 12%;
   overflow: hidden;
 }
 
@@ -2409,8 +2412,9 @@ body.splash-active #app-shell {
 .splash-gate__signature {
   width: clamp(60px, 35cqi, 140px);
   height: auto;
-  margin-bottom: 0.5em;
+  margin-bottom: 0;
   opacity: 0.85;
+  filter: brightness(0.55);
 }
 
 .splash-gate__instruction {
