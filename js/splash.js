@@ -130,8 +130,13 @@ function buildSplashDOM() {
   archImg.height = 1250;
   archway.append(archSrc, archImg);
 
+  // Inner glow — sits behind the door within the scene so light
+  // peeks through the pointed arch gap above the door
+  const innerGlow = document.createElement('div');
+  innerGlow.className = 'splash-gate__inner-glow';
+
   doorContainer.append(picture, textBlock, seal);
-  scene.append(doorContainer, archway);
+  scene.append(innerGlow, doorContainer, archway);
   root.append(backdrop, glow, scene);
   return root;
 }

@@ -2307,6 +2307,26 @@ body.splash-active #app-shell {
   perspective: 1200px;
 }
 
+/* --- Inner glow (visible through arch gap above door) --- */
+/* Behind the door (z-index: 0) but inside the scene, so it shows through
+   any transparent area of the archway not covered by the door. */
+.splash-gate__inner-glow {
+  position: absolute;
+  top: 5%;
+  left: 20%;
+  right: 20%;
+  bottom: 20%;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    rgba(184, 146, 68, 0.35) 0%,
+    rgba(94, 207, 255, 0.2) 40%,
+    transparent 70%
+  );
+  animation: chromatic-shift 8s linear infinite;
+  pointer-events: none;
+}
+
 /* --- Door container & image (T006) --- */
 /* Positioned within the arch opening area. Door is wider than the opening
    (2:3 aspect vs narrow Gothic arch) — stone pillars cover the overlap.
