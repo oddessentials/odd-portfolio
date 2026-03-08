@@ -9,10 +9,8 @@ const AUDIO_ENABLED = true;
 const SPLASH_CONTENT = {
   heading: 'Welcome, Traveler',
   body: 'Beyond this door lies a collection of digital artifacts \u2014 tools, applications, and experiments forged by Odd Essentials. Each star in the constellation within represents a project, waiting to be explored.',
-  instruction: 'Break the seal to enter'
+  instruction: 'Click the door to enter'
 };
-
-const OE_LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 298.508 298.508" class="splash-gate__seal-logo" aria-hidden="true"><g transform="rotate(45,220.169,149.254)"><g transform="matrix(0,1,1,0,70.024,29.574)"><circle cx="100" cy="100" r="80.902" fill="none" stroke="currentColor" stroke-width="38.197"/><rect x="80.902" y="0" width="38.197" height="200" fill="currentColor"/><rect x="119.098" y="161.803" width="161.803" height="38.197" fill="currentColor"/><rect x="119.098" y="80.902" width="161.803" height="38.197" fill="currentColor"/><rect x="119.098" y="0" width="161.803" height="38.197" fill="currentColor"/></g></g></svg>';
 
 const gsap = window.gsap;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -66,6 +64,9 @@ function buildSplashDOM() {
 
   const doorContainer = document.createElement('div');
   doorContainer.className = 'splash-gate__door-container';
+  doorContainer.setAttribute('role', 'button');
+  doorContainer.setAttribute('aria-label', 'Enter the portfolio');
+  doorContainer.tabIndex = 0;
 
   // Door image with <picture> for webp fallback
   const picture = document.createElement('picture');
@@ -109,12 +110,6 @@ function buildSplashDOM() {
 
   textBlock.append(h1, bodyP, sigPic, instrP);
 
-  const seal = document.createElement('button');
-  seal.className = 'splash-gate__seal';
-  seal.setAttribute('aria-label', 'Enter the portfolio');
-  seal.type = 'button';
-  seal.innerHTML = OE_LOGO_SVG;
-
   // Archway frame overlay (sits on top of door, opening is transparent)
   const archway = document.createElement('picture');
   archway.className = 'splash-gate__archway';
@@ -135,7 +130,7 @@ function buildSplashDOM() {
   const innerGlow = document.createElement('div');
   innerGlow.className = 'splash-gate__inner-glow';
 
-  doorContainer.append(picture, textBlock, seal);
+  doorContainer.append(picture, textBlock);
   scene.append(innerGlow, doorContainer, archway);
   root.append(backdrop, glow, scene);
   return root;
@@ -178,84 +173,6 @@ function playDoorCreak() {
 }
 
 // ---------------------------------------------------------------------------
-// playSealBreak — crack and fragment the wax seal (T016)
-// ---------------------------------------------------------------------------
-function playSealBreak(sealEl) {
-  return new Promise((resolve) => {
-    if (reducedMotion.matches) {
-      gsap.to(sealEl, { opacity: 0, duration: 0.2, onComplete: resolve });
-      return;
-    }
-
-    const tl = gsap.timeline({ onComplete: resolve });
-
-    // Phase 1: Crack lines (0-400ms)
-    const cracks = [];
-    for (let i = 0; i < 4; i++) {
-      const crack = document.createElement('div');
-      crack.className = 'splash-gate__seal-crack';
-      const angle = i * 45 + 22.5;
-      crack.style.cssText = `
-        position: absolute; top: 50%; left: 50%;
-        width: 2px; height: 0;
-        background: rgba(30, 20, 10, 0.8);
-        transform-origin: top center;
-        transform: translate(-50%, 0) rotate(${angle}deg);
-        pointer-events: none;
-      `;
-      sealEl.appendChild(crack);
-      cracks.push(crack);
-    }
-    tl.to(cracks, { height: '45%', duration: 0.4, stagger: 0.05, ease: 'power2.out' }, 0);
-    tl.to(sealEl, { y: -2, duration: 0.4, ease: 'power1.out' }, 0);
-
-    // Phase 2: Fragment and scatter (400-900ms)
-    const fragments = [];
-    const angles = [0, 72, 144, 216, 288];
-    angles.forEach((angle) => {
-      const frag = document.createElement('div');
-      frag.className = 'splash-gate__seal-fragment';
-      const a1 = (angle - 36) * Math.PI / 180;
-      const a2 = (angle + 36) * Math.PI / 180;
-      const r = 45;
-      frag.style.cssText = `
-        position: absolute; inset: 0; border-radius: 50%;
-        background: inherit;
-        clip-path: polygon(50% 50%, ${50 + r * Math.cos(a1)}% ${50 + r * Math.sin(a1)}%, ${50 + r * Math.cos(a2)}% ${50 + r * Math.sin(a2)}%);
-        pointer-events: none;
-      `;
-      sealEl.appendChild(frag);
-      fragments.push(frag);
-    });
-
-    // Hide the original seal content behind fragments
-    tl.set(sealEl.querySelector('.splash-gate__seal-logo'), { opacity: 0 }, 0.4);
-    tl.set(cracks, { opacity: 0 }, 0.4);
-
-    fragments.forEach((frag, i) => {
-      const angle = angles[i] * Math.PI / 180;
-      const dist = 15 + Math.random() * 15;
-      const rot = (Math.random() > 0.5 ? 1 : -1) * (5 + Math.random() * 10);
-      tl.to(frag, {
-        x: Math.cos(angle) * dist,
-        y: Math.sin(angle) * dist,
-        rotation: rot,
-        opacity: 0,
-        duration: 0.5,
-        ease: 'power2.out'
-      }, 0.4);
-    });
-
-    // Phase 3: Cleanup (900-1000ms)
-    tl.call(() => {
-      cracks.forEach((c) => c.remove());
-      fragments.forEach((f) => f.remove());
-      gsap.set(sealEl, { visibility: 'hidden' });
-    }, null, 1.0);
-  });
-}
-
-// ---------------------------------------------------------------------------
 // playDoorOpen — 3D perspective door swing open (T017)
 // ---------------------------------------------------------------------------
 function playDoorOpen(doorContainer, glowEl) {
@@ -292,21 +209,24 @@ function playDoorOpen(doorContainer, glowEl) {
 // ---------------------------------------------------------------------------
 // setupFocusTrap — trap keyboard focus within splash gate (T018)
 // ---------------------------------------------------------------------------
-function setupFocusTrap(rootEl, sealEl) {
+function setupFocusTrap(rootEl, doorEl) {
   rootEl.addEventListener('keydown', (e) => {
     if (e.key === 'Tab') {
       e.preventDefault();
-      sealEl.focus();
+      doorEl.focus();
     }
-    // Escape is intentionally a no-op — splash is a gate, not dismissible
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      doorEl.click();
+    }
   });
-  sealEl.focus();
+  doorEl.focus();
 }
 
 // ---------------------------------------------------------------------------
 // showLoadingState — display typed loading text while assets preload (T027)
 // ---------------------------------------------------------------------------
-function showLoadingState(sealEl) {
+function showLoadingState(doorContainer) {
   const wrapper = document.createElement('div');
   wrapper.className = 'splash-gate__loading';
   wrapper.setAttribute('role', 'status');
@@ -321,9 +241,7 @@ function showLoadingState(sealEl) {
   wrapper.appendChild(ring);
   wrapper.appendChild(text);
 
-  // Position at the seal's location
-  const parent = sealEl.parentElement;
-  parent.appendChild(wrapper);
+  doorContainer.appendChild(wrapper);
 
   gsap.to(text, {
     duration: 1.5,
@@ -351,24 +269,20 @@ export function init(options = {}) {
     // Fire-and-forget audio preload
     preloadAudio();
 
-    const sealEl = root.querySelector('.splash-gate__seal');
     const doorContainer = root.querySelector('.splash-gate__door-container');
     const glowEl = root.querySelector('.splash-gate__glow');
 
-    setupFocusTrap(root, sealEl);
+    setupFocusTrap(root, doorContainer);
 
     let dismissed = false;
-    sealEl.addEventListener('click', async () => {
+    doorContainer.addEventListener('click', async () => {
       if (dismissed) return;
       dismissed = true;
 
       // 1. Persist dismissal
       setDismissed();
 
-      // 2. Seal break animation
-      await playSealBreak(sealEl);
-
-      // 3. Wait for site assets if preloadPromise provided
+      // 2. Wait for site assets if preloadPromise provided
       if (options.preloadPromise) {
         let preloadDone = false;
         options.preloadPromise.then(() => { preloadDone = true; });
@@ -376,19 +290,19 @@ export function init(options = {}) {
         await Promise.resolve();
 
         if (!preloadDone) {
-          const loadingEl = showLoadingState(sealEl);
+          const loadingEl = showLoadingState(doorContainer);
           await options.preloadPromise;
           loadingEl.remove();
         }
       }
 
-      // 4. Play door creak audio (fire-and-forget)
+      // 3. Play door creak audio (fire-and-forget)
       playDoorCreak();
 
-      // 5. Door open animation
+      // 4. Door open animation
       await playDoorOpen(doorContainer, glowEl);
 
-      // 6. Cleanup
+      // 5. Cleanup
       root.remove();
       document.body.classList.remove('splash-active');
 

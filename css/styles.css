@@ -70,10 +70,6 @@
   --splash-bg-edge: #0d0b09;
   --splash-text-color: #4A3520;
   --splash-text-title: #3B2A14;
-  --splash-seal-wax: #8B1A1A;
-  --splash-seal-wax-dark: #4A0A0A;
-  --splash-seal-logo: rgba(200, 168, 75, 0.6);
-  --splash-seal-size: clamp(56px, 6vw, 72px);
   --splash-glow-opacity: 0.55;
 
   /* Typography */
@@ -2333,19 +2329,25 @@ body.splash-active #app-shell {
    container-type: size lets parchment text scale with door, not viewport. */
 .splash-gate__door-container {
   position: absolute;
-  top: 20%;
-  bottom: 5%;
-  left: 19.5%;
-  aspect-ratio: 768 / 1152;
+  top: 36%;
+  bottom: 9.5%;
+  left: 31%;
+  right: 30.75%;
   z-index: 1;
   transform-origin: left center;
   container-type: size;
+  cursor: pointer;
+}
+
+.splash-gate__door-container:focus-visible {
+  outline: 3px solid #ffd700;
+  outline-offset: 4px;
 }
 
 .splash-gate__door-img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: fill;
   display: block;
 }
 
@@ -2370,16 +2372,16 @@ body.splash-active #app-shell {
    not the viewport. Prevents text spilling off parchment at any aspect ratio. */
 .splash-gate__parchment-text {
   position: absolute;
-  top: 18%;
-  left: 22%;
-  right: 18%;
-  bottom: 28%;
+  top: 15%;
+  left: 27%;
+  right: 25%;
+  bottom: 16%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 8%;
+  padding: 6%;
   overflow: hidden;
 }
 
@@ -2387,9 +2389,9 @@ body.splash-active #app-shell {
   font-family: var(--font-display);
   font-weight: 600;
   text-transform: uppercase;
-  font-size: clamp(14px, 8cqi, 28px);
+  font-size: clamp(12px, 6cqi, 22px);
   color: var(--splash-text-title);
-  margin-bottom: 0.75em;
+  margin-bottom: 0.5em;
   text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
   letter-spacing: 0.08em;
 }
@@ -2397,15 +2399,15 @@ body.splash-active #app-shell {
 .splash-gate__body {
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: clamp(11px, 6cqi, 18px);
+  font-size: clamp(10px, 4.5cqi, 15px);
   color: var(--splash-text-color);
-  margin-bottom: 1.25em;
+  margin-bottom: 0.75em;
   line-height: 1.6;
   text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
 }
 
 .splash-gate__signature {
-  width: clamp(80px, 45cqi, 180px);
+  width: clamp(60px, 35cqi, 140px);
   height: auto;
   margin-bottom: 0.5em;
   opacity: 0.85;
@@ -2414,88 +2416,16 @@ body.splash-active #app-shell {
 .splash-gate__instruction {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(10px, 5cqi, 16px);
+  font-size: clamp(9px, 4cqi, 14px);
   color: #5C3A1E;
   margin-top: auto;
   text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
 }
 
-/* --- Wax seal button (T012) --- */
-.splash-gate__seal {
-  border: none;
-  padding: 0;
-  background: radial-gradient(
-    circle at 40% 38%,
-    #C43030 0%, #8B1A1A 35%, #6B1515 65%, #4A0A0A 100%
-  );
-  cursor: pointer;
-  width: var(--splash-seal-size);
-  height: var(--splash-seal-size);
-  border-radius: 50%;
-  position: absolute;
-  bottom: 22%;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  box-shadow:
-    inset 2px 2px 4px rgba(255, 200, 200, 0.2),
-    inset -1px -1px 3px rgba(0, 0, 0, 0.4),
-    0 2px 8px rgba(0, 0, 0, 0.5),
-    0 0 0 3px #6B1515,
-    0 0 0 5px #4A0A0A;
-  animation: seal-breathe 2.5s ease-in-out infinite;
-}
-
-.splash-gate__seal-logo {
-  width: 58%;
-  height: 58%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  fill: #4A0A0A;
-  filter: drop-shadow(0 1px 0 rgba(255, 200, 200, 0.15));
-  pointer-events: none;
-}
-
-/* --- Seal interactive states (T013) --- */
-@keyframes seal-breathe {
-  0%, 100% { transform: translateX(-50%) scale(1); }
-  50%      { transform: translateX(-50%) scale(1.04); }
-}
-
-.splash-gate__seal:hover {
-  transform: translateX(-50%) scale(1.08);
-  box-shadow:
-    inset 2px 2px 4px rgba(255, 200, 200, 0.2),
-    inset -1px -1px 3px rgba(0, 0, 0, 0.4),
-    0 2px 8px rgba(0, 0, 0, 0.5),
-    0 0 0 3px #6B1515,
-    0 0 0 5px #4A0A0A,
-    0 0 20px rgba(200, 168, 75, 0.25);
-  animation: none;
-}
-
-.splash-gate__seal:active {
-  transform: translateX(-50%) scale(0.95);
-}
-
-.splash-gate__seal:focus-visible {
-  outline: 3px solid #ffd700;
-  outline-offset: 4px;
-  box-shadow:
-    inset 2px 2px 4px rgba(255, 200, 200, 0.2),
-    inset -1px -1px 3px rgba(0, 0, 0, 0.4),
-    0 2px 8px rgba(0, 0, 0, 0.5),
-    0 0 0 3px #6B1515,
-    0 0 0 5px #4A0A0A,
-    0 0 0 8px rgba(0, 0, 0, 0.6);
-}
-
 /* --- Loading state (T027) --- */
 .splash-gate__loading {
   position: absolute;
-  bottom: 12%;
+  bottom: 5%;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -2552,40 +2482,10 @@ body.splash-active #app-shell {
     height: calc(115dvh * 0.75);
     width: calc(115dvh * 1024 / 1250 * 0.37);
   }
-
-  .splash-gate__seal {
-    width: 56px;
-    height: 56px;
-  }
-
-  .splash-gate__parchment-text {
-    left: 15%;
-    right: 15%;
-  }
-}
-
-/* --- Responsive: Tablet (768–1199px) --- */
-@media (min-width: 768px) and (max-width: 1199px) {
-  .splash-gate__seal {
-    width: 64px;
-    height: 64px;
-  }
-}
-
-/* --- Responsive: Ultrawide (2560+) --- */
-@media (min-width: 2560px) {
-  .splash-gate__seal {
-    width: 80px;
-    height: 80px;
-  }
 }
 
 /* --- Accessibility (T008) --- */
 @media (prefers-reduced-motion: reduce) {
-  .splash-gate__seal {
-    animation: none !important;
-  }
-
   .splash-gate__glow {
     animation: none !important;
     filter: none;
@@ -2601,9 +2501,5 @@ body.splash-active #app-shell {
   .splash-gate__body,
   .splash-gate__instruction {
     color: #1a1008;
-  }
-
-  .splash-gate__seal {
-    outline: 2px solid #000;
   }
 }
