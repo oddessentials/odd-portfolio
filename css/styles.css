@@ -2255,6 +2255,10 @@ body.splash-active #app-shell {
   pointer-events: none;
 }
 
+html.splash-pending #app-shell {
+  visibility: hidden;
+}
+
 /* --- Backdrop (T006) --- */
 .splash-gate__backdrop {
   position: absolute;

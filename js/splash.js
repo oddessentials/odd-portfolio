@@ -219,7 +219,7 @@ function setupFocusTrap(rootEl, doorEl) {
       doorEl.click();
     }
   });
-  doorEl.focus();
+  doorEl.focus({ focusVisible: false });
 }
 
 // ---------------------------------------------------------------------------
@@ -304,6 +304,7 @@ export function init(options = {}) {
       // 5. Cleanup
       root.remove();
       document.body.classList.remove('splash-active');
+      document.documentElement.classList.remove('splash-pending');
 
       resolve();
     });

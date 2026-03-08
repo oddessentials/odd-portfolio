@@ -64,6 +64,14 @@
   </script>
 
   <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Prevent FOUC: hide app-shell for first-time visitors before first paint -->
+  <script>
+    try {
+      var d = localStorage.getItem('oe-splash-dismissed');
+      if (!d || JSON.parse(d).v !== 1) document.documentElement.classList.add('splash-pending');
+    } catch(e) { document.documentElement.classList.add('splash-pending'); }
+  </script>
 </head>
 <body>
 

@@ -323,7 +323,7 @@ function collapseTagline(btn) {
 function setInitialFocus() {
   const firstBtn = document.querySelector('#constellation-nav button[data-project-id]');
   if (firstBtn) {
-    firstBtn.focus();
+    firstBtn.focus({ focusVisible: true });
   }
 }
 
