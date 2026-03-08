@@ -1849,6 +1849,14 @@ body.nav-overlay-active .nav-backdrop {
     display: none;
   }
 
+  /* Fix: disable backdrop-filter on mobile to prevent iOS Safari GPU
+     compositing failure over WebGL canvas (causes blank screen) */
+  .overlay__backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(4, 5, 15, 0.92);
+  }
+
   /* T013: Mobile project overlay — full width */
   .overlay__frame {
     width: 100%;
