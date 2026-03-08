@@ -69,7 +69,6 @@
   --splash-bg-center: #1a1510;
   --splash-bg-edge: #0d0b09;
   --splash-text-color: #4A3520;
-  --splash-text-title: #3B2A14;
   --splash-glow-opacity: 0.55;
 
   /* Typography */
@@ -2412,17 +2411,6 @@ body.splash-active #app-shell {
   overflow: hidden;
 }
 
-.splash-gate__title {
-  font-family: var(--font-display);
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: clamp(12px, 6cqi, 22px);
-  color: var(--splash-text-title);
-  margin-bottom: 0.5em;
-  text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
-  letter-spacing: 0.08em;
-}
-
 .splash-gate__body {
   font-family: var(--font-body);
   font-weight: 400;
@@ -2472,10 +2460,6 @@ body.splash-active #app-shell {
   color: #e8d5a3;
 }
 
-.splash-gate--img-failed .splash-gate__title {
-  color: #e8d5a3;
-}
-
 .splash-gate--img-failed .splash-gate__body {
   color: #cdb892;
 }
@@ -2505,7 +2489,6 @@ body.splash-active #app-shell {
 }
 
 @media (prefers-contrast: more) {
-  .splash-gate__title,
   .splash-gate__body {
     color: #1a1008;
   }

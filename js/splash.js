@@ -7,7 +7,6 @@ const STORAGE_KEY = 'oe-splash-dismissed';
 const AUDIO_ENABLED = true;
 
 const SPLASH_CONTENT = {
-  heading: 'Welcome, Traveler',
   body: 'Beyond this door lies a collection of Odd Essentials.'
 };
 
@@ -86,13 +85,10 @@ function buildSplashDOM() {
   const textBlock = document.createElement('div');
   textBlock.id = 'splash-text';
   textBlock.className = 'splash-gate__parchment-text';
-  const h1 = document.createElement('h1');
-  h1.className = 'splash-gate__title';
-  h1.textContent = SPLASH_CONTENT.heading;
   const bodyP = document.createElement('p');
   bodyP.className = 'splash-gate__body';
   bodyP.textContent = SPLASH_CONTENT.body;
-  textBlock.append(h1, bodyP);
+  textBlock.append(bodyP);
 
   // Archway frame overlay (sits on top of door, opening is transparent)
   const archway = document.createElement('picture');
