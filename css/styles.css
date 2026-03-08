@@ -585,16 +585,9 @@ body.nav-overlay-active .nav-backdrop {
     inset 0 -1px 2px rgba(200, 168, 75, 0.15);
 }
 
-/* Left gauge face — 4 equal 90° quadrants + glass dome */
+/* Left gauge face — 4 equal 90° quadrants */
 .frame__gauge--left::before {
   background:
-    /* Glass dome specular highlight (--dome-x/y driven by JS parallax) */
-    radial-gradient(
-      ellipse at calc(35% + var(--dome-x, 0) * 1%) calc(30% + var(--dome-y, 0) * 1%),
-      rgba(255, 255, 255, 0.12) 0%,
-      rgba(255, 255, 255, 0.04) 25%,
-      transparent 55%
-    ),
     /* Glow overlay — active segment pulses via JS-driven custom properties */
     conic-gradient(
       from 315deg,
@@ -614,16 +607,9 @@ body.nav-overlay-active .nav-backdrop {
     );
 }
 
-/* Right gauge face — mirrored 4 equal 90° quadrants + glass dome */
+/* Right gauge face — mirrored 4 equal 90° quadrants */
 .frame__gauge--right::before {
   background:
-    /* Glass dome specular highlight (--dome-x/y driven by JS parallax) */
-    radial-gradient(
-      ellipse at calc(35% + var(--dome-x, 0) * 1%) calc(30% + var(--dome-y, 0) * 1%),
-      rgba(255, 255, 255, 0.12) 0%,
-      rgba(255, 255, 255, 0.04) 25%,
-      transparent 55%
-    ),
     /* Glow overlay — mirrored active segment pulses */
     conic-gradient(
       from 315deg,
@@ -768,6 +754,53 @@ body.nav-overlay-active .nav-backdrop {
 }
 .frame__gauge--right .gauge__bolt--upper { top: 35%; }
 .frame__gauge--right .gauge__bolt--lower { top: 55%; }
+
+/* Glass cover — convex watch-crystal dome over gauge face.
+   Layers (bottom→top): edge darkening, primary specular, secondary
+   reflection, rim catch-light. Parallax reuses --dome-x/--dome-y
+   driven by existing mousemove handler in gauge.js. */
+.gauge__glass {
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  z-index: 4;
+  pointer-events: none;
+  background:
+    /* Primary specular — bright elliptical highlight, upper-left,
+       shifts with mouse via existing --dome-x/--dome-y parallax */
+    radial-gradient(
+      ellipse 55% 45% at calc(32% + var(--dome-x, 0) * 1.5%) calc(28% + var(--dome-y, 0) * 1.5%),
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.06) 35%,
+      transparent 70%
+    ),
+    /* Secondary reflection — dimmer catch-light, lower-right
+       (opposite the primary, as real convex glass produces) */
+    radial-gradient(
+      ellipse 30% 25% at calc(72% - var(--dome-x, 0) * 0.8%) calc(74% - var(--dome-y, 0) * 0.8%),
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(255, 255, 255, 0.02) 40%,
+      transparent 70%
+    ),
+    /* Edge darkening — convex glass refracts light away at rim,
+       creating a characteristic dark ring around the perimeter */
+    radial-gradient(
+      circle at 50% 50%,
+      transparent 52%,
+      rgba(0, 0, 0, 0.12) 72%,
+      rgba(0, 0, 0, 0.28) 88%,
+      rgba(0, 0, 0, 0.40) 100%
+    );
+  /* Rim highlight — thin bright ring where glass edge catches light,
+     plus inner shadow for depth where glass meets the bezel */
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.15),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.20),
+    inset 1px 0 1px rgba(255, 255, 255, 0.06),
+    inset -1px 0 1px rgba(0, 0, 0, 0.10);
+  /* Subtle raised-glass border — barely visible but adds depth */
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
 
 /* --- 6.4 Greek key meander band --- */
 /* Classic meander: 24px × 24px square tile, 6 cols × 6 rows (4px grid).
