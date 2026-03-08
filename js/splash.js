@@ -92,19 +92,7 @@ function buildSplashDOM() {
   const bodyP = document.createElement('p');
   bodyP.className = 'splash-gate__body';
   bodyP.textContent = SPLASH_CONTENT.body;
-  const sigPic = document.createElement('picture');
-  const sigSrc = document.createElement('source');
-  sigSrc.srcset = 'assets/odd-wizard-signature.webp';
-  sigSrc.type = 'image/webp';
-  const sigImg = document.createElement('img');
-  sigImg.src = 'assets/odd-wizard-signature.png';
-  sigImg.alt = 'Odd Essentials';
-  sigImg.className = 'splash-gate__signature';
-  sigImg.width = 256;
-  sigImg.height = 384;
-  sigPic.append(sigSrc, sigImg);
-
-  textBlock.append(h1, bodyP, sigPic);
+  textBlock.append(h1, bodyP);
 
   // Archway frame overlay (sits on top of door, opening is transparent)
   const archway = document.createElement('picture');
@@ -125,6 +113,25 @@ function buildSplashDOM() {
   // peeks through the pointed arch gap above the door
   const innerGlow = document.createElement('div');
   innerGlow.className = 'splash-gate__inner-glow';
+
+  // Wizard desk — deepest layer, visible behind door during swing.
+  // Skipped on mobile to conserve bandwidth.
+  if (window.innerWidth >= 768) {
+    const deskPic = document.createElement('picture');
+    deskPic.className = 'splash-gate__desk';
+    const deskSrc = document.createElement('source');
+    deskSrc.srcset = 'assets/wizard-desk.webp';
+    deskSrc.type = 'image/webp';
+    const deskImg = document.createElement('img');
+    deskImg.src = 'assets/wizard-desk.png';
+    deskImg.alt = '';
+    deskImg.className = 'splash-gate__desk-img';
+    deskImg.setAttribute('aria-hidden', 'true');
+    deskImg.width = 768;
+    deskImg.height = 512;
+    deskPic.append(deskSrc, deskImg);
+    scene.prepend(deskPic);
+  }
 
   doorContainer.append(picture, textBlock);
   scene.append(innerGlow, doorContainer, archway);

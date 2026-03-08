@@ -2305,6 +2305,24 @@ body.splash-active #app-shell {
   background: linear-gradient(to right, transparent 0px, #1a1510 100px, #1a1510 calc(100% - 100px), transparent 100%);
 }
 
+/* --- Wizard desk (deepest layer, visible behind door during swing) --- */
+.splash-gate__desk {
+  position: absolute;
+  top: 35%;
+  bottom: 10%;
+  left: 25%;
+  right: 25%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.splash-gate__desk-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
 /* --- Inner glow (visible through arch gap above door) --- */
 /* Behind the door (z-index: 0) but inside the scene, so it shows through
    any transparent area of the archway not covered by the door. */
@@ -2339,6 +2357,12 @@ body.splash-active #app-shell {
   transform-origin: left center;
   container-type: size;
   cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .splash-gate__door-container {
+    cursor: url('../assets/quill-cursor.png') 2 47, pointer;
+  }
 }
 
 .splash-gate__door-container:focus-visible {
@@ -2409,22 +2433,6 @@ body.splash-active #app-shell {
   text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
 }
 
-.splash-gate__signature {
-  width: clamp(60px, 35cqi, 140px);
-  height: auto;
-  margin-bottom: 0;
-  opacity: 0.85;
-  filter: brightness(0.55);
-}
-
-.splash-gate__instruction {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: clamp(9px, 4cqi, 14px);
-  color: #5C3A1E;
-  margin-top: auto;
-  text-shadow: 0 1px 1px rgba(59, 42, 20, 0.15);
-}
 
 /* --- Loading state (T027) --- */
 .splash-gate__loading {
@@ -2472,10 +2480,6 @@ body.splash-active #app-shell {
   color: #cdb892;
 }
 
-.splash-gate--img-failed .splash-gate__instruction {
-  color: #a08858;
-}
-
 /* --- Responsive: Mobile (<768px) (T007) --- */
 @media (max-width: 767px) {
   .splash-gate__scene {
@@ -2502,8 +2506,7 @@ body.splash-active #app-shell {
 
 @media (prefers-contrast: more) {
   .splash-gate__title,
-  .splash-gate__body,
-  .splash-gate__instruction {
+  .splash-gate__body {
     color: #1a1008;
   }
 }

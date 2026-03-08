@@ -25,11 +25,11 @@
 
 **Purpose**: Generate all optimized web assets from design sources before any code changes
 
-- [ ] T001 [P] Resize `design-assets/door-and-parchment-3.png` (1024x1536) to 768x1152 and save to `assets/chamber-door.png`
-- [ ] T002 [P] Resize `design-assets/odd-wizard-desk.png` (1536x1024) to 768x512 and save to `assets/wizard-desk.png`
-- [ ] T003 [P] Resize `design-assets/odd-wizard-quill.png` (1024x1536) to 48x48 RGBA with LANCZOS and save to `assets/quill-cursor.png`
-- [ ] T004 Generate WebP variant of `assets/chamber-door.png` at quality 80 → `assets/chamber-door.webp`
-- [ ] T005 [P] Generate WebP variant of `assets/wizard-desk.png` at quality 75 → `assets/wizard-desk.webp`
+- [x] T001 [P] Resize `design-assets/door-and-parchment-3.png` (1024x1536) to 768x1152 and save to `assets/chamber-door.png`
+- [x] T002 [P] Resize `design-assets/odd-wizard-desk.png` (1536x1024) to 768x512 and save to `assets/wizard-desk.png`
+- [x] T003 [P] Resize `design-assets/odd-wizard-quill.png` (1024x1536) to 48x48 RGBA with LANCZOS and save to `assets/quill-cursor.png`
+- [x] T004 Generate WebP variant of `assets/chamber-door.png` at quality 80 → `assets/chamber-door.webp`
+- [x] T005 [P] Generate WebP variant of `assets/wizard-desk.png` at quality 75 → `assets/wizard-desk.webp`
 
 **Checkpoint**: All 5 optimized assets ready in `assets/`. Verify dimensions and file sizes match research targets (door ~300KB WebP, desk ~80-100KB WebP, cursor ~2-3KB PNG).
 
@@ -43,11 +43,11 @@
 
 ### Implementation
 
-- [ ] T006 [P] [US2] Remove signature `<picture>` DOM creation (sigPic, sigSrc, sigImg variables and textBlock.append reference) in `js/splash.js`
-- [ ] T007 [P] [US2] Remove `.splash-gate__signature` CSS rule (~6 lines) in `css/styles.css`
-- [ ] T008 [US2] Delete orphaned asset files `assets/odd-wizard-signature.png` and `assets/odd-wizard-signature.webp`
-- [ ] T009 [US1] Verify new door image in `assets/chamber-door.png` (768x1152 RGBA, generated in T001) renders correctly — check `img.width = 768; img.height = 1152` attributes still match in `js/splash.js`
-- [ ] T010 [US1] Visual validation: parchment text ("Welcome, Traveler" + body) is contained within parchment area at ultrawide (5120x1440), desktop (1920x1080), tablet (768px), and mobile (<768px). Adjust `top/left/right/bottom` percentages on `.splash-gate__parchment-text` in `css/styles.css` only if text overflows the parchment area on the new door.
+- [x] T006 [P] [US2] Remove signature `<picture>` DOM creation (sigPic, sigSrc, sigImg variables and textBlock.append reference) in `js/splash.js`
+- [x] T007 [P] [US2] Remove `.splash-gate__signature` CSS rule (~6 lines) in `css/styles.css`
+- [x] T008 [US2] Delete orphaned asset files `assets/odd-wizard-signature.png` and `assets/odd-wizard-signature.webp`
+- [x] T009 [US1] Verify new door image in `assets/chamber-door.png` (768x1152 RGBA, generated in T001) renders correctly — check `img.width = 768; img.height = 1152` attributes still match in `js/splash.js`
+- [x] T010 [US1] Visual validation: parchment text ("Welcome, Traveler" + body) is contained within parchment area at ultrawide (5120x1440), desktop (1920x1080), tablet (768px), and mobile (<768px). Adjust `top/left/right/bottom` percentages on `.splash-gate__parchment-text` in `css/styles.css` only if text overflows the parchment area on the new door.
 
 **Checkpoint**: Door replaced, signature removed, parchment text legible at all viewports. New door is the visual baseline for all subsequent changes.
 
@@ -61,10 +61,10 @@
 
 ### Implementation
 
-- [ ] T011 [US3] Add wizard desk `<picture>` element to the scene in `buildSplashDOM()` in `js/splash.js`. Insert before `innerGlow` in DOM order so desk is the deepest layer. Use `<source srcset="assets/wizard-desk.webp" type="image/webp">` with `<img src="assets/wizard-desk.png">` fallback. Set `aria-hidden="true"`, `class="splash-gate__desk"`, and `pointer-events: none` via attribute.
-- [ ] T012 [US3] Gate desk DOM insertion: wrap the desk `<picture>` creation in `if (window.innerWidth >= 768)` check in `js/splash.js` so mobile devices skip the image entirely (no download, no DOM node).
-- [ ] T013 [US3] Add `.splash-gate__desk` and `.splash-gate__desk-img` CSS rules in `css/styles.css`: position absolute, inset 0, z-index 0 (same as inner-glow — DOM order puts desk behind), object-fit cover (crops landscape desk to portrait opening), pointer-events none, display block.
-- [ ] T014 [US3] Visual validation: (1) desk visible through archway opening during door swing on desktop, (2) desk NOT present in DOM on mobile (<768px), (3) inner glow still overlays the desk with warm atmospheric light, (4) reduced-motion mode skips desk reveal (existing behavior — splash fades without swing).
+- [x] T011 [US3] Add wizard desk `<picture>` element to the scene in `buildSplashDOM()` in `js/splash.js`. Insert before `innerGlow` in DOM order so desk is the deepest layer. Use `<source srcset="assets/wizard-desk.webp" type="image/webp">` with `<img src="assets/wizard-desk.png">` fallback. Set `aria-hidden="true"`, `class="splash-gate__desk"`, and `pointer-events: none` via attribute.
+- [x] T012 [US3] Gate desk DOM insertion: wrap the desk `<picture>` creation in `if (window.innerWidth >= 768)` check in `js/splash.js` so mobile devices skip the image entirely (no download, no DOM node).
+- [x] T013 [US3] Add `.splash-gate__desk` and `.splash-gate__desk-img` CSS rules in `css/styles.css`: position absolute, inset 0, z-index 0 (same as inner-glow — DOM order puts desk behind), object-fit cover (crops landscape desk to portrait opening), pointer-events none, display block.
+- [x] T014 [US3] Visual validation: (1) desk visible through archway opening during door swing on desktop, (2) desk NOT present in DOM on mobile (<768px), (3) inner glow still overlays the desk with warm atmospheric light, (4) reduced-motion mode skips desk reveal (existing behavior — splash fades without swing).
 
 **Checkpoint**: Desk reveals behind door on desktop. Mobile unaffected. Fallback graceful (inner glow shows if desk fails to load).
 
@@ -78,8 +78,8 @@
 
 ### Implementation
 
-- [ ] T015 [US4] Add `@media (hover: hover) and (pointer: fine)` rule in `css/styles.css` that sets `cursor: url('../assets/quill-cursor.png') 2 47, pointer` on `.splash-gate__door-container`. This overrides the existing `cursor: pointer` for fine-pointer devices only.
-- [ ] T016 [US4] Visual validation: (1) quill cursor appears on door hover with mouse, (2) nib hotspot aligns with click point (bottom-left of cursor image), (3) cursor reverts to default outside door container, (4) no cursor change on touch devices, (5) if cursor image fails to load, `pointer` fallback is shown.
+- [x] T015 [US4] Add `@media (hover: hover) and (pointer: fine)` rule in `css/styles.css` that sets `cursor: url('../assets/quill-cursor.png') 2 47, pointer` on `.splash-gate__door-container`. This overrides the existing `cursor: pointer` for fine-pointer devices only.
+- [x] T016 [US4] Visual validation: (1) quill cursor appears on door hover with mouse, (2) nib hotspot aligns with click point (bottom-left of cursor image), (3) cursor reverts to default outside door container, (4) no cursor change on touch devices, (5) if cursor image fails to load, `pointer` fallback is shown.
 
 **Checkpoint**: Quill cursor works on desktop mouse, absent on touch, fallback to pointer on failure.
 
