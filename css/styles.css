@@ -2276,7 +2276,7 @@ html.splash-pending #app-shell {
       rgba(13, 11, 9, 0.5) 50%,
       rgba(4, 5, 15, 0.4) 100%
     ),
-    url('../assets/stone-wall-tile.webp') repeat center / 512px 768px;
+    url('../assets/stone-wall-tile.webp') repeat center / 1024px 1024px;
 }
 
 /* --- Chromatic glow (T015) --- */
