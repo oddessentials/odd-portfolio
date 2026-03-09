@@ -222,10 +222,7 @@ function fadeOutActiveLines(callback) {
     attr: { 'stroke-opacity': 0 },
     duration: 0.4,
     ease: 'power2.in',
-    onComplete: () => {
-      clearActiveLines();
-      if (callback) callback();
-    }
+    onComplete: callback
   });
 }
 

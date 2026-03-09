@@ -6,10 +6,6 @@ const SPLASH_VERSION = 1;
 const STORAGE_KEY = 'oe-splash-dismissed';
 const AUDIO_ENABLED = true;
 
-const SPLASH_CONTENT = {
-  body: 'Beyond this door lies a collection of Odd Essentials.'
-};
-
 const gsap = window.gsap;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let audioBuffer = null;
@@ -49,7 +45,7 @@ function buildSplashDOM() {
   root.setAttribute('role', 'dialog');
   root.setAttribute('aria-modal', 'true');
   root.setAttribute('aria-label', 'Welcome to Odd Essentials');
-  root.setAttribute('aria-describedby', 'splash-text');
+  root.setAttribute('aria-describedby', 'splash-gate');
 
   const backdrop = document.createElement('div');
   backdrop.className = 'splash-gate__backdrop';
@@ -81,14 +77,6 @@ function buildSplashDOM() {
   img.height = 1152;
   img.onerror = () => root.classList.add('splash-gate--img-failed');
   picture.append(source, img);
-
-  const textBlock = document.createElement('div');
-  textBlock.id = 'splash-text';
-  textBlock.className = 'splash-gate__parchment-text';
-  const bodyP = document.createElement('p');
-  bodyP.className = 'splash-gate__body';
-  bodyP.textContent = SPLASH_CONTENT.body;
-  textBlock.append(bodyP);
 
   // Archway frame overlay (sits on top of door, opening is transparent)
   const archway = document.createElement('picture');
@@ -129,7 +117,7 @@ function buildSplashDOM() {
     scene.prepend(deskPic);
   }
 
-  doorContainer.append(picture, textBlock);
+  doorContainer.append(picture);
   scene.append(innerGlow, doorContainer, archway);
   root.append(backdrop, glow, scene);
   return root;
