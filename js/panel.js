@@ -356,39 +356,37 @@ function closeProjectPanel() {
   const mediaZone = overlayEl.querySelector('.overlay__media-zone');
   mediaZone.innerHTML = '';
 
-  // Body style reset — overlay stays visible as a cover during the transition
+  // Restore scroll WHILE body is still position:fixed — scrollTo sets the
+  // underlying document scroll offset without visual movement. When fixed
+  // positioning is then released, the browser already has the correct offset
+  // and avoids the scroll-0 → scroll-N jump that triggers iOS Safari's
+  // compositing layer teardown on the WebGL canvas.
+  overlayEl.setAttribute('hidden', '');
   document.documentElement.style.overflow = '';
-  document.body.style.position = '';
-  document.body.style.width = '';
-  document.body.style.top = '';
+  window.scrollTo(0, _savedScrollTop);
 
-  // Double rAF: iOS Safari needs two frames to commit body style resets
-  // and rebuild compositing layers before scroll restoration is safe.
-  // Single rAF (cdf162c) was insufficient — Safari's rendering pipeline
-  // drops the WebGL canvas compositing layer during the body position thrash.
-  // The overlay stays visible until scrollTo completes to prevent a flash
-  // of scroll-position-0 content during the 2-frame transition window.
+  // Single rAF: release body fixed positioning AFTER scroll is already correct.
+  // One layout thrash instead of three (the root cause of the blank screen).
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      try {
-        window.scrollTo(0, _savedScrollTop);
-        overlayEl.setAttribute('hidden', '');
+    try {
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
 
-        if (window.ScrollTrigger) {
-          window.ScrollTrigger.getAll().forEach(st => st.enable());
-          window.ScrollTrigger.refresh();
-        }
-
-        document.dispatchEvent(new CustomEvent('panel-close'));
-
-        if (triggerElement && typeof triggerElement.focus === 'function') {
-          triggerElement.focus();
-        }
-        triggerElement = null;
-      } finally {
-        _isClosing = false;
+      if (window.ScrollTrigger) {
+        window.ScrollTrigger.getAll().forEach(st => st.enable());
+        window.ScrollTrigger.refresh();
       }
-    });
+
+      document.dispatchEvent(new CustomEvent('panel-close'));
+
+      if (triggerElement && typeof triggerElement.focus === 'function') {
+        triggerElement.focus();
+      }
+      triggerElement = null;
+    } finally {
+      _isClosing = false;
+    }
   });
 }
 
