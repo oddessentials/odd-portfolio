@@ -370,21 +370,24 @@ function closeProjectPanel() {
   // of scroll-position-0 content during the 2-frame transition window.
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      window.scrollTo(0, _savedScrollTop);
-      overlayEl.setAttribute('hidden', '');
-      _isClosing = false;
+      try {
+        window.scrollTo(0, _savedScrollTop);
+        overlayEl.setAttribute('hidden', '');
 
-      if (window.ScrollTrigger) {
-        window.ScrollTrigger.getAll().forEach(st => st.enable());
-        window.ScrollTrigger.refresh();
+        if (window.ScrollTrigger) {
+          window.ScrollTrigger.getAll().forEach(st => st.enable());
+          window.ScrollTrigger.refresh();
+        }
+
+        document.dispatchEvent(new CustomEvent('panel-close'));
+
+        if (triggerElement && typeof triggerElement.focus === 'function') {
+          triggerElement.focus();
+        }
+        triggerElement = null;
+      } finally {
+        _isClosing = false;
       }
-
-      document.dispatchEvent(new CustomEvent('panel-close'));
-
-      if (triggerElement && typeof triggerElement.focus === 'function') {
-        triggerElement.focus();
-      }
-      triggerElement = null;
     });
   });
 }
