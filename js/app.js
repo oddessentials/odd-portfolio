@@ -373,13 +373,8 @@ if (sceneReady) {
     initAutoTierDegradation(pp.composer, pp.bloomPass, pp.customPass);
   }
 
-  // Disable scroll when panel open, re-enable on close
-  document.addEventListener('panel-open', () => {
-    if (ScrollTrigger) ScrollTrigger.getAll().forEach(st => st.disable());
-  });
-  document.addEventListener('panel-close', () => {
-    if (ScrollTrigger) ScrollTrigger.getAll().forEach(st => st.enable());
-  });
+  // ScrollTrigger disable/enable is handled directly in panel.js open/close —
+  // duplicate listeners here caused double-enable without refresh on close.
 
   // T018: Hide right gauge when panel is open
   const gaugeRight = document.querySelector('.frame__gauge--right');
