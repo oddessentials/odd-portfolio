@@ -346,48 +346,41 @@ function closeProjectPanel() {
   if (!overlayEl || overlayEl.hasAttribute('hidden') || _isClosing) return;
   _isClosing = true;
 
-  const videos = overlayEl.querySelectorAll('video');
-  videos.forEach(v => {
-    v.pause();
-    v.removeAttribute('src');
-    v.load();
-  });
+  try {
+    const videos = overlayEl.querySelectorAll('video');
+    videos.forEach(v => {
+      v.pause();
+      v.removeAttribute('src');
+      v.load();
+    });
 
-  const mediaZone = overlayEl.querySelector('.overlay__media-zone');
-  mediaZone.innerHTML = '';
+    const mediaZone = overlayEl.querySelector('.overlay__media-zone');
+    mediaZone.innerHTML = '';
 
-  // Restore scroll WHILE body is still position:fixed — scrollTo sets the
-  // underlying document scroll offset without visual movement. When fixed
-  // positioning is then released, the browser already has the correct offset
-  // and avoids the scroll-0 → scroll-N jump that triggers iOS Safari's
-  // compositing layer teardown on the WebGL canvas.
-  overlayEl.setAttribute('hidden', '');
-  document.documentElement.style.overflow = '';
-  window.scrollTo(0, _savedScrollTop);
+    // Synchronous close: all operations in one tick to prevent ScrollTrigger
+    // desync that caused desktop zone-skip regression. The iOS Safari blank
+    // screen was caused by backdrop-filter (fixed in CSS), not scroll timing.
+    overlayEl.setAttribute('hidden', '');
+    document.documentElement.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
+    window.scrollTo(0, _savedScrollTop);
 
-  // Single rAF: release body fixed positioning AFTER scroll is already correct.
-  // One layout thrash instead of three (the root cause of the blank screen).
-  requestAnimationFrame(() => {
-    try {
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
-
-      if (window.ScrollTrigger) {
-        window.ScrollTrigger.getAll().forEach(st => st.enable());
-        window.ScrollTrigger.refresh();
-      }
-
-      document.dispatchEvent(new CustomEvent('panel-close'));
-
-      if (triggerElement && typeof triggerElement.focus === 'function') {
-        triggerElement.focus();
-      }
-      triggerElement = null;
-    } finally {
-      _isClosing = false;
+    if (window.ScrollTrigger) {
+      window.ScrollTrigger.getAll().forEach(st => st.enable());
+      window.ScrollTrigger.refresh();
     }
-  });
+
+    document.dispatchEvent(new CustomEvent('panel-close'));
+
+    if (triggerElement && typeof triggerElement.focus === 'function') {
+      triggerElement.focus();
+    }
+    triggerElement = null;
+  } finally {
+    _isClosing = false;
+  }
 }
 
 // ---------------------------------------------------------------------------
