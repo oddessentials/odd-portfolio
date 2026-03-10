@@ -318,6 +318,22 @@ function killShowcase() {
 
 // init — SVG container, defs, watermark, wire events (T028-T035)
 function init() {
+  if (window.innerWidth < 768) {
+    // Mobile: no constellation lines. Lazy-init on resize to desktop.
+    window.addEventListener('resize', onResizeDesktop);
+    return;
+  }
+  bootstrapLines();
+}
+
+// Lazy-init constellation lines when viewport grows past mobile width
+function onResizeDesktop() {
+  if (window.innerWidth < 768 || svgContainer) return;
+  window.removeEventListener('resize', onResizeDesktop);
+  bootstrapLines();
+}
+
+function bootstrapLines() {
   const ns = 'http://www.w3.org/2000/svg';
   svgContainer = document.createElementNS(ns, 'svg');
   svgContainer.setAttribute('class', 'constellation-lines');

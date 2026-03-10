@@ -33,6 +33,18 @@ function init({ starNodes: sn, nebulaLayers: nl, nebulaGroup: ng, getCurrentTier
   nebulaGroup = ng;
   getCurrentTier = gt;
   gaugeInit(gt);           // T012-T015: gauge animations, dome parallax, reduced-motion
+  if (isMobileView()) {
+    // Mobile: no scroll zones, tap stars directly. Lazy-init on resize to desktop.
+    window.addEventListener('resize', onResizeDesktop);
+    return;
+  }
+  initScrollZones();
+}
+
+// Lazy-init scroll zones when viewport grows past mobile width (e.g. rotation)
+function onResizeDesktop() {
+  if (isMobileView() || scrollEnabled) return;
+  window.removeEventListener('resize', onResizeDesktop);
   initScrollZones();
 }
 
