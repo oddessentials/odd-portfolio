@@ -1849,6 +1849,11 @@ body.nav-overlay-active .nav-backdrop {
     display: none;
   }
 
+  /* Disable scroll driver on mobile — no scroll zones */
+  #scroll-driver {
+    display: none;
+  }
+
   /* Fix: disable backdrop-filter on mobile to prevent iOS Safari GPU
      compositing failure over WebGL canvas (causes blank screen) */
   .overlay__backdrop {
